@@ -1,3 +1,8 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+.input-hover:hover::placeholder {
+    color: rgba(255, 255, 255, 0.7); /* Hoặc màu bạn muốn */
+}

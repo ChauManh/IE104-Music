@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="stylesheet" href="./src/index.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Spotify Clone</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -10,21 +11,74 @@
   <body class="bg-gray-900 text-white">
     <!-- Sidebar -->
     <div class="flex h-screen">
-        <div class="w-1/5 bg-gray-800 p-4">
-            <h2 class="flex text-lg font-semibold mb-4 items-center">
-              <img src="/Frontend/src/assets/stack.png" alt="" class="w-5 h-5 mr-2">
-              My Library
-              <img src="/Frontend/src/assets/loop.png" alt="" class="w-5 h-5 mr-2 ml-20 hidden">
-              <img src="/Frontend/src/assets/loop.png" alt="" class="w-5 h-5 mr-2 ml-2 hidden">
-            </h2>
-            <ul class="space-y-3"> 
-                <li><a href="#" class="flex text-gray-300 hover:text-white items-center"><img src="/Frontend/src/assets/arrow.png" alt="" class="w-5 h-5 mr-2"> Playlists</a></li>
-                <li><a href="#" class="flex text-gray-300 hover:bg-white items-center"><img src="/Frontend/src/assets/like.png" alt="" class="w-5 h-5 mr-2">Liked Songs</a></li>
-                <li><a href="#" class="flex text-gray-300 hover:text-white items-center"><img src="/Frontend/src/assets/arrow.png" alt="" class="w-5 h-5 mr-2">Saves</a></li>
-                <li><a href="#" class="flex text-gray-300 hover:text-white items-center"><img src="/Frontend/src/assets/arrow.png" alt="" class="w-5 h-5 mr-2">Albums</a></li>
-                <li><a href="#" class="flex text-gray-300 hover:text-white items-center"><img src="/Frontend/src/assets/arrow.png" alt="" class="w-5 h-5 mr-2">Artists</a></li>
-            </ul>
-        </div>
+      <div class="w-1/5 bg-gray-800 p-4">
+        <h2 class="flex text-lg font-semibold mb-4 items-center">
+          <img
+            src="/Frontend/src/assets/stack.png"
+            alt=""
+            class="w-5 h-5 mr-2"
+          />
+          My Library
+          <img
+            src="/Frontend/src/assets/loop.png"
+            alt=""
+            class="w-5 h-5 mr-2 ml-20 hidden"
+          />
+          <img
+            src="/Frontend/src/assets/loop.png"
+            alt=""
+            class="w-5 h-5 mr-2 ml-2 hidden"
+          />
+        </h2>
+        <ul class="space-y-3">
+          <li>
+            <a href="#" class="flex text-gray-300 hover:text-white items-center"
+              ><img
+                src="/Frontend/src/assets/arrow.png"
+                alt=""
+                class="w-5 h-5 mr-2"
+              />
+              Playlists</a
+            >
+          </li>
+          <li>
+            <a href="#" class="flex text-gray-300 hover:bg-white items-center"
+              ><img
+                src="/Frontend/src/assets/like.png"
+                alt=""
+                class="w-5 h-5 mr-2"
+              />Liked Songs</a
+            >
+          </li>
+          <li>
+            <a href="#" class="flex text-gray-300 hover:text-white items-center"
+              ><img
+                src="/Frontend/src/assets/arrow.png"
+                alt=""
+                class="w-5 h-5 mr-2"
+              />Saves</a
+            >
+          </li>
+          <li>
+            <a href="#" class="flex text-gray-300 hover:text-white items-center"
+              ><img
+                src="/Frontend/src/assets/arrow.png"
+                alt=""
+                class="w-5 h-5 mr-2"
+              />Albums</a
+            >
+          </li>
+          <li>
+            <a href="#" class="flex text-gray-300 hover:text-white items-center"
+              ><img
+                src="/Frontend/src/assets/arrow.png"
+                alt=""
+                class="w-5 h-5 mr-2"
+              />Artists</a
+            >
+          </li>
+        </ul>
+      </div>
 
       <!-- Main content -->
       <div class="flex-1 flex flex-col">
@@ -56,8 +110,9 @@
               <span class="text-white">Discover</span>
             </div>
             <!-- Search Bar -->
+            <!-- add sự kiện bấm vào search mới sáng cả search bar -->
             <div
-              class="flex items-center space-x-2 h-[95%] rounded-lg cursor-pointer p-0.5 w-36"
+              class="flex items-center space-x-2 h-[95%] rounded-lg cursor-pointer p-0.5 w-64 transition-opacity duration-200 hover:bg-gray-700"
             >
               <button class="h-[95%]">
                 <a href="#" class="">
@@ -70,8 +125,8 @@
               </button>
               <input
                 type="text"
-                placeholder="Search"
-                class="bg-transparent outline-none text-white placeholder-gray-400 w-full"
+                placeholder="Search..."
+                class="bg-transparent outline-none text-white placeholder-gray-400 w-full transition-opacity duration-200 input-hover pl-2"
               />
             </div>
           </div>
@@ -137,32 +192,31 @@
             <!-- Repeat similar playlist cards -->
           </div>
         </div>
-      </div>
-    </div>
+        <!-- Music Player Bar -->
+        <div class="fixed bottom-0 left-0 w-full bg-gray-800 p-4 z-10">
+          <div class="flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+              <img
+                src="https://via.placeholder.com/50"
+                alt="Album cover"
+                class="rounded"
+              />
+              <div>
+                <h3 class="text-sm font-semibold">Get Lucky</h3>
+                <p class="text-xs text-gray-400">Daft Punk</p>
+              </div>
+            </div>
 
-    <!-- Music Player Bar -->
-    <div class="fixed bottom-0 left-0 w-full bg-gray-800 p-4 z-10">
-      <div class="flex justify-between items-center">
-        <div class="flex items-center space-x-4">
-          <img
-            src="https://via.placeholder.com/50"
-            alt="Album cover"
-            class="rounded"
-          />
-          <div>
-            <h3 class="text-sm font-semibold">Get Lucky</h3>
-            <p class="text-xs text-gray-400">Daft Punk</p>
+            <div class="flex-1 flex justify-center items-center space-x-4">
+              <button class="text-white">⏮</button>
+              <button class="text-white">⏯</button>
+              <button class="text-white">⏭</button>
+            </div>
+
+            <div class="text-sm text-gray-400">
+              <span>2:23</span> / <span>4:45</span>
+            </div>
           </div>
-        </div>
-
-        <div class="flex-1 flex justify-center items-center space-x-4">
-          <button class="text-white">⏮</button>
-          <button class="text-white">⏯</button>
-          <button class="text-white">⏭</button>
-        </div>
-
-        <div class="text-sm text-gray-400">
-          <span>2:23</span> / <span>4:45</span>
         </div>
       </div>
     </div>
