@@ -2,7 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
-
 .input-hover:hover::placeholder {
-    color: rgba(255, 255, 255, 0.7); /* Hoặc màu bạn muốn */
+    color: rgba(255, 255, 255, 0.7);
 }
+
+body {
+    overflow: hidden; /* ẩn chỉ thanh cuộn dọc */
+}
+
+.main-content {
+    height: calc(100vh - 64px); /* Giả sử header có chiều cao 64px, điều chỉnh nếu cần */
+    overflow-y: auto; /* Cho phép cuộn dọc */
+}
+
+::-webkit-scrollbar {
+    display: none; /* Ẩn thanh cuộn trên các trình duyệt hỗ trợ */
+}
+
+.bg-black-translucent {
+    background-color: rgba(0, 0, 0, 0.75); 
+}
+
+.top-sub-navbar {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+    height: auto;
+}
+  
