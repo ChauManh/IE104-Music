@@ -5,9 +5,90 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Spotify Clone</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white">
+    <!-- Sidebar -->
+    <div class="flex h-screen">
+        <div class="w-1/5 bg-gray-800 p-4">
+            <h2 class="text-lg font-semibold mb-4">My Library</h2>
+            <ul class="space-y-3">
+                <li><a href="#" class="block text-gray-300 hover:text-white">Pins</a></li>
+                <li><a href="#" class="block text-gray-300 hover:text-white">Playlists</a></li>
+                <li><a href="#" class="block text-gray-300 hover:text-white">Liked Songs</a></li>
+                <li><a href="#" class="block text-gray-300 hover:text-white">Saves</a></li>
+                <li><a href="#" class="block text-gray-300 hover:text-white">Albums</a></li>
+                <li><a href="#" class="block text-gray-300 hover:text-white">Folders</a></li>
+                <li><a href="#" class="block text-gray-300 hover:text-white">Podcasts</a></li>
+                <li><a href="#" class="block text-gray-300 hover:text-white">Audiobooks</a></li>
+                <li><a href="#" class="block text-gray-300 hover:text-white">Artists</a></li>
+            </ul>
+        </div>
+
+        <!-- Main content -->
+        <div class="flex-1 flex flex-col">
+            <!-- Top Navigation -->
+            <div class="bg-gray-800 p-4 flex justify-between items-center">
+                <div class="flex space-x-6">
+                    <a href="#" class="text-white">Home</a>
+                    <a href="#" class="text-white">Discover</a>
+                    <a href="#" class="text-white">Search</a>
+                </div>
+                <div class="flex space-x-4">
+                    <button class="text-white">User</button>
+                    <button class="text-white">Notifications</button>
+                    <button class="text-white">Settings</button>
+                </div>
+            </div>
+
+            <!-- Playlists and Mixes -->
+            <div class="p-6">
+                <h2 class="text-xl mb-4">Made For You</h2>
+                <div class="grid grid-cols-6 gap-4">
+                    <!-- Playlist Card -->
+                    <div class="bg-gray-700 p-4 rounded-lg">
+                        <img src="https://via.placeholder.com/150" alt="Daily Mix 1" class="rounded mb-2">
+                        <h3 class="text-sm font-semibold">Daily Mix 1</h3>
+                        <p class="text-xs text-gray-400">Linkin Park, System of a Down...</p>
+                    </div>
+                    <!-- Repeat similar playlist cards -->
+                </div>
+
+                <h2 class="text-xl mt-8 mb-4">Your top mixes</h2>
+                <div class="grid grid-cols-6 gap-4">
+                    <!-- Another Playlist Card -->
+                    <div class="bg-gray-700 p-4 rounded-lg">
+                        <img src="https://via.placeholder.com/150" alt="Rock Mix" class="rounded mb-2">
+                        <h3 class="text-sm font-semibold">Rock Mix</h3>
+                        <p class="text-xs text-gray-400">Red Hot Chili Peppers, R.E.M...</p>
+                    </div>
+                    <!-- Repeat similar playlist cards -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Music Player Bar -->
+    <div class="fixed bottom-0 left-0 w-full bg-gray-800 p-4">
+        <div class="flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <img src="https://via.placeholder.com/50" alt="Album cover" class="rounded">
+                <div>
+                    <h3 class="text-sm font-semibold">Get Lucky</h3>
+                    <p class="text-xs text-gray-400">Daft Punk</p>
+                </div>
+            </div>
+
+            <div class="flex-1 flex justify-center items-center space-x-4">
+                <button class="text-white">⏮</button>
+                <button class="text-white">⏯</button>
+                <button class="text-white">⏭</button>
+            </div>
+
+            <div class="text-sm text-gray-400">
+                <span>2:23</span> / <span>4:45</span>
+            </div>
+        </div>
+    </div>
+</body>
 </html>
