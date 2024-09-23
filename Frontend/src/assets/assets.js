@@ -41,7 +41,11 @@ import img16 from './img16.jpg'
 import song1 from  './song1.mp3'
 import song2 from  './song2.mp3'
 import song3 from  './song3.mp3'
-
+import spotify_logo_white from './spotify_logo_white.png'
+import google from './google.png'
+import facebook from './facebook.png'
+import apple from './apple.png'
+import apple_svg from './apple.svg'
 export const assets = {
     bell_icon,
     home_icon,
@@ -66,7 +70,12 @@ export const assets = {
     arrow_left,
     arrow_right,
     spotify_logo,
-    clock_icon
+    clock_icon,
+    spotify_logo_white,
+    google,
+    facebook, 
+    apple,
+    apple_svg
 }
 
 export const albumsData = [
