@@ -84,9 +84,9 @@
       <div
         class="flex justify-between items-center h-16 fixed top-0 right-0 bg-black w-4/5"
       >
-        <div class="flex space-x-4 h-full">
+        <div class="flex space-x-4 h-full pt-1.5">
           <div
-            class="flex items-center space-x-2 transition-opacity duration-200 hover:bg-[#1f1f1f] h-full rounded-md cursor-pointer p-0.5 w-36"
+            class="flex items-center space-x-2 transition-opacity duration-200 hover:bg-[#1f1f1f] h-[80%] rounded-md cursor-pointer p-0.5 w-36"
           >
             <a href="#" class="">
               <img
@@ -98,7 +98,7 @@
             <span class="text-white">Home</span>
           </div>
           <div
-            class="flex items-center space-x-2 transition-opacity duration-200 hover:bg-[#1f1f1f] h-full rounded-md cursor-pointer p-0.5 w-36 hover-brightness"
+            class="flex items-center space-x-2 transition-opacity duration-200 hover:bg-[#1f1f1f] h-[80%] rounded-md cursor-pointer p-0.5 w-36 hover-brightness"
           >
             <a href="#" class="">
               <img
@@ -110,7 +110,7 @@
             <span class="text-white">Discover</span>
           </div>
           <div
-            class="flex items-center space-x-2 h-full rounded-md cursor-pointer p-0.5 w-96 search-container"
+            class="flex items-center space-x-2 h-[80%] rounded-md cursor-pointer p-0.5 w-96 search-container"
           >
             <button class="h-[95%]">
               <img
@@ -132,7 +132,7 @@
           <button class="flex items-center space-x-3 text-white">
             <img
               src="./src/assets/bell.png"
-              alt="Notifications" 
+              alt="Notifications"
               class="h-6 w-6 transition-opacity duration-200 hover:opacity-50 mr-1 ml-1"
             />
           </button>
@@ -150,20 +150,30 @@
               class="h-6 w-6 transition-opacity duration-200 hover:opacity-50 mr-1 ml-1"
             />
           </button>
+          <button
+            class="flex items-center justify-center avatar rounded-full border border-white w-8 h-8 overflow-hidden transition-all duration-200 hover:bg-gray-700 hover:shadow-lg"
+          >
+            <img
+              src="./src/assets/avatar.jpg"
+              alt="Avatar"
+              class="h-full w-full object-cover transition-transform duration-200 hover:scale-110"
+            />
+          </button>
         </div>
       </div>
 
       <!-- Main content -->
-      <div
-        class="flex-1 flex flex-col pt-12 mt-4 w-[80%]" 
-      >
+      <div class="flex-1 flex flex-col pt-12 mt-2 w-[80%]">
+
+        <!-- Border main content-->
         <div class="border border-white border-opacity-20 rounded-lg relative">
+
           <!-- Top-sub-navbar -->
           <div
             class="flex space-x-4 fixed pl-6 bg-black-translucent h-16 items-center ml-0.5 mr-1 w-[77%] rounded-md"
           >
             <button
-              class="flex items-center space-x-2 text-black bg-white rounded-md min-w-4 pl-3 pr-3 pt-2 pb-2 hover:opacity-80" 
+              class="flex items-center space-x-2 text-black bg-white rounded-md min-w-4 pl-3 pr-3 pt-2 pb-2 hover:opacity-80"
             >
               All
             </button>
@@ -271,6 +281,39 @@
                   Red Hot Chili Peppers, R.E.M...
                 </p>
               </div>
+              <div class="bg-gray-700 p-4 rounded-lg">
+                <img
+                  src="./src/assets/img13.jpg"
+                  alt="Rock Mix"
+                  class="rounded mb-2"
+                />
+                <h3 class="text-sm font-semibold">Rock Mix</h3>
+                <p class="text-xs text-gray-400">
+                  Red Hot Chili Peppers, R.E.M...
+                </p>
+              </div>
+              <div class="bg-gray-700 p-4 rounded-lg">
+                <img
+                  src="./src/assets/img14.jpg"
+                  alt="Rock Mix"
+                  class="rounded mb-2"
+                />
+                <h3 class="text-sm font-semibold">Rock Mix</h3>
+                <p class="text-xs text-gray-400">
+                  Red Hot Chili Peppers, R.E.M...
+                </p>
+              </div>
+              <div class="bg-gray-700 p-4 rounded-lg">
+                <img
+                  src="./src/assets/img15.jpg"
+                  alt="Rock Mix"
+                  class="rounded mb-2"
+                />
+                <h3 class="text-sm font-semibold">Rock Mix</h3>
+                <p class="text-xs text-gray-400">
+                  Red Hot Chili Peppers, R.E.M...
+                </p>
+              </div>
             </div>
 
             <!-- Playlists Your favourite artists -->
@@ -290,7 +333,7 @@
 
           <!-- Friends list -->
           <div
-            class="friend_list absolute top-0 right-0 w-[25%] text-white h-full p-4 z-10 border border-white border-opacity-20 rounded-lg hidden"
+            class="friend_list absolute top-0 right-0 w-[25%] text-white h-full p-4 z-10 border border-white border-opacity-20 rounded-lg hidden bg-black"
           >
             <div class="flex justify-between items-center mb-4">
               <h2 class="text-lg font-semibold">Friends Activity</h2>
