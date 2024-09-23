@@ -46,3 +46,43 @@ body {
 .show-friends:focus .icon-show-friends {
     opacity: 0.4;
 }
+
+input[type="range"] {
+    -webkit-appearance:none; /* Ẩn kiểu mặc định */
+    background: transparent; /* Nền trong suốt */
+}
+
+/* Định dạng thanh tiến độ */
+input[type="range"]::-webkit-slider-runnable-track {
+    height: 4px; /* Độ dày của thanh tiến độ */
+    background: #b3b3b3; /* Màu nền thanh tiến độ */
+    border-radius: 5px; /* Bo góc */
+}
+
+input[type="range"]::-moz-range-track {
+    height: 4px; /* Độ dày của thanh tiến độ */
+    background: #b3b3b3; /* Màu nền thanh tiến độ */
+    border-radius: 5px; /* Bo góc */
+}
+
+/* Định dạng thumb */
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; /* Ẩn kiểu mặc định */
+    width: 14px; /* Kích thước thumb */
+    height: 14px; /* Kích thước thumb */
+    background: #1db954; /* Màu của thumb */
+    border-radius: 50%; /* Bo tròn thumb */
+    cursor: pointer;
+    margin-top: -5px; /* Điều chỉnh vị trí */
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.5); /* Bóng đổ cho thumb */
+}
+
+input[type="range"]::-moz-range-thumb {
+    width: 14px; /* Kích thước thumb */
+    height: 14px; /* Kích thước thumb */
+    background: #1db954; /* Màu của thumb */
+    border-radius: 50%; /* Bo tròn thumb */
+    cursor: pointer;
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.5); /* Bóng đổ cho thumb */
+}
+
