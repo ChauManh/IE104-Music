@@ -7,32 +7,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Spotify Clone</title>
     <script src="https://cdn.tailwindcss.com"></script>
+
   </head>
   <body class="bg-black text-white">
     <!-- Sidebar -->
     <div class="flex h-screen">
-      <div class="w-1/5 p-4">
-        <h2 class="flex text-lg font-semibold mb-4 items-center">
+      <div class="w-1/5 p-4 border border-white border-opacity-50 rounded-lg pb-28 pt-1">
+        <h2 class="flex items-center text-lg font-semibold mb-4 p-2 w-full space-x-2 group cursor-pointer">
           <img
             src="/Frontend/src/assets/stack.png"
             alt=""
-            class="w-5 h-5 mr-2"
+            class="w-8 h-8 transition duration-200 group-hover:opacity-100 opacity-70"
           />
-          My Library
-          <img
-            src="/Frontend/src/assets/loop.png"
-            alt=""
-            class="w-5 h-5 mr-2 ml-20 hidden"
-          />
-          <img
-            src="/Frontend/src/assets/loop.png"
-            alt=""
-            class="w-5 h-5 mr-2 ml-2 hidden"
-          />
+          <p class="transition text-red-600 duration-200 group-hover:text-white opacity-70 text-lg pl-5">My Library</p>
+          <div class="ml-auto flex space-x-2 pl-40">
+            <img
+              src="/Frontend/src/assets/loop.png"
+              alt=""
+              class="w-5 h-5 transition duration-200 group-hover:opacity-100 opacity-70"
+            />
+            <img
+              src="/Frontend/src/assets/loop.png"
+              alt=""
+              class="w-5 h-5 transition duration-200 group-hover:opacity-100 opacity-70"
+            />
+          </div>
+          <My>
         </h2>
         <ul class="space-y-3">
-          <li>
-            <a href="#" class="flex text-gray-300 hover:text-white items-center"
+          <li class="pt-2 pb-2 transition-opacity duration-200 hover:bg-gray-900 h-full rounded-md cursor-pointer p-0.5 w-36">
+            <a href="#" class="flex text-gray-300 items-center"
               ><img
                 src="/Frontend/src/assets/arrow.png"
                 alt=""
@@ -41,8 +45,8 @@
               Playlists</a
             >
           </li>
-          <li>
-            <a href="#" class="flex text-gray-300 hover:bg-white items-center"
+          <li class="pt-2 pb-2 transition-opacity duration-200 hover:bg-gray-900 h-full rounded-md cursor-pointer p-0.5 w-36">
+            <a href="#" class="flex text-gray-300 items-center"
               ><img
                 src="/Frontend/src/assets/like.png"
                 alt=""
@@ -50,8 +54,8 @@
               />Liked Songs</a
             >
           </li>
-          <li>
-            <a href="#" class="flex text-gray-300 hover:text-white items-center"
+          <li class="pt-2 pb-2 transition-opacity duration-200 hover:bg-gray-900 h-full rounded-md cursor-pointer p-0.5 w-36">
+            <a href="#" class="flex text-gray-300 items-center"
               ><img
                 src="/Frontend/src/assets/arrow.png"
                 alt=""
@@ -59,8 +63,8 @@
               />Saves</a
             >
           </li>
-          <li>
-            <a href="#" class="flex text-gray-300 hover:text-white items-center"
+          <li class="pt-2 pb-2 transition-opacity duration-200 hover:bg-gray-900 h-full rounded-md cursor-pointer p-0.5 w-36">
+            <a href="#" class="flex text-gray-300 items-center"
               ><img
                 src="/Frontend/src/assets/arrow.png"
                 alt=""
@@ -68,8 +72,8 @@
               />Albums</a
             >
           </li>
-          <li>
-            <a href="#" class="flex text-gray-300 hover:text-white items-center"
+          <li class="pt-2 pb-2">
+            <a href="#" class="flex text-gray-300 items-center"
               ><img
                 src="/Frontend/src/assets/arrow.png"
                 alt=""

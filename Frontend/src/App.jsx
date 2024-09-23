@@ -1,8 +1,11 @@
 import React from 'react'
+import MyLibrary from './components/MyLibrary.jsx'
 
 const App = () => {
   return (
-    <div>App</div>
+    <div className='app'>
+      <MyLibrary/>
+    </div>
   )
 }
 
