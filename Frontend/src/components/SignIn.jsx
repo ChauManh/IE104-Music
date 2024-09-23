@@ -63,7 +63,7 @@ function SignIn() {
             </div>
 
             <button onClick={handleClick}
-                    className='w-full py-3 bg-green-spot text-black font-bold rounded-full hover:bg-[#5ebe80] hover:scale-105 mb-4'>
+                    className='w-full py-3 bg-[#32c967] text-black font-bold rounded-full hover:bg-[#3bef7a] hover:scale-105 mb-4'>
               Log In
             </button>
           </form>
