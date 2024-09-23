@@ -20,6 +20,29 @@ body {
 }
 
 .bg-black-translucent {
-    background-color: rgba(0, 0, 0, 0.75); 
+    background-color: rgba(0, 0, 0, 0.9); 
+}
+
+.hover-brightness {
+    transition: filter 0.3s ease; /* Thêm hiệu ứng chuyển tiếp mượt */
 }
   
+.hover-brightness:hover .bright {
+    filter: brightness(200%); /* Tăng độ sáng lên 150% khi hover */
+}
+  
+.search-container:focus-within {
+    background-color: #1f1f1f; 
+}
+
+.show-friends {
+    transition: background-color 0.3s;
+}
+
+.show-friends:focus .friend_list {
+    display: block;
+}
+
+.show-friends:focus .icon-show-friends {
+    opacity: 0.4;
+}
