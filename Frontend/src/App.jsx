@@ -6,7 +6,7 @@ import SignIn from './components/SignIn'
 const App = () => {
   return (
     <div className='bg-[#121212]'>
-      <SignIn />
+      <SignupForm />
     </div>
   )
 }
