@@ -46,6 +46,7 @@ import google from './google.png'
 import facebook from './facebook.png'
 import apple from './apple.png'
 import apple_svg from './apple.svg'
+
 export const assets = {
     bell_icon,
     home_icon,
@@ -75,7 +76,7 @@ export const assets = {
     google,
     facebook, 
     apple,
-    apple_svg
+    apple_svg,
 }
 
 export const albumsData = [

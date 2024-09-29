@@ -6,7 +6,6 @@ const SignupForm = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Handle form submission logic here
     console.log("Email:", email);
   };
 
@@ -26,10 +25,11 @@ const SignupForm = () => {
           </h1>
         </header>
         <form onSubmit={handleSubmit} className="h-min w-full">
-          <label htmlFor="" className="font-bold">
+          <label htmlFor="email" className="font-bold">
             Email Address
           </label>
           <input
+            id="email"
             type="email"
             placeholder="name@domain.com"
             value={email}
@@ -58,7 +58,7 @@ const SignupForm = () => {
               <img src={assets.google} alt="" className="w-[23px]" />
               <span className="px-12">Sign up with Google</span>
             </button>
-            <button className="flex mb-4 w-full items-center justify-center rounded-full border-[0.5px] bg-transparent py-3 text-[18px] font-medium text-white hover:border-green-300">
+            <button className="mb-4 flex w-full items-center justify-center rounded-full border-[0.5px] bg-transparent py-3 text-[18px] font-medium text-white hover:border-green-300">
               <img src={assets.facebook} alt="" className="w-[23px]" />
               <span className="px-12">Sign up with Google</span>
             </button>
@@ -77,12 +77,8 @@ const SignupForm = () => {
           </div>
         </div>
       </section>
-      <footer>
-
-      </footer>
     </div>
   );
 };
 
 export default SignupForm;
-
