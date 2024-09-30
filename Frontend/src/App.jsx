@@ -1,14 +1,18 @@
-import React from 'react'
-import SignupForm from './components/SignupForm'
-import SignIn from './components/SignIn'
-
+import React from 'react';
+import SideBar from './components/Sidebar';
+import TopNavigation from './components/TopNavigation';
+import MainContent from './components/MainContent';
 
 const App = () => {
   return (
-    <div className='bg-[#121212]'>
-      <SignupForm />
+    <div className="bg-black text-white flex h-screen">
+      <SideBar />
+      <div className="flex-1 flex flex-col">
+        <TopNavigation />
+        <MainContent />
+      </div>
     </div>
-  )
-}
+  );
+};
 
-export default App  
+export default App;
