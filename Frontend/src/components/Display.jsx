@@ -6,7 +6,7 @@ import DisplaySong from './DisplaySong'
 
 const Display = () => { 
   return (
-    <div className='px-6 rounded-3xl bg-[#121212] text-white overflow-auto lg:w-[80%] lg:ml-0 mt-14'>
+    <div className='px-6 rounded-3xl bg-[#121212] text-white overflow-auto lg:w-[60%] lg:ml-0 mt-14'>
         <Routes>
             <Route path='/' element={<DisplayHome/>} />
             <Route path='/album/:id' element={<DisplayAlbum/>} />
