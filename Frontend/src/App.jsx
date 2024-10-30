@@ -5,6 +5,7 @@ import Sidebar from './components/sidebar'
 import Player from './components/Player'
 import Display from './components/Display'
 import TopNav from './components/TopNav'
+import Queue from './components/Queue'
 
 const App = () => {
   return (
@@ -13,6 +14,7 @@ const App = () => {
         <TopNav/>
         <Sidebar/>
         <Display/>
+        <Queue/>
       </div>
       <Player/>
     </div>
