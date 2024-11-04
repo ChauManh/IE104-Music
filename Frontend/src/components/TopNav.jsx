@@ -1,7 +1,9 @@
 import React from "react";
 import { assets } from "../assets/assets";
+import { useNavigate } from "react-router-dom";
 
 const TopNav = () => {
+    const navigate = useNavigate();
   return (
     <div className="fixed left-0 top-0 flex w-full items-center justify-between bg-black p-2 text-white">
       <div className="cursor-pointer pl-3">
@@ -11,7 +13,7 @@ const TopNav = () => {
       </div>
 
       <div className="flex items-center gap-4">
-        <div className="flex cursor-pointer items-center gap-3 rounded-full bg-zinc-800 p-3 transition-transform duration-300 hover:scale-110">
+        <div onClick={()=>navigate('/')} className="flex cursor-pointer items-center gap-3 rounded-full bg-zinc-800 p-3 transition-transform duration-300 hover:scale-110">
           <img className="w-6" src={assets.home_icon} alt="Home" />
         </div>
         <div className="hover: relative">
