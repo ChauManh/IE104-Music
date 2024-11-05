@@ -2,8 +2,9 @@ const express = require('express');
 const morgan = require('morgan');
 const path = require('path');
 const cors = require('cors'); // Cho phép gọi từ frontend
-const db = require('./src/config/db/db')
-const route = require('./src/routes/index')
+const db = require('./config/db/db')
+const route = require('./routes/index')
+const userApi = require('./routes/userApi'); // Ensure the user API routes are correctly imported
 
 // Kết nối DB
 db.connect();
@@ -24,6 +25,7 @@ app.get('/', (req, res) => {
 });
 
 // Gọi route với app
+app.use('/v1/api', userApi); // Ensure the correct base path for the API
 route(app); // Cấu hình các route
 
 // Khởi động server
