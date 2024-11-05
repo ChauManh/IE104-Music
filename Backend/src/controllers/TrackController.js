@@ -14,13 +14,31 @@ class TrackController {
       });
       res.json(response.data); // Trả về dữ liệu track
     } catch (error) {
-      console.error('Error fetching track:', error);
       res.status(500).json({ error: 'Failed to fetch track' });
     }
   }
 
   static async getPopularTracks(req, res) {
+    try {
+      const token = await getSpotifyToken(); 
+      const response = await axios.get('https://api.spotify.com/v1/browse/featured-playlists', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const playlistId = response.data.playlists.items[0].id;
+      const responsePopularTracks = await axios.get(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
+      res.status(200).json(responsePopularTracks.data.items[0]);
+
+    }
+    catch(e) {
+      res.status(500).json({ error: 'Failed to fetch popular tracks' });
+    }
   }
 }
 

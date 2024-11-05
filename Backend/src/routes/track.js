@@ -3,6 +3,7 @@ const TrackController = require('../controllers/TrackController'); // Import Tra
 const router = express.Router();
 
 // Route: Fetch thông tin về track từ Spotify API
+router.get('/popular', TrackController.getPopularTracks)
 router.get('/:id', TrackController.getTrack); // Sử dụng method getTrack từ TrackController
 
 module.exports = router;
