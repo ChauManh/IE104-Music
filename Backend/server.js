@@ -2,8 +2,8 @@ const express = require('express');
 const morgan = require('morgan');
 const path = require('path');
 const cors = require('cors'); // Cho phép gọi từ frontend
-const db = require('./config/db/db'); // Kết nối database nếu cần
-const route = require('./routes/index')
+const db = require('./src/config/db/db')
+const route = require('./src/routes/index')
 
 // Kết nối DB
 db.connect();

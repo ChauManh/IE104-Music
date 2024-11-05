@@ -18,6 +18,10 @@ class TrackController {
       res.status(500).json({ error: 'Failed to fetch track' });
     }
   }
+
+  static async getPopularTracks(req, res) {
+
+  }
 }
 
 module.exports = TrackController;

@@ -1,5 +1,5 @@
 const express = require('express');
-const TrackController = require('../../controllers/TrackController.js'); // Import TrackController
+const TrackController = require('../controllers/TrackController'); // Import TrackController
 const router = express.Router();
 
 // Route: Fetch thông tin về track từ Spotify API
