@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { assets } from '../assets/assets';
+import { useQueue } from '../context/QueueContext';
 
 const Queue = () => {
-  const [queue, setQueue] = useState([]);
+  const { isVisible, queue, setQueue } = useQueue();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -16,8 +17,7 @@ const Queue = () => {
           name: 'Vì Anh Đâu Có Biết',
           artists: [{ name: 'Madihu' }, { name: 'Vũ' }],
           album: { images: [{ url: assets.vianhdaucobiet }] }
-        },
-        // Thêm các bài hát khác nếu cần
+        }
       ];
       setQueue(data);
     };
@@ -26,7 +26,8 @@ const Queue = () => {
   }, []);
 
   return (
-    <div className="top-2 right-0 h-full w-[19.5%] bg-[#121212] flex-col text-white pr-2 pl-4 overflow-y-auto rounded-l-3xl mt-14 shadow-lg ml-2">
+    <div className={` max-h-full min-w-[20%] bg-[#121212] gap-2 flex-col text-white pr-2 pl-2 overflow-y-auto rounded-l-3xl mt-14 shadow-lg ml-2 z-1  ${!isVisible ? 'hidden' : ''}  transform transition-transform duration-300 ease-in-out ${
+  !isVisible ? 'translate-x-full' : 'translate-x-0'} `}>
       <h2 className="font-semibold p-4 text-lg">Queue</h2>
       <div className="bg-[#242424] rounded-xl mb-4">
         <h3 className="text-gray-300 pl-4 pt-2">Now Playing</h3>
@@ -63,5 +64,3 @@ const Queue = () => {
 }
 
 export default Queue;
-
-
