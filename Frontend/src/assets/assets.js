@@ -49,6 +49,7 @@ import apple_svg from './apple.svg'
 import avatar from './avatar.jpg'
 import mongyu from './mongyu.jpg'
 import vianhdaucobiet from './vianhdaucobiet.jpg'
+import arrow_rotate_icon from './arrow_rotate.png'
 
 export const assets = {
     bell_icon,
@@ -83,7 +84,7 @@ export const assets = {
     avatar,
     mongyu,
     vianhdaucobiet,
-
+    arrow_rotate_icon,
 }
 
 export const albumsData = [
