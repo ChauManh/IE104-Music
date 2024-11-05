@@ -1,10 +1,12 @@
 import React, { useContext } from 'react'
 import { assets, songsData } from '../assets/assets'
 import { PlayerContext } from '../context/PlayerContext'
+import { useQueue } from '../context/QueueContext';
 
 const Player = () => {
     const {track,seekBar,seekBg,playStatus,play,pause,time,previous,next,seekSong} = useContext(PlayerContext)
-    
+    const { toggleQueue } = useQueue();
+
   return (
     <div className='h-[10%] bg-black flex justify-between items-center text-white px-4 z-10'>
         <div className='hidden lg:flex items-center gap-4 '>
@@ -38,7 +40,7 @@ const Player = () => {
         <div className='hidden lg:flex items-center gap-2 opacity-75'>
             <img className='w-4' src={assets.plays_icon} alt="" />
             <img className='w-4' src={assets.mic_icon} alt="" />
-            <img className='w-4' src={assets.queue_icon} alt="" />
+            <img className='w-4 cursor-pointer hover: hover:bg-zinc-700 ' onClick={toggleQueue}  src={assets.queue_icon} alt="" />
             <img className='w-4' src={assets.speaker_icon} alt="" />
             <img className='w-4' src={assets.volume_icon} alt="" />
             <div className='w-20 bg-slate-50 h-1 rounded'>
@@ -48,7 +50,7 @@ const Player = () => {
             <img className='w-4' src={assets.zoom_icon} alt="" />
         </div>
     </div>
-  )
-}
+  );
+};
 
-export default Player
+export default Player;

@@ -7,22 +7,25 @@ import Display from './components/Display'
 import TopNav from './components/TopNav'
 import Queue from './components/Queue'
 import { PlayerContext } from './context/PlayerContext'
+import { QueueProvider } from './context/QueueContext';
 
 const App = () => {
 
   const {audioRef,track} = useContext(PlayerContext)
 
   return (
-    <div className='h-screen bg-black'>
-      <div className='h-[90%] flex'>
-        <TopNav/>
-        <Sidebar/>
-        <Display/>
-        <Queue/>
+    <QueueProvider>
+      <div className='h-screen bg-black'>
+        <div className='h-[90%] flex'>
+          <TopNav/>
+          <Sidebar/>
+          <Display/>
+          <Queue/>
+        </div>
+        <Player/>
+        <audio ref={audioRef} src={track.file} preload='auto'></audio>
       </div>
-      <Player/>
-      <audio ref={audioRef} src={track.file} preload='auto'></audio>
-    </div>
+    </QueueProvider>
   );
 };
 

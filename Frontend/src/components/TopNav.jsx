@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 const TopNav = () => {
     const navigate = useNavigate();
   return (
-    <div className="fixed left-0 top-0 flex w-full items-center justify-between bg-black p-2 text-white">
+    <div className="fixed left-0 top-0 flex w-full items-center justify-between bg-black p-2 text-white z-10">
       <div className="cursor-pointer pl-3">
         <a href="http://localhost:5173/">
           <img className="w-10" src={assets.spotify_logo} alt="Logo" />
