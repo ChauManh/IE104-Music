@@ -22,6 +22,9 @@ const PlayListController = {
             const response = await axios.get('https://api.spotify.com/v1/browse/featured-playlists', {
                 headers: {
                     Authorization: `Bearer ${token}`
+                },
+                params: {
+                    limit: 5,
                 }
             });
             res.json(response.data);

@@ -12,7 +12,10 @@ class TrackController {
           Authorization: `Bearer ${token}`, // Sử dụng token để xác thực
         },
       });
-      res.json(response.data); // Trả về dữ liệu track
+      res.json({name: response.data.name,
+        preview_url: response.data.preview_url,
+        uri: response.data.uri
+      }); // Trả về dữ liệu track
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch track' });
     }
@@ -31,13 +34,20 @@ class TrackController {
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        params: {
+          limit: 10,
+        },     
       });
-
-      res.status(200).json(responsePopularTracks.data.items[0]);
-
+      const popularTracks = responsePopularTracks.data.items.map(item => ({
+        name: item.track.name,
+        id: item.track.id,
+        image: item.track.album.images[0].url,
+        singer: item.track.artists[0].name,
+    }));
+      res.status(200).json(popularTracks);
     }
     catch(e) {
-      res.status(500).json({ error: 'Failed to fetch popular tracks' });
+      res.status(500).json({ error: e.message });
     }
   }
 }
