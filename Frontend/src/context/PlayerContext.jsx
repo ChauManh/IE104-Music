@@ -12,6 +12,7 @@ const PlayerContextProvider = (props) => {
         image:'',
         singer:'',
         id:'',
+        audioRef:''
     }
     );
 
@@ -32,7 +33,7 @@ const PlayerContextProvider = (props) => {
     };
 
     const playWithId = async (id) => {
-        await setTrack(songsData[id]);
+        await setTrack(track);
         audioRef.current.play();
         setPlayStatus(true);
     };
