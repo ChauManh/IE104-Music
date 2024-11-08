@@ -1,7 +1,7 @@
 import React, { useContext } from 'react'
-import { assets, songsData } from '../assets/assets'
-import { PlayerContext } from '../context/PlayerContext'
-import { useQueue } from '../context/QueueContext';
+import { assets, songsData } from '../../assets/assets'
+import { PlayerContext } from '../../context/PlayerContext'
+import { useQueue } from '../../context/QueueContext';
 
 const formatTime = (minutes, seconds) => {
     const formattedSeconds = seconds < 10 ? `0${seconds}` : seconds;

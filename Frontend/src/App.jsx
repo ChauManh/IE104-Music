@@ -1,32 +1,69 @@
-import React, { useContext } from 'react'
-import SignupForm from './components/SignupForm'
-import SignIn from './components/SignIn'
-import Sidebar from './components/sidebar'
-import Player from './components/Player'
-import Display from './components/Display'
-import TopNav from './components/TopNav'
-import Queue from './components/Queue'
-import { PlayerContext } from './context/PlayerContext'
-import { QueueProvider } from './context/QueueContext';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { publicRoute, privateRoute } from './routes/route';
+import DefaultLayout from './Layout/DefaultLayout/DefaultLayout';
+import { Fragment } from 'react';
 
-const App = () => {
-
-  const {audioRef,track} = useContext(PlayerContext)
-
+function App() {
+  const isAuthenticated = () => {
+    return localStorage.getItem('access_token') != null;
+  };
   return (
-    <QueueProvider>
-      <div className='h-screen bg-black'>
-        <div className='h-[90%] flex'>
-          <TopNav/>
-          <Sidebar/>
-          <Display/>
-          <Queue/>
-        </div>
-        <Player/>
-        <audio ref={audioRef} src={track.file} preload='auto'></audio>
+    <Router>
+      <div className="App">
+        <Routes>
+          {publicRoute.map((route, index) => {
+            const Page = route.component;
+            let Layout = DefaultLayout;
+
+            if (route.Layout) {
+              Layout = route.Layout;
+            } else if (route.Layout === null) {
+              Layout = Fragment;
+            }
+
+            return (
+              <Route
+                key={index}
+                path={route.path}
+                element={
+                  <Layout>
+                    <Page />
+                  </Layout>
+                }
+              />
+            );
+          })}
+
+          {privateRoute.map((route, index) => {
+            const Page = route.component;
+            let Layout = DefaultLayout;
+
+            if (route.Layout) {
+              Layout = route.Layout;
+            } else if (route.Layout === null) {
+              Layout = Fragment;
+            }
+
+            return (
+              <Route
+                key={index}
+                path={route.path}
+                element={
+                  isAuthenticated() ? (
+                    <Layout>
+                      <Page />
+                    </Layout>
+                  ) : (
+                    <Navigate to="/" replace />
+                  )
+                }
+              />
+            );
+          })}
+        </Routes>
       </div>
-    </QueueProvider>
+    </Router>
   );
-};
+}
 
 export default App;

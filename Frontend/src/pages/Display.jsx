@@ -1,8 +1,8 @@
 import React, {useEffect, useRef} from 'react'
 import { Route, Routes, useLocation } from 'react-router-dom'
-import DisplayHome from './DisplayHome'
-import DisplayAlbum from './DisplayAlbum'
-import DisplaySong from './DisplaySong'
+import DisplayHome from '../components/DisplayHome'
+import DisplayAlbum from '../components/DisplayAlbum'
+import DisplaySong from '../components/DisplaySong'
 
 import { albumsData } from '../assets/assets'
 

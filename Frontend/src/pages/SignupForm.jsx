@@ -1,12 +1,40 @@
 import React, { useState } from "react";
 import { assets } from "../assets/assets";
+import { createUser } from "../util/api";
 
 const SignupForm = () => {
-  const [email, setEmail] = useState("");
+  const [form, setForm] = useState({
+    username: "",
+    email: "",
+    password: "",
+    verifyPassword: "",
+  });
 
-  const handleSubmit = (e) => {
+  const onUpdateField = (e) => {
+    const nextFormState = {
+      ...form,
+      [e.target.name]: e.target.value,
+    };
+    setForm(nextFormState);
+  };
+
+  const handleSignUp = async (e) => {
     e.preventDefault();
-    console.log("Email:", email);
+    // validate;
+    if (form.password !== form.verifyPassword) {
+      alert("Passwords do not match");
+      return;
+    }
+
+    try {
+      const res = await createUser(form.username, form.email, form.password);
+      // navigate('/');
+      alert(res.data.EM);
+    } catch (err) {
+      console.log(err);
+      alert(err.response?.data?.message);
+      return;
+    }
   };
 
   return (
@@ -24,7 +52,7 @@ const SignupForm = () => {
             Sign up to start listening
           </h1>
         </header>
-        <form onSubmit={handleSubmit} className="h-min w-full">
+        <form onSubmit={handleSignUp} className="h-min w-full">
           <label htmlFor="email" className="font-bold">
             Email Address
           </label>
@@ -32,14 +60,38 @@ const SignupForm = () => {
             id="email"
             type="email"
             placeholder="name@domain.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            name="email"
+            onChange={onUpdateField}
             className="focus:ring-white-600 mb-3 mt-3 w-full rounded-md border-[0.5px] bg-transparent px-4 py-3 text-[18px] text-white focus:outline"
             required
           />
-          <a className="font-medium text-[#1ed760] underline" href="#!">
-            Use phone number instead
-          </a>
+          <input
+            id="username"
+            type="text"
+            name="username"
+            placeholder="username"
+            className="focus:ring-white-600 mb-3 mt-3 w-full rounded-md border-[0.5px] bg-transparent px-4 py-3 text-[18px] text-white focus:outline"
+            required
+            onChange={onUpdateField}
+          />
+          <input
+            id="password"
+            type="password"
+            name="password"
+            placeholder="password"
+            className="focus:ring-white-600 mb-3 mt-3 w-full rounded-md border-[0.5px] bg-transparent px-4 py-3 text-[18px] text-white focus:outline"
+            required
+            onChange={onUpdateField}
+          />
+          <input
+            id="verifyPassword"
+            type="password"
+            name="verifyPassword"
+            placeholder="Confirm password"
+            className="focus:ring-white-600 mb-3 mt-3 w-full rounded-md border-[0.5px] bg-transparent px-4 py-3 text-[18px] text-white focus:outline"
+            required
+            onChange={onUpdateField}
+          />
           <button
             type="submit"
             className="mb-6 mt-4 w-full rounded-full bg-green-500 py-4 text-center text-[18px] font-medium text-black hover:bg-green-600"

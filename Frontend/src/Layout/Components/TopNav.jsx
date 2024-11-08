@@ -1,5 +1,10 @@
+<<<<<<< HEAD:Frontend/src/components/TopNav.jsx
 import React, { useState, useRef, useEffect } from "react";
 import { assets } from "../assets/assets";
+=======
+import React from "react";
+import { assets } from "../../assets/assets";
+>>>>>>> b70a09a51b6a49bbeb9dae58798548455469dede:Frontend/src/Layout/Components/TopNav.jsx
 import { useNavigate } from "react-router-dom";
 
 const TopNav = () => {
