@@ -38,7 +38,7 @@ const SignupForm = () => {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center text-white">
+    <div className="flex min-h-screen flex-col items-center text-white bg-black">
       <header>
         <img
           src={assets.spotify_logo_white}

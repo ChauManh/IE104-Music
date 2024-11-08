@@ -27,7 +27,7 @@ const Display = () => {
         <Routes>
             <Route path='/' element={<DisplayHome/>} />
             <Route path='/album/:id' element={<DisplayAlbum/>} />
-            <Route path='/song/:id' element={<DisplaySong/>} />
+            {/* <Route path='/song/:id' element={<DisplaySong/>} /> */}
         </Routes>
     </div>
   )

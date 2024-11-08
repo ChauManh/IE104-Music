@@ -7,7 +7,14 @@ const PlayerContextProvider = (props) => {
     const audioRef = useRef();
     const seekBg = useRef();
     const seekBar = useRef();
-    const [track, setTrack] = useState(songsData[1]);
+    const [track, setTrack] = useState({
+        name:'',
+        image:'',
+        singer:'',
+        id:'',
+    }
+    );
+
     const [playStatus, setPlayStatus] = useState(false);
     const [time, setTime] = useState({
         currentTime: { second: 0, minute: 0 },

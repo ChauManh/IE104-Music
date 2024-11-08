@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import { songsData } from '../assets/assets'
 import SongItem from './SongItem'
 import axios from 'axios'
 

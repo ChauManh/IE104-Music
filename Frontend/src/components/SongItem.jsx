@@ -1,18 +1,23 @@
 import React, { useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
-// import { PlayerContext } from '../context/PlayerContext';
+import { PlayerContext } from '../context/PlayerContext';
 import axios from 'axios';
+
 
 const SongItem = ({ name, image, singer, id }) => {
   // const { playWithId } = useContext(PlayerContext);
-  const navigate = useNavigate();
-
+  const {setTrack}= useContext(PlayerContext);
   const handleClick = async () => {
     try {
-      await axios.get(`http://localhost:3000/track/${id}`);
-
-      navigate(`/track/${id}`);
+      const response = await axios.get(`http://localhost:3000/track/${id}`);
       // playWithId(id); // Có thể gọi playWithId nếu bạn muốn phát nhạc ngay lập tức
+
+      setTrack({
+        name:name,
+        image:image,
+        singer:singer,
+        id:id
+      })
+      
     } catch (error) {
       alert('Error fetching track:', error.message);
     }

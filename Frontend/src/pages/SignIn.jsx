@@ -6,7 +6,7 @@ const handleClick = () => {
 
 function SignIn() {
   return (
-    <div className='flex flex-col items-center w-full min-h-screen py-8 gap-4'>
+    <div className='flex flex-col items-center w-full min-h-screen py-8 gap-4 bg-black'>
       <header>
         <img src="https://storage.googleapis.com/pr-newsroom-wp/1/2023/05/Spotify_Primary_Logo_RGB_White.png"
              alt="spotify" className='w-[50px] h-[50px]' />

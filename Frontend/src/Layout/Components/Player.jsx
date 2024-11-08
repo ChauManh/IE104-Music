@@ -1,5 +1,5 @@
 import React, { useContext } from 'react'
-import { assets, songsData } from '../../assets/assets'
+import { assets } from '../../assets/assets'
 import { PlayerContext } from '../../context/PlayerContext'
 import { useQueue } from '../../context/QueueContext';
 
@@ -15,10 +15,12 @@ const Player = () => {
     <div className='fixed bottom-0 left-0 right-0  max-h-[9.5%]  bg-zinc-900 flex justify-between items-center text-white px-[2vw] z-10'>
         {/* Left  */}
         <div className='hidden lg:flex items-center gap-4 w-[30%] min-h-[100%]'>
-            <img className='mt-2 mb-2 w-14 h-14 min-h-[100%] rounded' src={track.image} alt="" />
+            { track.image ? <
+                img className='mt-2 mb-2 w-14 h-14 min-h-[100%] rounded' src={track.image} alt="" /> : "" }
+            
             <div>
                 <p className='text-sm hover:underline cursor-pointer'>{track.name}</p>
-                <p className='text-xs text-gray-400 hover:underline cursor-pointer'>{track.desc.slice(0,12)}</p>
+                <p className='text-xs text-gray-400 hover:underline cursor-pointer'>{track.singer}</p>
             </div>
         </div>
 
