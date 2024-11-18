@@ -7,24 +7,6 @@ const Queue = () => {
   const { isVisible, queue, currentTrackIndex, setQueue, moveToTop } = useQueue();
   const { track, setTrack } = useContext(PlayerContext);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const data = songsData.map(song => ({
-        name: song.name,
-        artists: [{ name: song.desc }],
-        album: { 
-          images: [{ url: song.image }]
-        },
-        duration: song.duration,
-        file: song.file
-      }));
-      
-      setQueue(data);
-    };
-
-    fetchData();
-  }, []);
-
   const handleTrackClick = (index) => {
     moveToTop(index);
     setTrack(queue[index]);
@@ -40,16 +22,18 @@ const Queue = () => {
       
       {/* Now Playing */}
       <div className="hover:bg-[#333] active:bg-[#555] focus:bg-[#444] cursor-pointer rounded-md mb-4" tabIndex={0}>
-        <h3 className="text-gray-300 pl-4 pt-2">Now Playing</h3>
+      <h3 className="text-gray-300 pl-4 pt-2">Now Playing</h3>
         <div className="flex items-center gap-4 mb-4 p-2">
-          <img src={track.image} alt="Now Playing" className="w-12 h-12 rounded-md" />
+            { track.image ? <
+              img className='mt-2 mb-2 w-14 h-14 min-h-[100%] rounded' src={track.image} alt="" /> : "" }
+            
           <div>
-            <p className='text-[#32c967]'>{track.name}</p>
-            <p className="text-gray-400 text-sm">{track.desc}</p>
-          </div>
+                <p className='text-sm hover:underline cursor-pointer'>{track.name}</p>
+                <p className='text-xs text-gray-400 hover:underline cursor-pointer'>{track.singer}</p>
+            </div>
         </div>
       </div>
-      
+            
       {/* Next in Queue */}
       <div>
         <h3 className="text-gray-300 mb-2 pl-4">Next in Queue</h3>
