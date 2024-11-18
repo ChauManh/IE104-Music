@@ -1,5 +1,5 @@
 const axios = require('axios');
-const { getSpotifyToken} = require('../config/db/getTokenSpotify');
+const { getSpotifyToken } = require('../config/spotify/getTokenSpotify'); // Import hàm lấy token
 
 const PlayListController = {
     async getPlaylistByID(req, res) {

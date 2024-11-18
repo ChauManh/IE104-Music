@@ -1,30 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import AlbumItem from './AlbumItem';
-import axios from 'axios';
+import { fetchNewAlbums } from '../util/api';
 
 const FeaturedCharts = () => {
   const [albumsData, setAlbumData] = useState([]);
 
   useEffect(() => {
-    const fetchNewAlbums = async () => {
+    const loadAlbumsData = async () => {
       try {
-        const response = await axios.get(`http://localhost:3000/album/new`);
-        setAlbumData(response.data);
-
-        // Lưu dữ liệu vào localStorage
-        localStorage.setItem('albumsData', JSON.stringify(response.data));
+        const storedAlbumsData = localStorage.getItem('albumsData');
+        if (storedAlbumsData) {
+          setAlbumData(JSON.parse(storedAlbumsData));
+        } else {
+          const data = await fetchNewAlbums();
+          setAlbumData(data);
+          localStorage.setItem('albumsData', JSON.stringify(data));
+        }
       } catch (error) {
-        alert(error.message);
+        alert(`Error fetching data: ${error.message}`);
       }
     };
 
-    // Kiểm tra dữ liệu trong localStorage trước
-    const storedAlbumsData = localStorage.getItem('albumsData');
-    if (storedAlbumsData) {
-      setAlbumData(JSON.parse(storedAlbumsData));
-    } else {
-      fetchNewAlbums();
-    }
+    loadAlbumsData();
   }, []);
 
   return (
@@ -33,7 +30,7 @@ const FeaturedCharts = () => {
       <div className='flex overflow-auto'>
         {albumsData.length > 0 ? (
           albumsData.map((item, index) => (
-            <AlbumItem key={index} name={item.name} singer={item.singer} id={item.id} image={item.image} />
+            <AlbumItem key={index} name={item.name} singer={item.singer} id={item.id} image={item.image}/>
           ))
         ) : (
           <p>Loading...</p> // Hiển thị loading khi dữ liệu chưa có

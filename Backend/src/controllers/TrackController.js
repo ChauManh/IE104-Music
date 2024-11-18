@@ -1,5 +1,5 @@
 const axios = require('axios');
-const { getSpotifyToken } = require('../config/db/getTokenSpotify'); // Import hàm lấy token
+const { getSpotifyToken } = require('../config/spotify/getTokenSpotify'); // Import hàm lấy token
 
 class TrackController {
   // Lấy thông tin về track theo ID
@@ -12,9 +12,13 @@ class TrackController {
           Authorization: `Bearer ${token}`, // Sử dụng token để xác thực
         },
       });
-      res.json({name: response.data.name,
-        preview_url: response.data.preview_url,
-        uri: response.data.uri
+      res.json({
+        name: response.data.name,
+        id: response.data.id,
+        image: response.data.album.images[0].url,
+        singer: response.data.artists[0].name,
+        uri: response.data.uri,
+        duration: response.data.duration_ms
       }); // Trả về dữ liệu track
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch track' });
@@ -43,6 +47,8 @@ class TrackController {
         id: item.track.id,
         image: item.track.album.images[0].url,
         singer: item.track.artists[0].name,
+        uri: item.track.uri,
+        duration: item.track.duration_ms
     }));
       res.status(200).json(popularTracks);
     }

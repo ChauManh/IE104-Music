@@ -1,31 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import SongItem from './SongItem';
-import axios from 'axios';
+import { fetchPopularTracks } from '../util/api';
 
 const BiggestHits = () => {
   const [tracksData, setTrackData] = useState([]);
 
   useEffect(() => {
-    const fetchPopularTracks = async () => {
+    const loadTracksData = async () => {
       try {
-        // Gọi API để lấy dữ liệu
-        const response = await axios.get(`http://localhost:3000/track/popular`);
-        setTrackData(response.data);
-
-        // Lưu dữ liệu vào localStorage
-        localStorage.setItem('tracksData', JSON.stringify(response.data));
+        const storedTracksData = localStorage.getItem('tracksData');
+        if (storedTracksData && storedTracksData.length > 1) {
+          const parsedData = JSON.parse(storedTracksData);
+          setTrackData(parsedData); // Dữ liệu từ localStorage
+        } else {
+          const data = await fetchPopularTracks(); // Fetch API nếu không có trong localStorage
+          setTrackData(data);
+          localStorage.setItem('tracksData', JSON.stringify(data));
+        }
       } catch (error) {
-        alert(error.message);
+        alert(`Error fetching data: ${error.message}`);
       }
     };
-
-    // Kiểm tra dữ liệu trong localStorage trước
-    const storedTracksData = localStorage.getItem('tracksData');
-    if (storedTracksData) {
-      setTrackData(JSON.parse(storedTracksData));
-    } else {
-      fetchPopularTracks();
-    }
+    loadTracksData();
   }, []);
 
   return (
@@ -34,7 +30,7 @@ const BiggestHits = () => {
       <div className='flex overflow-auto'>
         {tracksData.length > 0 ? (
           tracksData.map((item, index) => (
-            <SongItem key={index} name={item.name} singer={item.singer} id={item.id} image={item.image} />
+            <SongItem key={index} name={item.name} singer={item.singer} id={item.id} image={item.image} uri={item.uri} duration={item.duration} />
           ))
         ) : (
           <p>Loading...</p> // Hiển thị loading khi dữ liệu chưa có

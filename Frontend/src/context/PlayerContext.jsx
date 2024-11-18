@@ -1,135 +1,118 @@
-import { createContext, useEffect, useRef, useState } from "react";
-import { songsData } from "../assets/assets";
+import React, { createContext, useEffect, useState } from "react";
+import axios from "axios";
+// import { getWebPlayBackSDKToken } from "../util/api";
 
 export const PlayerContext = createContext();
 
-const PlayerContextProvider = (props) => {
-    const audioRef = useRef();
-    const seekBg = useRef();
-    const seekBar = useRef();
+const PlayerContextProvider = ({ children }) => {
     const [track, setTrack] = useState({
-        name:'',
-        image:'',
-        singer:'',
-        id:'',
-        audioRef:''
-    }
-    );
-
-    const [playStatus, setPlayStatus] = useState(false);
-    const [time, setTime] = useState({
-        currentTime: { second: 0, minute: 0 },
-        totalTime: { second: 0, minute: 0 }
+        name: '',
+        image: '',
+        singer: '',
+        id: '',
+        uri: '',
+        duration: ''
     });
 
+    const [player, setPlayer] = useState(null);
+    const [playStatus, setPlayStatus] = useState(false);
+    const [deviceId, setDeviceId] = useState(null);
+    const [isDeviceReady, setIsDeviceReady] = useState(false); // Trạng thái chờ
+
+    const token = "BQCyzXCybzsZ2zIZaoFvbCuUlKtQEZjBZ6qiUS5tjpuZIMHqQ_hQQBrq7FYA7WG6N4Dv8spw1rV3QO-J8r_ykF4yh3sYCMGWWmj4rO9oQvxeMeZrw6sz3h3git44APxZlAcgCKsR0Pge1N7iFK7Sk2G6-GNNueNi_VK0j2J3ozdpH2XCvWOLiuvw3mlwXpTM0XZqJCIbxsgHubFmxoY5cGMMW3EwMib4_b9QaOsT"; // Thay bằng token của bạn
+
+    // Cấu hình Web Playback SDK
+    useEffect(() => {
+        const script = document.createElement('script');
+        script.src = 'https://sdk.scdn.co/spotify-player.js';
+        script.async = true;
+        document.body.appendChild(script);
+    
+        window.onSpotifyWebPlaybackSDKReady = () => {
+            const spotifyPlayer = new window.Spotify.Player({
+                name: 'Web Playback SDK',
+                getOAuthToken: cb => cb(token),
+            });
+    
+            spotifyPlayer.addListener('ready', ({ device_id }) => {
+                console.log('Device ready with ID:', device_id);
+                setDeviceId(device_id);
+                setIsDeviceReady(true); // Đã sẵn sàng
+            });
+    
+            spotifyPlayer.connect();
+            setPlayer(spotifyPlayer);
+        };
+        
+        return () => {
+            if (player) {
+                player.disconnect();
+            }
+        };
+    }, []);
+
     const play = () => {
-        audioRef.current.play();
+        player.resume().then(() => {
+            console.log('Resumed!');
+        });
         setPlayStatus(true);
     };
 
     const pause = () => {
-        audioRef.current.pause();
+        player.pause().then(() => {
+            console.log('Paused!');
+        });
         setPlayStatus(false);
     };
 
-    const playWithId = async (id) => {
-        await setTrack(track);
-        audioRef.current.play();
-        setPlayStatus(true);
-    };
-
-    const previous = async () => {
-        if (track.id > 0) {
-            await setTrack(songsData[track.id - 1]);
-        } else {
-            setTrack(songsData[songsData.length - 1]);
+    const playWithUri = async (uri) => {
+        if (!deviceId) {
+            console.log('Device ID not available');
+            return;
         }
-        audioRef.current.play();
-        setPlayStatus(true);
-    };
-
-    const next = async () => {
-        if (track.id < songsData.length - 1) {
-            await setTrack(songsData[track.id + 1]);
-        } else {
-            setTrack(songsData[0]);
-        }
-        audioRef.current.play();
-        setPlayStatus(true);
-    };
-
-    const seekSong = (e) => {
-        if (audioRef.current && audioRef.current.duration) {
-            const seekPosition = (e.nativeEvent.offsetX / seekBg.current.offsetWidth) * audioRef.current.duration;
-            audioRef.current.currentTime = seekPosition;
-            play();
-        }
-    };
-
-    useEffect(() => {
-        const updateTime = () => {
-            if (audioRef.current && audioRef.current.duration) {
-                const currentTime = audioRef.current.currentTime;
-                const duration = audioRef.current.duration;
-                seekBar.current.style.width = `${(currentTime / duration) * 100}%`;
-                setTime({
-                    currentTime: {
-                        second: Math.floor(currentTime % 60),
-                        minute: Math.floor(currentTime / 60)
+    
+        try {
+            await axios.put(
+                `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`,
+                {
+                    uris: [uri], // URI của bài hát
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
                     },
-                    totalTime: {
-                        second: Math.floor(duration % 60),
-                        minute: Math.floor(duration / 60)
-                    }
-                });
-            }
-        };
-
-        // Đảm bảo duration có sẵn sau khi audio tải xong
-        const onLoadedMetadata = () => {
-            setTime((prevTime) => ({
-                ...prevTime,
-                totalTime: {
-                    second: Math.floor(audioRef.current.duration % 60),
-                    minute: Math.floor(audioRef.current.duration / 60)
                 }
-            }));
-        };
-
-        if (audioRef.current) {
-            audioRef.current.addEventListener("loadedmetadata", onLoadedMetadata);
-            audioRef.current.ontimeupdate = updateTime;
+            );
+            setTrack((prevTrack) => ({ ...prevTrack, uri }));
+            setPlayStatus(true);
+        } catch (error) {
+            console.error('Error while playing track with URI:', error);
         }
-
-        return () => {
-            if (audioRef.current) {
-                audioRef.current.removeEventListener("loadedmetadata", onLoadedMetadata);
-                audioRef.current.ontimeupdate = null;
-            }
-        };
-    }, [track]);
+    };
 
     const contextValue = {
-        audioRef,
-        seekBar,
-        seekBg,
         track,
         setTrack,
         playStatus,
         setPlayStatus,
-        time,
-        setTime,
         play,
         pause,
-        playWithId,
-        previous,
-        next,
-        seekSong
+        playWithUri,
+        deviceId,
     };
+
+    if (!isDeviceReady) {
+        return (
+            <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
+                <div className="animate-spin rounded-full h-32 w-32 border-t-4 border-b-4 border-green-500"></div>
+                <p className="mt-4 text-lg font-semibold text-gray-600">Loading...</p>
+            </div>
+        );
+    }
 
     return (
         <PlayerContext.Provider value={contextValue}>
-            {props.children}
+            {children}
         </PlayerContext.Provider>
     );
 };

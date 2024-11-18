@@ -1,5 +1,5 @@
 const axios = require('axios');
-const { getSpotifyToken } = require('../config/db/getTokenSpotify'); // Import getSpotifyToken
+const { getSpotifyToken } = require('../config/spotify/getTokenSpotify'); // Import hàm lấy token
 
 const AlbumController = {
   // Method để fetch new releases

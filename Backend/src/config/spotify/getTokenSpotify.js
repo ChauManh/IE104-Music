@@ -29,7 +29,7 @@ const getSpotifyToken = async () => {
     token = response.data.access_token;
     tokenExpiresAt = Date.now() + (response.data.expires_in * 1000); // Thời gian hết hạn là seconds
 
-    console.log('Successfully fetched Spotify access token:', token);
+    console.log('Successfully fetched Spotify access token:', response.data);
     return token;
   } catch (error) {
     console.error('Error fetching Spotify access token:', error);

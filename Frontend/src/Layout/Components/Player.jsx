@@ -59,7 +59,7 @@ const Player = () => {
             </div>
 
             {/* PlayBar */}
-            <div className='mb-2 flex items-center gap-2 w-full group'>
+            {/* <div className='mb-2 flex items-center gap-2 w-full group'>
                 <span className='text-xs text-gray-400 w-10 text-right'>
                     {formatTime(time.currentTime.minute, time.currentTime.second)}
                 </span>
@@ -83,7 +83,7 @@ const Player = () => {
                 <span className='text-xs text-gray-400 w-10'>
                     {formatTime(time.totalTime.minute, time.totalTime.second)}
                 </span>
-            </div>
+            </div> */}
         </div>
 
         {/* Right */}
