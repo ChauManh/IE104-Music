@@ -8,8 +8,18 @@ const formatTime = (minutes, seconds) => {
     return `${minutes}:${formattedSeconds}`;
 };
 const Player = () => {
-    const { track, seekBar, seekBg, playStatus, play, pause, time, previous, next, seekSong } = useContext(PlayerContext)
-    const { toggleQueue } = useQueue();
+    const {  track,  seekBar,  seekBg,  playStatus,  play,  pause,  time,  previous,  next,  seekSong  } = useContext(PlayerContext);
+    const { toggleQueue, moveToNext, moveToPrevious } = useQueue();
+
+    const handleNext = () => {
+        moveToNext();
+        next();
+    };
+
+    const handlePrevious = () => {
+        moveToPrevious();
+        previous();
+    };
 
   return (
     <div className='fixed bottom-0 left-0 right-0  max-h-[9.5%]  bg-zinc-900 flex justify-between items-center text-white px-[2vw] z-10'>
@@ -33,7 +43,7 @@ const Player = () => {
                     alt="" 
                 />
                 <img 
-                    onClick={previous} 
+                    onClick={handlePrevious} 
                     className='w-4 h-4 cursor-pointer opacity-70 hover:opacity-100 transition-all' 
                     src={assets.prev_icon} 
                     alt="" 
@@ -46,7 +56,7 @@ const Player = () => {
                     )}
                 </div>
                 <img 
-                    onClick={next} 
+                    onClick={handleNext} 
                     className='w-4 h-4 cursor-pointer opacity-70 hover:opacity-100 transition-all' 
                     src={assets.next_icon} 
                     alt="" 
