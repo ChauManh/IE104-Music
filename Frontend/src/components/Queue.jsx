@@ -1,5 +1,4 @@
 import React, { useEffect, useContext } from 'react';
-import { assets, songsData } from '../assets/assets';
 import { useQueue } from '../context/QueueContext';
 import { PlayerContext } from '../context/PlayerContext';
 

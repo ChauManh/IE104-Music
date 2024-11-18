@@ -1,10 +1,24 @@
 import React, { createContext, useEffect, useState } from "react";
 import axios from "axios";
-// import { getWebPlayBackSDKToken } from "../util/api";
+import { getWebPlayBackSDKToken } from "../util/api"
 
+// import { getWebPlayBackSDKToken } from "../util/api";
+const token = "BQDJzKq9gITQ-ZOO4l2-1bBpziK1WGt0jeD8Og6Y0B7H-X2kfUcPMykz-HSeIlbBxb_u3C0pfOaV5YfScElpBFz_UoY4toU6u5iTCsYW-2OXw-rpIA4e674g4Y2TkeotkxJg6JBPoCwb2QwIysSNFsS6QmWjLttgZ2xkAnB3bTUxdPUgdCPrHk3xSpQQrh2gS-eQf8XxLwc-s4gJoAAY-8j7-pYiH4N3obQilzDJ";
 export const PlayerContext = createContext();
 
 const PlayerContextProvider = ({ children }) => {
+    // const [token, setToken] = useState(null);
+    // useEffect(() => {
+    //     const fetchToken = async () => {
+    //         try {
+    //             const fetchedToken = await getWebPlayBackSDKToken();
+    //         } catch (error) {
+    //             console.error("Error fetching token:", error);
+    //         }
+    //     };
+    //     fetchToken();
+    // }, []);
+    
     const [track, setTrack] = useState({
         name: '',
         image: '',
@@ -19,7 +33,6 @@ const PlayerContextProvider = ({ children }) => {
     const [deviceId, setDeviceId] = useState(null);
     const [isDeviceReady, setIsDeviceReady] = useState(false); // Trạng thái chờ
 
-    const token = "BQCyzXCybzsZ2zIZaoFvbCuUlKtQEZjBZ6qiUS5tjpuZIMHqQ_hQQBrq7FYA7WG6N4Dv8spw1rV3QO-J8r_ykF4yh3sYCMGWWmj4rO9oQvxeMeZrw6sz3h3git44APxZlAcgCKsR0Pge1N7iFK7Sk2G6-GNNueNi_VK0j2J3ozdpH2XCvWOLiuvw3mlwXpTM0XZqJCIbxsgHubFmxoY5cGMMW3EwMib4_b9QaOsT"; // Thay bằng token của bạn
 
     // Cấu hình Web Playback SDK
     useEffect(() => {

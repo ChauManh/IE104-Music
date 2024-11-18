@@ -42,13 +42,14 @@ const fetchNewAlbums = async () => {
     }
   };
 
-// const getWebPlayBackSDKToken = async () => {
-//     try {
-//         const response = await axios.get("http://localhost:3000/api/webplaybacksdk/gettoken");
-//         return response.data;
-//     } catch (error) {
-//         alert(error.message);
-//     }
-// }
+const getWebPlayBackSDKToken = async () => {
+    try {
+        const response = await axios.get("http://localhost:3000/api/webplaybacksdk/gettoken");
+        console.log("token", response.data.token)
+        return response.data.token;
+    } catch (error) {
+        alert(error.message);
+    }
+}
 
-export { createUser, fetchPopularTracks, fetchNewAlbums, getTrack };
+export { createUser, fetchPopularTracks, fetchNewAlbums, getTrack, getWebPlayBackSDKToken };
