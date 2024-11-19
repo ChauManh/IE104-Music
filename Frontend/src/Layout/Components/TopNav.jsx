@@ -7,6 +7,10 @@ const TopNav = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
+  const handleLoginRedirect = () => {
+    // Điều hướng tới backend
+    window.location.href = "http://localhost:3000/auth/login";
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -65,6 +69,7 @@ const TopNav = () => {
             </div>
             <div className="border-t border-gray-700">
               <a
+                onClick={() => handleLoginRedirect()}
                 href="#"
                 className="block px-4 py-2 text-sm text-gray-300 hover:bg-[#3E3E3E]"
               >

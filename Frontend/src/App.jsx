@@ -7,6 +7,7 @@ function App() {
   const isAuthenticated = () => {
     return localStorage.getItem('access_token') != null;
   };
+  
   return (
     <Router>
       <div className="App">

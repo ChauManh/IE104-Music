@@ -3,21 +3,10 @@ import axios from "axios";
 import { getWebPlayBackSDKToken } from "../util/api"
 
 // import { getWebPlayBackSDKToken } from "../util/api";
-const token = "BQDJzKq9gITQ-ZOO4l2-1bBpziK1WGt0jeD8Og6Y0B7H-X2kfUcPMykz-HSeIlbBxb_u3C0pfOaV5YfScElpBFz_UoY4toU6u5iTCsYW-2OXw-rpIA4e674g4Y2TkeotkxJg6JBPoCwb2QwIysSNFsS6QmWjLttgZ2xkAnB3bTUxdPUgdCPrHk3xSpQQrh2gS-eQf8XxLwc-s4gJoAAY-8j7-pYiH4N3obQilzDJ";
+const token = "BQBapOXAF_apF8gLPNNYnwqfO6pdMKD6vAS0CDWnbxeK0WvSF44rsOSRdCV3Q_rO3ZSR_UZTHiwLQNRiL3z3sKfSwrjfSD9vyCj51H1xnxcMCtfzJ6FCCDCX8GengEfVmBCXqI97lvpuheznnNqxHDru62G7BHnoEQ8oC8ojjjbgfV-q3E2TyMyItAT1DVT9wk0uweF15gwNVZbOSTsjukDqbhF8Cno63kdOYHE7";
 export const PlayerContext = createContext();
 
 const PlayerContextProvider = ({ children }) => {
-    // const [token, setToken] = useState(null);
-    // useEffect(() => {
-    //     const fetchToken = async () => {
-    //         try {
-    //             const fetchedToken = await getWebPlayBackSDKToken();
-    //         } catch (error) {
-    //             console.error("Error fetching token:", error);
-    //         }
-    //     };
-    //     fetchToken();
-    // }, []);
     
     const [track, setTrack] = useState({
         name: '',
@@ -42,19 +31,21 @@ const PlayerContextProvider = ({ children }) => {
         document.body.appendChild(script);
     
         window.onSpotifyWebPlaybackSDKReady = () => {
-            const spotifyPlayer = new window.Spotify.Player({
+            const player = new window.Spotify.Player({
                 name: 'Web Playback SDK',
-                getOAuthToken: cb => cb(token),
+                getOAuthToken: cb => { cb(token); },
+                volume: 0.1
             });
+
+            setPlayer(player);
     
-            spotifyPlayer.addListener('ready', ({ device_id }) => {
+            player.addListener('ready', ({ device_id }) => {
                 console.log('Device ready with ID:', device_id);
                 setDeviceId(device_id);
                 setIsDeviceReady(true); // Đã sẵn sàng
             });
-    
-            spotifyPlayer.connect();
-            setPlayer(spotifyPlayer);
+
+            player.connect();
         };
         
         return () => {
@@ -98,6 +89,18 @@ const PlayerContextProvider = ({ children }) => {
             );
             setTrack((prevTrack) => ({ ...prevTrack, uri }));
             setPlayStatus(true);
+                player.getCurrentState().then(state => {
+                    if (!state) {
+                    console.error('User is not playing music through the Web Playback SDK');
+                    return;
+                    }
+                
+                    var current_track = state.track_window.current_track;
+                    var next_track = state.track_window.next_tracks[0];
+                
+                    console.log('Currently Playing', current_track);
+                    console.log('Playing Next', next_track);
+                });
         } catch (error) {
             console.error('Error while playing track with URI:', error);
         }

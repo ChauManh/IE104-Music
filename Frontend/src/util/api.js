@@ -44,12 +44,24 @@ const fetchNewAlbums = async () => {
 
 const getWebPlayBackSDKToken = async () => {
     try {
-        const response = await axios.get("http://localhost:3000/api/webplaybacksdk/gettoken");
+        const response = await axios.get("http://localhost:3000/auth/login");
         console.log("token", response.data.token)
         return response.data.token;
     } catch (error) {
         alert(error.message);
     }
-}
+};
 
-export { createUser, fetchPopularTracks, fetchNewAlbums, getTrack, getWebPlayBackSDKToken };
+const getRefreshToken = async (refreshToken) => {
+    try {
+        const response = await axios.get("http://localhost:3000/auth/refresh_token");
+        console.log("refresh token", response.data.token)
+        return response.data.token;
+    } catch (error) {
+        alert(error.message);
+    }
+};
+
+
+
+export { createUser, fetchPopularTracks, fetchNewAlbums, getTrack, getWebPlayBackSDKToken, getRefreshToken };
