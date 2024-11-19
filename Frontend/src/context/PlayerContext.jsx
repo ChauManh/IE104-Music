@@ -4,7 +4,7 @@ import { getWebPlayBackSDKToken } from "../util/api";
 
 // import { getWebPlayBackSDKToken } from "../util/api";
 const token =
-  "BQDsrfO1B9wqUaLZIIC51QC9x2dohlSwKMopNEJVjnUww4n5gE4blz0Ci5y6SBXZe4C9vhmveRZBJYRQQLONHmIHeX8fLfQ0Ckl48KNBRRmFXTq_4PLK3WCMLDJV7qrYiByO-LGIIG6nuB0WNZKHphKWr1XATy1EL_7ewZ8uOdTw3-y2yYn2YAjse2D84F9dZrYWFrcQ15BYm8kTpQGDZ5iLk9f0CAKGX4ReufqC";
+  "BQDHYMGDJ8gBFDM7uHc6GKZjzFiKr2jD77gcbGhPBz1UabFFXDPe5CoWIBng6f3oVJ7G2rXgDAyFNpEo4ppoUYOk8fGyhEuFty11VeuCf_fKP8IdI6ftHZ9Be-81hM4jKpJhTu4Xc8EpJ7CYJyVQg41Ga0nLMsTtix0E-ZJaCpnP5EhvbiOXMHwMOHXumvRib2XViUotvSYhLjzGopM-yoooAdbzZ52i1AMi9bhf";
 export const PlayerContext = createContext();
 
 const PlayerContextProvider = ({ children }) => {
@@ -14,7 +14,7 @@ const PlayerContextProvider = ({ children }) => {
     singer: "",
     id: "",
     uri: "",
-    duration: "",   
+    duration: "",
   });
 
   const [player, setPlayer] = useState(null);
@@ -35,7 +35,7 @@ const PlayerContextProvider = ({ children }) => {
         getOAuthToken: (cb) => {
           cb(token);
         },
-        volume: 0.1,
+        volume: 0.5,
       });
 
       setPlayer(player);

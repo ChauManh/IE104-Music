@@ -1,31 +1,18 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import { assets } from "../../assets/assets";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import Search from "../../components/Search";
 
 const TopNav = () => {
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const [query, setQuery] = useState("");
 
-  const handleLoginRedirect = () => {
-    window.location.href = "http://localhost:3000/auth/login";
+  const handleSearch = (e) => {
+    e.preventDefault();
+    navigate(`/search?q=${query}`);
   };
-
-  const handleLogout = () => {
-    localStorage.removeItem('access_token');
-    navigate('/signin');
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   return (
     <div className="fixed left-0 top-0 z-10 flex w-full items-center justify-between bg-black p-2 text-white">
@@ -48,11 +35,15 @@ const TopNav = () => {
             alt="Search"
             className="absolute left-3 top-3 w-6 cursor-pointer"
           />
-          <input
-            type="text"
-            placeholder="Tìm kiếm..."
-            className="h-12 w-96 rounded-l-full rounded-r-full bg-zinc-800 pl-12 text-white hover:bg-zinc-700"
-          />
+          <form onSubmit={handleSearch}>
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Tìm kiếm..."
+              className="h-12 w-96 rounded-l-full rounded-r-full bg-zinc-800 pl-12 text-white hover:bg-zinc-700"
+            />
+          </form>
         </div>
       </div>
 
