@@ -3,7 +3,9 @@ import axios from 'axios';
 
 const Search = () => {
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState([]);
+  const [tracks, setTracks] = useState([]);
+  const [albums, setAlbums] = useState([]);
+  const [artists, setArtists] = useState([]);
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -13,10 +15,13 @@ const Search = () => {
       const response = await axios.get(`http://localhost:3000/search`, {
         params: {
           q: query,
-          type: 'track', // You can change this to 'album', 'artist', or 'playlist'
+          type: 'track,album,artist', // Search for tracks, albums, and artists
         },
       });
-      setResults(response.data.tracks.items); // Adjust based on the type of search
+
+      setTracks(response.data.tracks.items);
+      setAlbums(response.data.albums.items);
+      setArtists(response.data.artists.items);
     } catch (error) {
       console.error('Error fetching search results:', error);
     }
@@ -34,11 +39,31 @@ const Search = () => {
         <button type="submit">Search</button>
       </form>
       <div>
-        {results.map((item) => (
+        <h2>Tracks</h2>
+        {tracks.map((item) => (
           <div key={item.id}>
             <img src={item.album.images[0].url} alt={item.name} />
             <p>{item.name}</p>
             <p>{item.artists[0].name}</p>
+          </div>
+        ))}
+      </div>
+      <div>
+        <h2>Albums</h2>
+        {albums.map((item) => (
+          <div key={item.id}>
+            <img src={item.images[0].url} alt={item.name} />
+            <p>{item.name}</p>
+            <p>{item.artists[0].name}</p>
+          </div>
+        ))}
+      </div>
+      <div>
+        <h2>Artists</h2>
+        {artists.map((item) => (
+          <div key={item.id}>
+            <img src={item.images[0]?.url} alt={item.name} />
+            <p>{item.name}</p>
           </div>
         ))}
       </div>
