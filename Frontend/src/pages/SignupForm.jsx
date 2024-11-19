@@ -1,8 +1,10 @@
 import React, { useState } from "react";
+import { useNavigate, Link, BrowserRouter as Router, Routes, Route } from "react-router-dom"; // Add this import
 import { assets } from "../assets/assets";
 import { createUser } from "../util/api";
 
 const SignupForm = () => {
+  const navigate = useNavigate(); // Add navigate hook
   const [form, setForm] = useState({
     username: "",
     email: "",
@@ -28,8 +30,8 @@ const SignupForm = () => {
 
     try {
       const res = await createUser(form.username, form.email, form.password);
-      // navigate('/');
       alert(res.data.EM);
+      navigate('/'); // Navigate to home after successful signup
     } catch (err) {
       console.log(err);
       alert(err.response?.data?.message);
@@ -122,9 +124,9 @@ const SignupForm = () => {
           <div className="flex justify-center">
             <p className="mt-6 text-gray-400">
               Already have an account?{" "}
-              <a href="/login" className="text-white underline">
+              <Link to="/signin" className="text-white underline">
                 Log in here
-              </a>
+              </Link>
             </p>
           </div>
         </div>

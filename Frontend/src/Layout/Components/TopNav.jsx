@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { assets } from "../../assets/assets";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 const TopNav = () => {
   const navigate = useNavigate();
@@ -8,8 +8,12 @@ const TopNav = () => {
   const dropdownRef = useRef(null);
 
   const handleLoginRedirect = () => {
-    // Điều hướng tới backend
     window.location.href = "http://localhost:3000/auth/login";
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('access_token');
+    navigate('/signin');
   };
 
   useEffect(() => {
@@ -24,7 +28,7 @@ const TopNav = () => {
   }, []);
 
   return (
-    <div className="fixed left-0 top-0 flex w-full items-center justify-between bg-black p-2 text-white z-10">
+    <div className="fixed left-0 top-0 z-10 flex w-full items-center justify-between bg-black p-2 text-white">
       <div className="cursor-pointer pl-3">
         <a href="http://localhost:5173/">
           <img className="w-10" src={assets.spotify_logo} alt="Logo" />
@@ -60,7 +64,6 @@ const TopNav = () => {
           <img className="w-8 rounded-full" src={assets.avatar} alt="Home" />
         </div>
 
-
         {isDropdownOpen && (
           <div className="absolute right-0 top-12 w-48 rounded-md bg-[#282828] py-1 shadow-lg ring-1 ring-black ring-opacity-5 transition-all">
             <div className="px-4 py-3">
@@ -89,12 +92,13 @@ const TopNav = () => {
               </a>
             </div>
             <div className="border-t border-gray-700">
-              <a
-                href="#"
+              <Link
+                to="/signin"
                 className="block px-4 py-2 text-sm text-gray-300 hover:bg-[#3E3E3E]"
+                onClick={handleLogout}
               >
                 Log out
-              </a>
+              </Link>
             </div>
           </div>
         )}

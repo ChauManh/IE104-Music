@@ -42,50 +42,58 @@ const createUserService = async (name, email, password) => {
     }
 }
 
-const loginService = async (email1, password) => {
+const loginService = async (emailOrUsername, password) => {
     try {
-        //fetch user by email
-        const user = await User.findOne({ email: email1 });
-        if (user) {
-            //compare password
-            const isMatchPassword = await bcrypt.compare(password, user.password);
-            if (!isMatchPassword) {
-                return {
-                    EC: 2,
-                    EM: "Email/Password không hợp lệ"
-                }
-            } else {
-                //create an access token
-                const payload = {
-                    email: user.email,
-                    name: user.name
-                }
+        // Check for user by email or username
+        const user = await User.findOne({
+            $or: [
+                { email: emailOrUsername },
+                { name: emailOrUsername }
+            ]
+        });
 
-                const access_token = jwt.sign(
-                    payload,
-                    process.env.JWT_SECRET,
-                    {
-                        expiresIn: process.env.JWT_EXPIRE
-                    }
-                )
-                return {
-                    EC: 0,
-                    access_token,
-                    user: {
-                        email: user.email,
-                        name: user.name
-                    }
-                };
-            }
-        } else {
+        if (!user) {
             return {
                 EC: 1,
-                EM: "Email/Password không hợp lệ"
+                EM: "User not found"
             }
         }
+
+        // Compare password
+        const isMatchPassword = await bcrypt.compare(password, user.password);
+        if (!isMatchPassword) {
+            return {
+                EC: 2,
+                EM: "Invalid password"
+            }
+        }
+
+        // Create access token
+        const payload = {
+            email: user.email,
+            name: user.name
+        }
+
+        const access_token = jwt.sign(
+            payload,
+            process.env.JWT_SECRET,
+            { expiresIn: '24h' }
+        );
+
+        // Return successful response
+        return {
+            EC: 0,
+            EM: "Login successful",
+            access_token,
+            user: {
+                email: user.email,
+                name: user.name
+            }
+        };
+
     } catch (error) {
-        console.log(error);
-        return null;
+        console.error("Login service error:", error);
+        throw error; // Let controller handle the error
     }
 }
 

@@ -35,12 +35,12 @@ const fetchPopularTracks = async () => {
 
 const fetchNewAlbums = async () => {
     try {
-      const response = await axios.get(`http://localhost:3000/album/new`);
-      return response.data;
+        const response = await axios.get(`http://localhost:3000/album/new`);
+        return response.data;
     } catch (error) {
-      alert(error.message);
+        alert(error.message);
     }
-  };
+};
 
 const getWebPlayBackSDKToken = async () => {
     try {
@@ -62,6 +62,17 @@ const getRefreshToken = async (refreshToken) => {
     }
 };
 
+const login = async (email, password) => {
+    try {
+        const response = await axios.post("http://localhost:3000/v1/api/login", {
+            email,
+            password
+        });
+        return response.data;
+    } catch (error) {
+        console.error("API login error:", error);
+        throw error;
+    }
+};
 
-
-export { createUser, fetchPopularTracks, fetchNewAlbums, getTrack, getWebPlayBackSDKToken, getRefreshToken };
+export { createUser, fetchPopularTracks, fetchNewAlbums, getTrack, getWebPlayBackSDKToken, getRefreshToken, login };
