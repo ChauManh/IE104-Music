@@ -44,9 +44,10 @@ const fetchNewAlbums = async () => {
 
 const getWebPlayBackSDKToken = async () => {
     try {
-        const response = await axios.get("http://localhost:3000/auth/login");
-        console.log("token", response.data.token)
-        return response.data.token;
+        const response = await axios.get("/auth/login");
+        console.log("token", response)
+        const res = await axios.get("http://localhost:3000/auth/token");
+        return res.data;
     } catch (error) {
         alert(error.message);
     }

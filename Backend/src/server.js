@@ -13,7 +13,10 @@ const app = express();
 const port = process.env.PORT || 3000; // PORT từ biến môi trường
 
 // Middleware
-app.use(cors()); // Đảm bảo Frontend có thể gọi API này
+app.use(cors({
+  origin: 'http://localhost:5173', // Cho phép từ frontend
+  credentials: true,
+})); // Đảm bảo Frontend có thể gọi API này
 app.use(morgan('combined')); // HTTP Logger
 app.use(express.static(path.join(__dirname, 'public'))); // Static files
 app.use(express.urlencoded({ extended: true })); // Xử lý form

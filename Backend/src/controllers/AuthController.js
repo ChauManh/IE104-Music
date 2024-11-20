@@ -7,6 +7,8 @@ const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
 const REDIRECT_URI = process.env.REDIRECT_URI;
 
+global.access_token = '';
+
 if (!CLIENT_ID || !CLIENT_SECRET || !REDIRECT_URI) {
     console.error('Missing Spotify API credentials');
     process.exit(1);
@@ -62,9 +64,8 @@ const AuthController = {
             );
 
             const { access_token, refresh_token, expires_in } = response.data;
-
-            // Redirect user to the homepage with tokens in query parameters
-            res.redirect(`/auth/token?access_token=${access_token}&refresh_token=${refresh_token}`);
+            global.access_token = access_token;
+            res.json(response.data);
         } catch (error) {
             console.error('Error fetching tokens:', error);
             res.status(500).json({ error: "Failed to fetch tokens" });
@@ -72,16 +73,7 @@ const AuthController = {
     },
 
     async getToken(req, res) {
-        // Trả về access_token từ query parameter
-        const access_token = req.query.access_token;
-        const refresh_token = req.query.refresh_token;
-        if (!access_token) {
-            return res.status(401).json({ error: "Access token not found or expired" });
-        }
-        res.json({ 
-            access_token: access_token,
-            refresh_token: refresh_token
-         });
+        res.json({ access_token: access_token})
     },
 
     async getRefreshToken(req, res) {

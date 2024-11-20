@@ -2,9 +2,6 @@ import React, { createContext, useEffect, useState } from "react";
 import axios from "axios";
 import { getWebPlayBackSDKToken } from "../util/api";
 
-// import { getWebPlayBackSDKToken } from "../util/api";
-const token =
-  "BQDHYMGDJ8gBFDM7uHc6GKZjzFiKr2jD77gcbGhPBz1UabFFXDPe5CoWIBng6f3oVJ7G2rXgDAyFNpEo4ppoUYOk8fGyhEuFty11VeuCf_fKP8IdI6ftHZ9Be-81hM4jKpJhTu4Xc8EpJ7CYJyVQg41Ga0nLMsTtix0E-ZJaCpnP5EhvbiOXMHwMOHXumvRib2XViUotvSYhLjzGopM-yoooAdbzZ52i1AMi9bhf";
 export const PlayerContext = createContext();
 
 const PlayerContextProvider = ({ children }) => {
@@ -16,19 +13,37 @@ const PlayerContextProvider = ({ children }) => {
     uri: "",
     duration: "",
   });
-
   const [player, setPlayer] = useState(null);
   const [playStatus, setPlayStatus] = useState(false);
   const [deviceId, setDeviceId] = useState(null);
   const [isDeviceReady, setIsDeviceReady] = useState(false); // Trạng thái chờ
+  const [token, setToken] = useState(null); // Token state
+  const [tokenReady, setTokenReady] = useState(false); // Trạng thái token đã sẵn sàng
+
+  useEffect(() => {
+    const getAccessToken = async () => {
+      try {
+        const response = await getWebPlayBackSDKToken();
+        setToken(response.access_token);
+        setTokenReady(true); 
+      } catch (error) {
+        console.error("Error fetching token:", error);
+      }
+    };
+    getAccessToken();
+  }, []);
 
   // Cấu hình Web Playback SDK
   useEffect(() => {
+    if (!tokenReady || !token) {
+      console.log("Token chưa sẵn sàng, chờ đợi...");
+      return; // Dừng lại nếu token chưa sẵn sàng
+    }
+    console.log("Token sẵn sàng", token);
     const script = document.createElement("script");
     script.src = "https://sdk.scdn.co/spotify-player.js";
     script.async = true;
     document.body.appendChild(script);
-
     window.onSpotifyWebPlaybackSDKReady = () => {
       const player = new window.Spotify.Player({
         name: "Web Playback SDK",
@@ -54,7 +69,7 @@ const PlayerContextProvider = ({ children }) => {
         player.disconnect();
       }
     };
-  }, []);
+  }, [tokenReady, token]);
 
   const play = () => {
     player.resume().then(() => {
@@ -120,14 +135,14 @@ const PlayerContextProvider = ({ children }) => {
     deviceId,
   };
 
-  if (!isDeviceReady) {
-    return (
-      <div className="flex h-screen flex-col items-center justify-center bg-gray-100">
-        <div className="h-32 w-32 animate-spin rounded-full border-b-4 border-t-4 border-green-500"></div>
-        <p className="mt-4 text-lg font-semibold text-gray-600">Loading...</p>
-      </div>
-    );
-  }
+  // if (!isDeviceReady) {
+  //   return (
+  //     <div className="flex h-screen flex-col items-center justify-center bg-gray-100">
+  //       <div className="h-32 w-32 animate-spin rounded-full border-b-4 border-t-4 border-green-500"></div>
+  //       <p className="mt-4 text-lg font-semibold text-gray-600">Loading...</p>
+  //     </div>
+  //   );
+  // }
 
   return (
     <PlayerContext.Provider value={contextValue}>
