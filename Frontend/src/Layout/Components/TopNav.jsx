@@ -2,15 +2,13 @@ import React, { useState, useRef } from "react";
 import { assets } from "../../assets/assets";
 import { useNavigate } from "react-router-dom";
 import Search from "../../components/Search";
-import axios from 'axios';
+import axios from "axios";
 
 const TopNav = () => {
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const [query, setQuery] = useState("");
-
-
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -20,23 +18,24 @@ const TopNav = () => {
       const response = await axios.get(`http://localhost:3000/search`, {
         params: {
           q: query,
-          type: 'track,album,artist'
-        }
+          type: "track,album,artist,playlist",
+        },
       });
 
       // Navigate with search results
-      navigate('/search', { 
-        state: { 
+      navigate("/search", {
+        state: {
           searchResults: {
             tracks: response.data.tracks.items,
             albums: response.data.albums.items,
-            artists: response.data.artists.items
+            artists: response.data.artists.items,
+            playlists: response.data.playlists.items,
           },
-          searchQuery: query 
-        }
+          searchQuery: query,
+        },
       });
     } catch (error) {
-      console.error('Error searching:', error);
+      console.error("Error searching:", error);
     }
   };
 
@@ -48,7 +47,7 @@ const TopNav = () => {
         </a>
       </div>
 
-      <div className="flex items-center gap-4" >
+      <div className="flex items-center gap-4">
         <div
           onClick={() => navigate("/")}
           className="flex cursor-pointer items-center gap-3 rounded-full bg-zinc-800 p-3 transition-transform duration-300 hover:scale-110"
