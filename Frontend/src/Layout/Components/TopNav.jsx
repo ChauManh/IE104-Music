@@ -2,6 +2,7 @@ import React, { useState, useRef } from "react";
 import { assets } from "../../assets/assets";
 import { useNavigate } from "react-router-dom";
 import Search from "../../components/Search";
+import axios from 'axios';
 
 const TopNav = () => {
   const navigate = useNavigate();
@@ -9,9 +10,34 @@ const TopNav = () => {
   const dropdownRef = useRef(null);
   const [query, setQuery] = useState("");
 
-  const handleSearch = (e) => {
+
+
+  const handleSearch = async (e) => {
     e.preventDefault();
-    navigate(`/search?q=${query}`);
+    if (!query) return;
+
+    try {
+      const response = await axios.get(`http://localhost:3000/search`, {
+        params: {
+          q: query,
+          type: 'track,album,artist'
+        }
+      });
+
+      // Navigate with search results
+      navigate('/search', { 
+        state: { 
+          searchResults: {
+            tracks: response.data.tracks.items,
+            albums: response.data.albums.items,
+            artists: response.data.artists.items
+          },
+          searchQuery: query 
+        }
+      });
+    } catch (error) {
+      console.error('Error searching:', error);
+    }
   };
 
   return (
@@ -22,7 +48,7 @@ const TopNav = () => {
         </a>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4" >
         <div
           onClick={() => navigate("/")}
           className="flex cursor-pointer items-center gap-3 rounded-full bg-zinc-800 p-3 transition-transform duration-300 hover:scale-110"
@@ -40,8 +66,8 @@ const TopNav = () => {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Tìm kiếm..."
-              className="h-12 w-96 rounded-l-full rounded-r-full bg-zinc-800 pl-12 text-white hover:bg-zinc-700"
+              placeholder="What do you want to listen to?"
+              className="h-12 w-96 rounded-full bg-zinc-800 pl-12 text-white hover:bg-zinc-700 focus:outline-none"
             />
           </form>
         </div>

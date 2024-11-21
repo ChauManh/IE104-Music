@@ -66,7 +66,14 @@ function App() {
               />
             );
           })}
-          <Route path="/search" element={<Search />} /> {/* Add search route */}
+          <Route 
+            path="/search" 
+            element={
+              <DefaultLayout>
+                <Search />
+              </DefaultLayout>
+            } 
+          /> {/* Add search route */}
         </Routes>
       </div>
     </Router>
