@@ -1,5 +1,7 @@
 const axios = require('axios');
 const { getSpotifyToken } = require('../config/spotify/getTokenSpotify'); // Import hàm lấy token
+const Playlist = require('../models/playlist');
+const mongoose = require('mongoose');
 
 const PlayListController = {
     async getPlaylistByID(req, res) {
@@ -31,7 +33,8 @@ const PlayListController = {
         } catch(e) {
             res.status(500).json({ error: 'Failed to fetch popular playlist' });
         }
-    }
+    },
+    
 }
 
 module.exports = PlayListController;

@@ -1,13 +1,11 @@
 const express = require('express');
-const AuthController = require('../controllers/AuthController.js'); // Import controller
 const router = express.Router();
+const AuthController = require('../controllers/AuthController');
+const auth = require('../middleware/auth'); // Middleware xác thực
 
-router.get('/callback', AuthController.getCallback); 
+router.post('/signup', AuthController.createUser);
+router.post('/login', AuthController.handleLogin);
+router.get('/user', auth, AuthController.getUser);  // Đảm bảo người dùng đã đăng nhập
+router.get('/account', auth, AuthController.getAccount);  // Lấy thông tin tài khoản người dùng
 
-router.get('/login', AuthController.getLogin); // Route: Chuyển hướng đến trang đăng nhập Spotify
-
-router.get('/token', AuthController.getToken); // Route
-
-router.get('/refresh_token', AuthController.getRefreshToken); // Route
-
-module.exports = router;
+module.exports = router; //export default

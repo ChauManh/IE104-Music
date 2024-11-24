@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const createUser = async (name, email, password) => {
     try {
-        const result = await axios.post("http://localhost:3000/v1/api/register", {
+        const result = await axios.post("http://localhost:3000/auth/register", {
             name: name,
             email: email,
             password: password,
@@ -46,7 +46,7 @@ const getWebPlayBackSDKToken = async () => {
     try {
         const response = await axios.get("/auth/login");
         console.log("token", response)
-        const res = await axios.get("http://localhost:3000/auth/token");
+        const res = await axios.get("http://localhost:3000/spotify_auth/token");
         return res.data;
     } catch (error) {
         alert(error.message);
@@ -55,7 +55,7 @@ const getWebPlayBackSDKToken = async () => {
 
 const getRefreshToken = async (refreshToken) => {
     try {
-        const response = await axios.get("http://localhost:3000/auth/refresh_token");
+        const response = await axios.get("http://localhost:3000/spotify_auth/refresh_token");
         console.log("refresh token", response.data.token)
         return response.data.token;
     } catch (error) {
@@ -65,7 +65,7 @@ const getRefreshToken = async (refreshToken) => {
 
 const login = async (email, password) => {
     try {
-        const response = await axios.post("http://localhost:3000/v1/api/login", {
+        const response = await axios.post("http://localhost:3000/auth/login", {
             email,
             password
         });
@@ -76,4 +76,18 @@ const login = async (email, password) => {
     }
 };
 
-export { createUser, fetchPopularTracks, fetchNewAlbums, getTrack, getWebPlayBackSDKToken, getRefreshToken, login };
+const createPlaylist = async (name, userID) => {
+    try {
+        const response = await axios.post("http://localhost:3000/user/create_playlist", {
+            name,
+            userID
+        });
+        return response.data;
+    }
+    catch (error) { 
+        console.error("API login error:", error);
+        throw error;
+    }
+}
+
+export { createUser, fetchPopularTracks, fetchNewAlbums, getTrack, getWebPlayBackSDKToken, getRefreshToken, login, createPlaylist };

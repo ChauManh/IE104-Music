@@ -1,55 +1,78 @@
 const axios = require('axios');
-require('dotenv').config(); // Đọc các biến môi trường
+const Playlist = require('../models/playlist');
+const mongoose = require('mongoose');
 
-const CLIENT_ID = process.env.CLIENT_ID;
-const CLIENT_SECRET = process.env.CLIENT_SECRET;
-const REDIRECT_URI = process.env.REDIRECT_URI;
-const { createUserService, loginService, getUserService } = require("../services/userService");
+const UserController = {
+    async createPlaylist(req, res) {
+        try {
+            const { name, userID } = req.body;
+    
+            if (!name || !userID) {
+                return res.status(400).json({ message: 'Name and userID are required' });
+            }
+    
+            const newPlaylist = new Playlist({
+                _id: new mongoose.Types.ObjectId(),
+                name,
+                userID,
+                songs: [],
+            });
+    
+            await newPlaylist.save();
+    
+            res.status(201).json({ message: 'Playlist created successfully', playlist: newPlaylist });
+        } catch (error) {
+            res.status(500).json({ message: 'Internal server error', error: error.message });
+        }
+    },
 
-const createUser = async (req, res) => {
-  const { name, email, password } = req.body;
-  const data = await createUserService(name, email, password);
-  if (data) {
-    return res.status(201).json(data);
-  } else {
-    return res.status(400).json({ message: "User already exists or error occurred" });
-  }
-}
+    async addSongToPlaylist(req, res) {
+        try {
+            const { playlistID, songID } = req.body;
+    
+            if (!playlistID || !songID) {
+                return res.status(400).json({ message: 'Playlist ID and Song ID are required.' });
+            }
+    
+            const playlist = await Playlist.findById(playlistID);
+            if (!playlist) {
+                return res.status(404).json({ message: 'Playlist not found.' });
+            }
+    
+            if (playlist.songs.includes(songID)) {
+                return res.status(400).json({ message: 'Song already exists in the playlist.' });
+            }
+    
+            playlist.songs.push(songID);
+    
+            await playlist.save();
+    
+            res.status(200).json({ message: 'Song added to playlist successfully.', playlist });
+        } catch (e) {
+            res.status(500).json({ message: 'Internal server error', error: e.message });
+        }
+    },
 
-const handleLogin = async (req, res) => {
-  const { email, password } = req.body;
-
-  try {
-    const userData = await loginService(email, password);
-
-    if (userData.EC === 0) {
-      return res.status(200).json(userData);
-    } else {
-      return res.status(401).json({
-        EC: userData.EC,
-        EM: userData.EM
-      });
+    async getUserPlaylists(req, res) {
+        try {
+            const { userID } = req.params;
+    
+            if (!userID) {
+                return res.status(400).json({ message: 'User ID is required.' });
+            }
+    
+            // Lấy danh sách playlist của user
+            const playlists = await Playlist.find({ userID });
+    
+            if (!playlists.length) {
+                return res.status(404).json({ message: 'No playlists found for this user.' });
+            }
+    
+            res.status(200).json({ message: 'User playlists fetched successfully.', playlists });
+        } catch (e) {
+            res.status(500).json({ message: 'Internal server error', error: e.message });
+        }
     }
-  } catch (error) {
-    console.error("Error in handleLogin:", error);
-    return res.status(500).json({
-      EC: 3,
-      EM: "Internal server error"
-    });
-  }
 }
 
-const getUser = async (req, res) => {
-  const data = await getUserService();
-  return res.status(200).json(data)
-}
-
-const getAccount = async (req, res) => {
-
-  return res.status(200).json(req.user)
-}
-
-module.exports = {
-  createUser, handleLogin, getUser, getAccount
-
-}
+module.exports = UserController;
