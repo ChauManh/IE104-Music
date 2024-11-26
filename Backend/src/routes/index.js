@@ -6,6 +6,7 @@ const authRoter = require('./auth');
 const searchRouter = require('./search');
 const authMiddleware = require('../middleware/auth');
 const userRouter = require('./user');
+const artistRouter = require('./artist');
 
 function router(app) {
   app.use('/track', trackRouter);
@@ -15,6 +16,7 @@ function router(app) {
   app.use('/auth', authRoter); 
   app.use('/search', searchRouter);
   app.use('/user', authMiddleware, userRouter);
+  app.use('/artist', artistRouter);
 }
 
 module.exports = router;
