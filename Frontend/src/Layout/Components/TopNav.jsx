@@ -23,7 +23,7 @@ const TopNav = () => {
       });
 
       // Navigate with search results
-      navigate("/search", {
+      navigate(`/search/${query}`, {
         state: {
           searchResults: {
             tracks: response.data.tracks.items,
