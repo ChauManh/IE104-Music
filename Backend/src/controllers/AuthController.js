@@ -1,102 +1,73 @@
 const axios = require('axios');
-const { getSpotifyToken } = require('../config/spotify/getTokenSpotify');
-require('dotenv').config();
-const { refreshAccessToken } = require('../services/webPlayBackSDK')
+require('dotenv').config(); // Đọc các biến môi trường
 
 const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
 const REDIRECT_URI = process.env.REDIRECT_URI;
-
-global.access_token = '';
-
-if (!CLIENT_ID || !CLIENT_SECRET || !REDIRECT_URI) {
-    console.error('Missing Spotify API credentials');
-    process.exit(1);
-}
-
-const generateRandomString = (length) => {
-    let text = '';
-    const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    for (let i = 0; i < length; i++) {
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
-    }
-    return text;
-};
+const { createUserService, loginService, getUserService } = require("../services/authService");
 
 const AuthController = {
-    async getLogin(req, res) {
-        const scope = "streaming user-read-email user-read-private";
-        const state = generateRandomString(16); // Tạo state ngẫu nhiên
-        const auth_query_parameters = new URLSearchParams({
-            response_type: "code",
-            client_id: CLIENT_ID,
-            scope: scope,
-            redirect_uri: REDIRECT_URI,
-            state: state
-        });
+  // Tạo người dùng mới
+  async createUser(req, res) {
+    const { name, email, password } = req.body;
 
-        // Redirect tới Spotify với state
-        res.redirect(`https://accounts.spotify.com/authorize/?${auth_query_parameters.toString()}`);
-    },
-
-    async getCallback(req, res) {
-        const code = req.query.code; // Lấy mã xác thực từ query
-        const state = req.query.state; // Lấy state từ query
-
-        if (!code) {
-            return res.status(400).json({ error: "Authorization code not found" });
-        }
-
-        try {
-            const response = await axios.post(
-                'https://accounts.spotify.com/api/token',
-                new URLSearchParams({
-                    code: code,
-                    redirect_uri: REDIRECT_URI,
-                    grant_type: 'authorization_code'
-                }),
-                {
-                    headers: {
-                        'Authorization': 'Basic ' + Buffer.from(CLIENT_ID + ':' + CLIENT_SECRET).toString('base64'),
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    }
-                }
-            );
-
-            const { access_token, refresh_token, expires_in } = response.data;
-            global.access_token = access_token;
-            res.json(response.data);
-        } catch (error) {
-            console.error('Error fetching tokens:', error);
-            res.status(500).json({ error: "Failed to fetch tokens" });
-        }
-    },
-
-    async getToken(req, res) {
-        res.json({ access_token: access_token})
-    },
-
-    async getRefreshToken(req, res) {
-        const refresh_token = req.query.refresh_token; // Lấy refresh_token từ query parameter
-        if (!refresh_token) {
-            return res.status(400).json({ error: "Missing refresh token" });
-        }
-
-        try {
-            // Sử dụng hàm refreshAccessToken để lấy access_token mới
-            const data = await refreshAccessToken(refresh_token);
-
-            const { access_token, expires_in } = data;
-            
-            // Trả về access_token mới
-            res.json({ 
-                access_token, 
-                expires_in 
-            });
-        } catch (error) {
-            res.status(500).json({ error: error.message });
-        }
+    try {
+      const data = await createUserService(name, email, password);
+      if (data) {
+        return res.status(201).json(data);
+      } else {
+        return res.status(400).json({ message: "User already exists or error occurred" });
+      }
+    } catch (error) {
+      console.error("Error in createUser:", error);
+      return res.status(500).json({ message: "Internal server error", error: error.message });
     }
+  },
+
+  // Đăng nhập
+  async handleLogin(req, res) {
+    const { email, password } = req.body;
+
+    try {
+      const userData = await loginService(email, password);
+
+      if (userData.EC === 0) {
+        return res.status(200).json(userData);
+      } else {
+        return res.status(401).json({
+          EC: userData.EC,
+          EM: userData.EM
+        });
+      }
+    } catch (error) {
+      console.error("Error in handleLogin:", error);
+      return res.status(500).json({
+        EC: 3,
+        EM: "Internal server error"
+      });
+    }
+  },
+
+  // Lấy thông tin người dùng
+  async getUser(req, res) {
+    try {
+      const data = await getUserService();
+      return res.status(200).json(data);
+    } catch (error) {
+      console.error("Error in getUser:", error);
+      return res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+  },
+
+  // Lấy thông tin tài khoản của người dùng hiện tại (đã được xác thực)
+  async getAccount(req, res) {
+    try {
+      return res.status(200).json(req.user);
+    } catch (error) {
+      console.error("Error in getAccount:", error);
+      return res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+  }
 };
 
 module.exports = AuthController;
