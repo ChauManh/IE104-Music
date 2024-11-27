@@ -7,7 +7,7 @@ import {
 import { publicRoute, privateRoute } from "./routes/route";
 import DefaultLayout from "./Layout/DefaultLayout/DefaultLayout";
 import { Fragment } from "react";
-import Search from "./components/Search"; // Import the Search component
+import Search from "./components/Search"; 
 
 function App() {
   const isAuthenticated = () => {
@@ -67,13 +67,13 @@ function App() {
             );
           })}
           <Route 
-            path="/search" 
+            path="/*" 
             element={
               <DefaultLayout>
                 <Search />
               </DefaultLayout>
             } 
-          /> {/* Add search route */}
+          /> 
         </Routes>
       </div>
     </Router>

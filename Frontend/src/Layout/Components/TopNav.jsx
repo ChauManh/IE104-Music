@@ -24,13 +24,12 @@ const TopNav = () => {
         }
       });
 
-      // Navigate with search results
-      navigate('/search', { 
+      navigate(`/search/${encodeURIComponent(query)}`, { 
         state: { 
           searchResults: {
-            tracks: response.data.tracks.items,
-            albums: response.data.albums.items,
-            artists: response.data.artists.items
+            tracks: { items: response.data.tracks?.items || [] },
+            albums: { items: response.data.albums?.items || [] },
+            artists: { items: response.data.artists?.items || [] }
           },
           searchQuery: query 
         }

@@ -22,7 +22,7 @@ const Player = () => {
     };
 
   return (
-    <div className='fixed bottom-0 left-0 right-0  max-h-[9.5%]  bg-zinc-900 flex justify-between items-center text-white px-[2vw] z-10'>
+    <div className='fixed bottom-0 left-0 right-0  min-h-[9%]  bg-zinc-900 flex justify-between items-center text-white px-[2vw] z-10'>
         {/* Left  */}
         <div className='hidden lg:flex items-center gap-4 w-[30%] min-h-[100%]'>
             { track.image ? <
@@ -35,7 +35,7 @@ const Player = () => {
         </div>
 
         {/* Center  */}
-        <div className='mt-2 flex flex-col items-center justify-center gap-2 w-[40%]'>
+        <div className='mt-2 mb-2 flex flex-col items-center justify-center gap-2 w-[40%]'>
             <div className='flex items-center justify-center gap-4'>
                 <img 
                     className='w-4 h-4 cursor-pointer opacity-70 hover:opacity-100 transition-all' 
