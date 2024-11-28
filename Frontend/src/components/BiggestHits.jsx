@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import SongItem from './SongItem';
+import SongItem2 from './SongItem2';
 import { fetchPopularTracks } from '../util/api';
 
 const BiggestHits = () => {
@@ -30,7 +30,7 @@ const BiggestHits = () => {
       <div className='flex overflow-auto'>
         {tracksData.length > 0 ? (
           tracksData.map((item, index) => (
-            <SongItem key={index} name={item.name} singer={item.singer} id={item.id} image={item.image} uri={item.uri} duration={item.duration} />
+            <SongItem2  key={index} name={item.name} singer={item.singer} id={item.id} image={item.image} uri={item.uri} duration={item.duration} />
           ))
         ) : (
           <p>Loading...</p> // Hiển thị loading khi dữ liệu chưa có

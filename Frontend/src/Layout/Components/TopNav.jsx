@@ -22,14 +22,13 @@ const TopNav = () => {
         },
       });
 
-      // Navigate with search results
-      navigate(`/search/${query}`, {
-        state: {
+      navigate(`/search/${encodeURIComponent(query)}`, { 
+        state: { 
           searchResults: {
-            tracks: response.data.tracks.items,
-            albums: response.data.albums.items,
-            artists: response.data.artists.items,
-            playlists: response.data.playlists.items,
+            tracks: { items: response.data.tracks?.items || [] },
+            albums: { items: response.data.albums?.items || [] },
+            artists: { items: response.data.artists?.items || [] },
+            playlists: { items: response.data.playlists?.items || [] }
           },
           searchQuery: query,
         },

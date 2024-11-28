@@ -6,11 +6,11 @@ import BiggestHits from './BiggestHits'
 
 const DisplayHome = () => {
   return (
-    <>
+    <div className="p-6">
         <Navbar/>
         <FeaturedCharts/>
         <BiggestHits/>
-    </>
+    </div>
   )
 }
 

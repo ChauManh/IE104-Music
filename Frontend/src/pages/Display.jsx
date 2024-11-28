@@ -3,7 +3,8 @@ import { Route, Routes, useLocation } from 'react-router-dom';
 import DisplayHome from '../components/DisplayHome';
 import DisplayAlbum from '../components/DisplayAlbum';
 import DisplaySong from '../components/DisplaySong';
-import SearchPage from './SearchPage'; // Add this import
+import SearchPage from './SearchPage';
+import ArtistPage from './ArtistPage';
 
 import { albumsData } from '../assets/assets'
 
@@ -24,12 +25,13 @@ const Display = () => {
   }, [isAlbum, bgColor]);
 
   return (
-    <div ref={displayRef} className='px-6 rounded-3xl bg-[#121212] text-white overflow-auto lg:w-[100%] lg:ml-0 mt-16'>
+    <div ref={displayRef} className='rounded-3xl bg-[#121212] text-white overflow-auto lg:w-[100%] lg:ml-0 mt-16'>
       <Routes>
         <Route path="/" element={<DisplayHome />} />
         <Route path="/album/:id" element={<DisplayAlbum />} />
         <Route path="/track/:id" element={<DisplaySong />} />
-        <Route path="/search" element={<SearchPage />} />
+        <Route path="/search/:query" element={<SearchPage />} />
+        <Route path="/artist/:id" element={<ArtistPage />} />
       </Routes>
     </div>
   );
