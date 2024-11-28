@@ -27,7 +27,7 @@ const TopNav = () => {
           searchResults: {
             tracks: { items: response.data.tracks?.items || [] },
             albums: { items: response.data.albums?.items || [] },
-            artists: { items: response.data.artists?.items || [] }
+            artists: { items: response.data.artists?.items || [] },
             playlists: { items: response.data.playlists?.items || [] }
           },
           searchQuery: query,

@@ -25,7 +25,7 @@ const Display = () => {
   }, [isAlbum, bgColor]);
 
   return (
-    <div ref={displayRef} className='px-6 rounded-3xl bg-[#121212] text-white overflow-auto lg:w-[100%] lg:ml-0 mt-16'>
+    <div ref={displayRef} className='rounded-3xl bg-[#121212] text-white overflow-auto lg:w-[100%] lg:ml-0 mt-16'>
       <Routes>
         <Route path="/" element={<DisplayHome />} />
         <Route path="/album/:id" element={<DisplayAlbum />} />

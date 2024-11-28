@@ -13,11 +13,11 @@ const DisplayAlbum = () => {
     <>
         <Navbar/>
         <div className='mt-10 flex gap-8 flex-col md:flex-row md:items-end'>
-          <img src={albumData.image} alt="" />
+          <img src={albumData?.image} alt="" />
           <div className='flex flex-col'>
             <p>Playlist</p>
-            <h2 className='text-5xl font-bold mb-4 md:text-7xl'>{albumData.name}</h2>
-            <h4>{albumData.desc}</h4>
+            <h2 className='text-5xl font-bold mb-4 md:text-7xl'>{albumData?.name}</h2>
+            <h4>{albumData?.desc}</h4>
             <p className='mt-1'>
               <img className='inline-block w-5' src={assets.spotify_logo} alt="" />
               {/* cai img se la logo nghe si, can fix. Phan o duoi se lay tu api */}
@@ -41,7 +41,7 @@ const DisplayAlbum = () => {
                 <img className='inline w-10 mr-5' src={item.image} alt="" />
                 {item.name}
               </p>
-              <p className='text-[15px]'>{albumData.name}</p>
+              <p className='text-[15px]'>{albumData?.name}</p>
               <p className='text-[15px] hidden sm:block'>2 days ago</p>
               <p className='text-[15px] text-center'>{item.duration}</p>
             </div>

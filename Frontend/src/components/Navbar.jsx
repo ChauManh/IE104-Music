@@ -15,7 +15,7 @@ const Navbar = () => {
   };
 
   return (
-    <div className='flex items-center gap-2 mt-4 rounded-2xl'>
+    <div className='flex items-center px-6 gap-2 mt-4 rounded-2xl'>
       <p 
         onClick={() => handleFilterClick('all')}
         className={`px-4 py-1 rounded-2xl cursor-pointer transition-colors ${
