@@ -42,6 +42,15 @@ const fetchNewAlbums = async () => {
     }
 };
 
+const fetchAlbum = async (id) => {
+    try {
+        const response = await axios.get(`http://localhost:3000/album/${id}`);
+        return response.data;
+    } catch (error) {
+        alert(error.message);
+    }
+}
+
 const getWebPlayBackSDKToken = async () => {
     try {
         const response = await axios.get("/auth/login");
