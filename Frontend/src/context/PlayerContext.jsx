@@ -13,6 +13,8 @@ const PlayerContextProvider = ({ children }) => {
     uri: "",
     duration: "",
   });
+  const [albumsData, setAlbumData] = useState([]);
+  const [albumTracks, setAlbumTracks] = useState([]);
   const [player, setPlayer] = useState(null);
   const [playStatus, setPlayStatus] = useState(false);
   const [deviceId, setDeviceId] = useState(null);
@@ -127,6 +129,10 @@ const PlayerContextProvider = ({ children }) => {
   const contextValue = {
     track,
     setTrack,
+    albumTracks,
+    setAlbumTracks,
+    albumsData, 
+    setAlbumData,
     playStatus,
     setPlayStatus,
     play,

@@ -18,7 +18,8 @@ const AlbumController = {
         name: item.name,
         id: item.id,
         image: item.images[0].url,
-        singer: item.artists[0].name,
+        singer: item.artists.map(artist => artist.name),
+        date: item.release_date,
     }));
     res.status(200).json(newAlbums);
     } catch (error) {
@@ -38,10 +39,10 @@ const AlbumController = {
       const albumTracks = response.data.items.map(item => ({
         name: item.name,
         id: item.id,
-        // image: item.images[0].url,
-        singer: item.artists[0].name,
+        // image: item.images[0].url, // Uncomment if needed
+        singers: item.artists.map(artist => artist.name), // Lấy tất cả tên nghệ sĩ
         duration: item.duration_ms,
-    }));
+    }));  
     res.status(200).json(albumTracks);
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch new releases' });
