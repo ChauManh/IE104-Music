@@ -1,5 +1,5 @@
 import React from 'react';
-import SongItem from './SongItem';
+import SongItem from './SongItem3';
 
 const Search = ({ results, query, onArtistClick }) => {
   const topResult = results.tracks.items[0] || results.artists.items[0] || results.albums.items[0];
