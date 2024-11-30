@@ -1,18 +1,24 @@
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import axios from 'axios';
-import Navbar from '../components/Navbar';
-import SongItem from '../components/SongItem';
-import AlbumItem from '../components/AlbumItem';
-import PopupAbout from '../components/PopupAbout';
+import React, { useEffect, useState, useContext } from "react";
+import { useParams } from "react-router-dom";
+import axios from "axios";
+import SongItem from "../components/SongItem";
+import AlbumItem from "../components/AlbumItem";
+import PopupAbout from "../components/PopupAbout";
+import { assets } from '../assets/assets'
+import { PlayerContext } from '../context/PlayerContext'
+import { useQueue } from '../context/QueueContext';
+import ColorThief from 'colorthief';
 
 const ArtistPage = () => {
   const { id } = useParams();
   const [artist, setArtist] = useState(null);
+  const {play,  pause,  plus  } = useContext(PlayerContext);
   const [topTracks, setTopTracks] = useState([]);
   const [albums, setAlbums] = useState([]);
   const [error, setError] = useState(null);
   const [isPopupVisible, setIsPopupVisible] = useState(false);
+  const [dominantColor, setDominantColor] = useState('#333333');
+
 
   const togglePopup = () => {
     setIsPopupVisible(!isPopupVisible);
@@ -22,19 +28,37 @@ const ArtistPage = () => {
     const fetchArtistData = async () => {
       try {
         const response = await axios.get(`http://localhost:3000/artist/${id}`);
-        console.log('Artist data:', response.data); // Debugging log
+        console.log("Artist data:", response.data); // Debugging log
         setArtist(response.data);
 
-        const tracksResponse = await axios.get(`http://localhost:3000/artist/${id}/top-tracks`);
-        console.log('Top tracks:', tracksResponse.data); // Debugging log
+        const tracksResponse = await axios.get(
+          `http://localhost:3000/artist/${id}/top-tracks`,
+        );
+        console.log("Top tracks:", tracksResponse.data); // Debugging log
         setTopTracks(tracksResponse.data.tracks || []); // Ensure it's an array
 
-        const albumsResponse = await axios.get(`http://localhost:3000/artist/${id}/albums`);
-        console.log('Albums:', albumsResponse.data); // Debugging log
+        const albumsResponse = await axios.get(
+          `http://localhost:3000/artist/${id}/albums`,
+        );
+        console.log("Albums:", albumsResponse.data); // Debugging log
         setAlbums(albumsResponse.data.items || []); // Ensure it's an array
+
+
+        const img = new Image();
+        img.crossOrigin = 'Anonymous';
+        img.src = response.data.images[0]?.url;
+        img.onload = () => {
+          const colorThief = new ColorThief();
+          const dominantColor = colorThief.getColor(img);
+          setDominantColor(`rgb(${dominantColor.join(',')})`);
+        };
+
       } catch (error) {
-        setError('Error fetching artist data');
-        console.error('Error fetching artist:', error.response ? error.response.data : error.message);
+        setError("Error fetching artist data");
+        console.error(
+          "Error fetching artist:",
+          error.response ? error.response.data : error.message,
+        );
       }
     };
 
@@ -42,75 +66,102 @@ const ArtistPage = () => {
   }, [id]);
 
   if (error) return <div>{error}</div>;
-  if (!artist) return <div>Artist not found</div>;
+  if (!artist) return <div></div>;
 
   return (
-    <div className="px-0 relative bg-[#121212] text-white w-full"> {/* Added background color and text color */}
-
-      <div 
-        className="h-[40vh] bg-gradient-to-b from-[#333333] to-[#121212] flex items-end p-6"
+    <div className="relative w-full bg-[#121212] px-0 text-white">
+      {/* Header Background */}
+      <div
+        className="flex h-[40vh] items-end p-6"
         style={{
           backgroundImage: `url(${artist.images[0]?.url})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center'
+          backgroundRepeat: "no-repeat",
+          backgroundSize: "cover",
+          backgroundPosition: `50% 30%`,
         }}
       >
+        {/* Header Info */}
         <div className="z-10">
-          <p className="text-sm font-bold">Artist</p>
-          <h1 className="text-8xl font-black mb-6">{artist.name}</h1>
-          <p className="text-sm">{artist.followers.total.toLocaleString()} followers</p>
+          <p className="text-sm font-bold">Verified Artist</p>
+          <h1 className="mb-6 text-8xl font-black">{artist.name}</h1>
+          <p className="text-l font-medium">
+            {artist.followers.total.toLocaleString()} monthly listeners
+          </p>
         </div>
-        {/* <div className="absolute inset-0 bg-gradient-to-t from-[#121212] to-transparent" /> */}
       </div>
 
-      <div className="px-6 py-4">
-        <section className="mb-8">
-          <h2 className="text-2xl font-bold mb-4">Popular</h2>
+        {/* Content button */}
+      <div className="relative px-6 py-4" style={{background: `linear-gradient(to bottom, ${dominantColor} 5%, #121212 15%)`,}}>
+        <div className="relative flex items-center pt-2 pb-6">
+          <div className="pr-8">
+            <img
+              className='w-14 h-14 rounded-[30px] border-[18px] border-[#3be477] bg-[#3be477] cursor-pointer opacity-70 hover:opacity-100 transition-all'
+              src={assets.play_icon}
+              alt=""
+            />
+          </div>
+
+          <button className="flex p-4 border-2 h-4 items-center justify-center rounded-3xl border-solid cursor-pointer opacity-70 hover:opacity-100 transition-all">
+            Follow
+          </button>
+        </div>
+
+        {/* Content */}
+        <section className="relative z-10 mb-8">
+          <h2 className="mb-4 text-2xl font-bold">Popular</h2>
+          
           <div className="flex flex-col">
-            {Array.isArray(topTracks) && topTracks.map((track, index) => (
-              <SongItem 
-                key={track.id}
-                id={track.id}
-                name={track.name}
-                image={track.album.images[2].url}
-                singer={track.album.name}
-                customSong="w-16 h-16" 
-              />
-            ))}
+            {Array.isArray(topTracks) &&
+              topTracks.map((track, index) => (
+                <SongItem
+                  key={track.id}
+                  id={track.id}
+                  name={track.name}
+                  image={track.album.images[2].url}
+                  // singer={track.album.name}
+                  index={index}
+                />
+              ))}
           </div>
         </section>
 
-        <section className="mb-8">
-          <h2 className="text-xl font-bold mb-4">Albums</h2>
-          <div className="flex flex-row overflow-hidden overflow-x-scroll gap-6">
-            {Array.isArray(albums) && albums.map((album, index) => (
-              <AlbumItem
-                key={album.id}
-                id={album.id}
-                name={album.name}
-                image={album.images[0].url}
-                time={album.release_date}
-                singer={album.artists[0]?.name}
-              />
-            ))}
+        <section className="relative z-10 mb-8">
+          <h2 className="mb-4 text-xl font-bold">Albums</h2>
+          <div className="flex flex-row gap-6 overflow-hidden overflow-x-scroll">
+            {Array.isArray(albums) &&
+              albums.map((album, index) => (
+                <AlbumItem
+                  key={album.id}
+                  id={album.id}
+                  name={album.name}
+                  image={album.images[0].url}
+                  time={album.release_date}
+                  singer={album.artists[0]?.name}
+                />
+              ))}
           </div>
         </section>
 
-        <section className="mb-8">
-          <h2 className="text-xl font-bold mb-4">About</h2>
+
+        {/* Content About */}
+        <section className="relative z-10 mb-8">
+          <h2 className="mb-4 text-xl font-bold">About</h2>
           <div className="relative h-[60vh]" onClick={togglePopup}>
-            <div 
+            <div
               className="absolute inset-0 z-0"
               style={{
                 backgroundImage: `url(${artist.images[0]?.url})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                filter: 'brightness(50%)'
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                filter: "brightness(50%)",
               }}
             />
-            <div className="relative z-10 p-6 flex flex-col justify-end h-full mt-auto">
-              <p className="text-l font-bold">{artist.followers.total.toLocaleString()} monthly listeners</p>
-              <p className="text-l ">{artist.description}zxc</p>
+            <div className="relative z-10 mt-auto flex h-full flex-col justify-end p-6">
+              <p className="text-l font-bold">
+                {artist.followers.total.toLocaleString()} monthly listeners
+              </p>
+              <p className="mb-4 mt-1">{albums[0]?.name}</p>
+              <p className="text-l">{artist.description}</p>
             </div>
           </div>
         </section>

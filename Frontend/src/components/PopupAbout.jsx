@@ -28,7 +28,7 @@ const PopupAbout = ({ onClose }) => {
   }, [id]);
 
   if (error) return <div>{error}</div>;
-  if (!artist) return <div>Artist not found</div>;
+  if (!artist) return <div></div>;
 
   return (
     <>
@@ -37,21 +37,11 @@ const PopupAbout = ({ onClose }) => {
         <div className="relative overflow-hidden overflow-y-scroll bg-[#121212] pb-2 rounded-lg shadow-lg text-white max-w-[768px] h-[70vh]">
           <button 
             onClick={onClose} 
-            className="sticky top-2 left-[93%] bg-black text-white px-4 py-2 rounded-full"
+            className="absolute top-[0px] left-[93%]  text-white  rounded-full"
           >
-            x
+            <p className="pb-1 font-bold text-xl pt-2">x</p>
           </button>
           <div className='h-[70%] bg-black'>
-            {/* <div 
-              className="h-full w-[100%] bg-gradient-to-b from-[#333333] to-[#121212]"
-              style={{
-                backgroundImage: `url(${artist.images[0]?.url})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-
-              }}
-            >
-            </div> */}
             <img src={`${artist.images[0]?.url}`} alt="day la anh" className='h-full ml-auto mr-auto' />
           </div>
           <div className="p-6 pt-9 grid grid-cols-4 ">
