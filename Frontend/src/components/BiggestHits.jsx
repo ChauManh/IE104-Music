@@ -9,14 +9,14 @@ const BiggestHits = () => {
     const loadTracksData = async () => {
       try {
         const storedTracksData = localStorage.getItem('tracksData');
-        if (storedTracksData && storedTracksData.length > 1) {
-          const parsedData = JSON.parse(storedTracksData);
-          setTrackData(parsedData); // Dữ liệu từ localStorage
-        } else {
+        // if (storedTracksData && storedTracksData.length > 1) {
+        //   const parsedData = JSON.parse(storedTracksData);
+        //   setTrackData(parsedData); // Dữ liệu từ localStorage
+        // } else {
           const data = await fetchPopularTracks(); // Fetch API nếu không có trong localStorage
           setTrackData(data);
           localStorage.setItem('tracksData', JSON.stringify(data));
-        }
+        // }
       } catch (error) {
         alert(`Error fetching data: ${error.message}`);
       }

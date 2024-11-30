@@ -28,14 +28,14 @@ class TrackController {
   static async getPopularTracks(req, res) {
     try {
       const token = await getSpotifyToken(); 
-      console.log('token', token);
-      const response = await axios.get('https://api.spotify.com/v1/browse/featured-playlists', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const playlistId = response.data.playlists.items[0].id;
-      const responsePopularTracks = await axios.get(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
+      // console.log("Lấy token", token);
+      // const response = await axios.get('https://api.spotify.com/v1/browse/featured-playlists', {
+      //   headers: {
+      //     Authorization: `Bearer ${token}`,
+      //   },
+      // });
+      // const playlistId = response.data.playlists.items[0].id;
+      const responsePopularTracks = await axios.get(`https://api.spotify.com/v1/playlists/3cEYpjA9oz9GiPac4AsH4n/tracks`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
