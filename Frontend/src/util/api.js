@@ -135,4 +135,4 @@ const getRelatedArtists = async (id) => {
     }
 };
 
-export { createUser, fetchPopularTracks, fetchNewAlbums, getTrack, getWebPlayBackSDKToken, getRefreshToken, login, createPlaylist, getArtist, getArtistAlbums, getArtistTopTracks, getRelatedArtists };
+export { createUser, fetchPopularTracks, fetchNewAlbums, fetchAlbum, getTrack, getWebPlayBackSDKToken, getRefreshToken, login, createPlaylist, getArtist, getArtistAlbums, getArtistTopTracks, getRelatedArtists };

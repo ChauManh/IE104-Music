@@ -18,7 +18,8 @@ const AlbumController = {
         name: item.name,
         id: item.id,
         image: item.images[0].url,
-        singer: item.artists[0].name,
+        singer: item.artists.map(artist => artist.name),
+        date: item.release_date,
     }));
     res.status(200).json(newAlbums);
     } catch (error) {

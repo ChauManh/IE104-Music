@@ -8,7 +8,7 @@ const formatTime = (minutes, seconds) => {
     return `${minutes}:${formattedSeconds}`;
 };
 const Player = () => {
-    const {  track,  seekBar,  seekBg,  playStatus,  play,  pause,  time,  previous,  next,  seekSong  } = useContext(PlayerContext);
+    const {  track, playStatus,  play,  pause,  previous,  next } = useContext(PlayerContext);
     const { toggleQueue, moveToNext, moveToPrevious } = useQueue();
 
     const handleNext = () => {
