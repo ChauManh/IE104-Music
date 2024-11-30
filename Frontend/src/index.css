@@ -2,6 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+    html {
+        font-family: 'Spotify Mix UI', sans-serif;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'Spotify Mix UI Title', sans-serif;
+    }
+}
+
 ::-webkit-scrollbar{
     display: none;
 }
+
+
