@@ -28,6 +28,7 @@ class TrackController {
   static async getPopularTracks(req, res) {
     try {
       const token = await getSpotifyToken(); 
+      console.log('token', token);
       const response = await axios.get('https://api.spotify.com/v1/browse/featured-playlists', {
         headers: {
           Authorization: `Bearer ${token}`,

@@ -5,12 +5,20 @@ const mongoose = require('mongoose');
 const UserController = {
     async createPlaylist(req, res) {
         try {
-            const { name, userID } = req.body;
+            const { name } = req.body;
+            const userID = req.user.id;
     
             if (!name || !userID) {
                 return res.status(400).json({ message: 'Name and userID are required' });
             }
     
+            const existingPlaylist = await Playlist.findOne({ name, userID });
+            if (existingPlaylist) {
+                return res.status(400).json({
+                    message: `Playlist with name '${name}' already exists for this user.`,
+                });
+            }
+
             const newPlaylist = new Playlist({
                 _id: new mongoose.Types.ObjectId(),
                 name,
@@ -27,9 +35,9 @@ const UserController = {
     },
 
     async addSongToPlaylist(req, res) {
-        try {
+        try {    
             const { playlistID, songID } = req.body;
-    
+
             if (!playlistID || !songID) {
                 return res.status(400).json({ message: 'Playlist ID and Song ID are required.' });
             }
@@ -53,10 +61,59 @@ const UserController = {
         }
     },
 
-    async getUserPlaylists(req, res) {
+    async removeSongFromPlaylist(req, res) {
         try {
-            const { userID } = req.params;
+            const { playlistID, songID } = req.body;
     
+            if (!playlistID || !songID) {
+                return res.status(400).json({ message: 'Playlist ID and Song ID are required.' });
+            }
+    
+            const playlist = await Playlist.findById(playlistID);
+            if (!playlist) {
+                return res.status(404).json({ message: 'Playlist not found.' });
+            }
+    
+            if (!playlist.songs.includes(songID)) {
+                return res.status(400).json({ message: 'Song does not exist in the playlist.' });
+            }
+    
+            playlist.songs = playlist.songs.filter(song => song.toString() !== songID);
+    
+            await playlist.save();
+    
+            res.status(200).json({ 
+                message: 'Song removed from playlist successfully.', 
+                playlist 
+            });
+        } catch (e) {
+            res.status(500).json({ message: 'Internal server error', error: e.message });
+        }
+    },
+
+    async deletePlaylist(req, res) {
+        try {
+            const playlistID = req.params.id; 
+    
+            if (!playlistID) {
+                return res.status(400).json({ message: 'Playlist ID is required.' });
+            }
+    
+            const playlist = await Playlist.findByIdAndDelete(playlistID);
+    
+            if (!playlist) {
+                return res.status(404).json({ message: 'Playlist not found.' });
+            }
+    
+            res.status(200).json({ message: 'Playlist deleted successfully.' });
+        } catch (e) {
+            res.status(500).json({ message: 'Internal server error', error: e.message });
+        }
+    },
+
+    async getUserPlaylists(req, res) {
+        const userID  = req.user.id;
+        try {
             if (!userID) {
                 return res.status(400).json({ message: 'User ID is required.' });
             }
