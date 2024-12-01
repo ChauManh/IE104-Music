@@ -9,6 +9,8 @@ import { PlayerContext } from '../context/PlayerContext'
 import { useQueue } from '../context/QueueContext';
 import ColorThief from 'colorthief';
 
+//npm install colorthief
+
 const ArtistPage = () => {
   const { id } = useParams();
   const [artist, setArtist] = useState(null);
