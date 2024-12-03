@@ -85,19 +85,16 @@ const login = async (email, password) => {
     }
 };
 
-const createPlaylist = async (name, userID) => {
+const createPlaylist = async () => {
     try {
-        const response = await axios.post("http://localhost:3000/user/create_playlist", {
-            name,
-            userID
-        });
+        const response = await axios.post("http://localhost:3000/user/create_playlist");
         return response.data;
     }
     catch (error) { 
         console.error("API login error:", error);
         throw error;
-    }
-}
+    }   
+};
 
 const getArtist = async (id) => {
     try {

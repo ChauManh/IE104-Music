@@ -5,8 +5,10 @@ const mongoose = require('mongoose');
 const UserController = {
     async createPlaylist(req, res) {
         try {
-            const { name } = req.body;
+            const name = "Danh sách phát #";
             const userID = req.user.id;
+            console.log(name);
+            console.log(userID);
     
             if (!name || !userID) {
                 return res.status(400).json({ message: 'Name and userID are required' });
