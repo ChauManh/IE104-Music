@@ -19,6 +19,9 @@ const SearchPage = () => {
   const handleArtistClick = (artistId) => {
     navigate(`/artist/${artistId}`);
   };
+  const handleAlbumClick = (albumId) => {
+    navigate(`/album/${albumId}/tracks`);
+  };
 
   return (
     <>
@@ -27,6 +30,7 @@ const SearchPage = () => {
         results={searchResults}
         query={searchQuery}
         onArtistClick={handleArtistClick}
+        onAlbumClick={handleAlbumClick}
       />
     </>
   );
