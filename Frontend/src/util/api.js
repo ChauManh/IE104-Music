@@ -87,11 +87,20 @@ const login = async (email, password) => {
 
 const createPlaylist = async () => {
     try {
-        const response = await axios.post("http://localhost:3000/user/create_playlist");
-        return response.data;
+        const token = localStorage.getItem('access_token'); // Get token from localStorage
+        if (!token) {
+            throw new Error('No access token found');
+        }
+
+        const response = await axios.post("http://localhost:3000/user/create_playlist", {}, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        return response.data.playlist; // Return the playlist object
     }
     catch (error) { 
-        console.error("API login error:", error);
+        console.error("API createPlaylist error:", error);
         throw error;
     }   
 };
