@@ -273,6 +273,6 @@ const UserController = {
         } catch (error) {
             res.status(500).json({ message: 'Error removing album from favorites', error: error.message });
         }
-    },
-
+    }
+}
 module.exports = UserController;
