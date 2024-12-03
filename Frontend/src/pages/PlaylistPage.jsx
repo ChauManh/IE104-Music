@@ -12,7 +12,6 @@ const PlaylistPage = () => {
         return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
     };
   
-    
   return (
     <>
       <div className='mt-10 flex gap-8 pl-8 flex-col md:flex-row md:items-end'>

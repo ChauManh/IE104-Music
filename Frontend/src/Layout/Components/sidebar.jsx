@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { assets } from '../../assets/assets';
+import axios from 'axios';
+import { createPlaylist } from '../../util/api';
 
 const Sidebar = () => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
@@ -7,7 +9,18 @@ const Sidebar = () => {
   const toggleSidebar = () => {
     setIsSidebarExpanded(!isSidebarExpanded);
   };
-
+  
+  const handleCreatePlaylist = async () => {
+    try {
+      alert("123")
+      const response = await createPlaylist()
+      alert(`Tạo danh sách phát thành công: ${response.data.name}`);
+    } catch (error) {
+      console.error("Lỗi tạo danh sách phát:", error);
+      alert("Có lỗi xảy ra khi tạo danh sách phát.");
+    }
+  };
+  
   return (
     <div
       className={`${isSidebarExpanded ? 'min-w-[20%]' : 'min-w-[40%]'} 
@@ -39,7 +52,7 @@ const Sidebar = () => {
         <div className='p-4 bg-[#242424] m-2 rounded font-semibold flex flex-col items-start justify-start gap-1 pl-4'>
           <h1>Tạo danh sách phát đầu tiên của bạn</h1>
           <p className='font-light'>Rất dễ! Chúng tôi sẽ giúp bạn</p>
-          <button className='px-4 py-1.5 bg-white text-[15px] text-black rounded-full mt-4'>
+          <button onClick={handleCreatePlaylist} className='px-4 py-1.5 bg-white text-[15px] text-black rounded-full mt-4'>
             Tạo danh sách phát
           </button>
         </div>

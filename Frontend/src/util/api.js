@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const createUser = async (name, email, password) => {
     try {
-        const result = await axios.post("http://localhost:3000/auth/register", {
+        const result = await axios.post("http://localhost:3000/auth/signup", {
             name: name,
             email: email,
             password: password,
