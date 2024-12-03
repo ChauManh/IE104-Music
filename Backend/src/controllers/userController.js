@@ -131,7 +131,148 @@ const UserController = {
         } catch (e) {
             res.status(500).json({ message: 'Internal server error', error: e.message });
         }
-    }
-}
+    },
+
+    async addFavoriteTrack(req, res) {
+        try {
+            const { trackId } = req.body;
+            const userId = req.user.id;
+
+            if (!trackId) {
+                return res.status(400).json({ message: 'Track ID is required' });
+            }
+
+            const user = await User.findById(userId);
+            if (!user) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+
+            if (user.likedSongs.includes(trackId)) {
+                return res.status(400).json({ message: 'Track already in favorites' });
+            }
+
+            user.likedSongs.push(trackId);
+            await user.save();
+
+            res.status(200).json({ message: 'Track added to favorites' });
+        } catch (error) {
+            res.status(500).json({ message: 'Error adding track to favorites', error: error.message });
+        }
+    },
+
+    // Remove track from favorites
+    async removeFavoriteTrack(req, res) {
+        try {
+            const { trackId } = req.body;
+            const userId = req.user.id;
+
+            const user = await User.findById(userId);
+            if (!user) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+
+            user.likedSongs = user.likedSongs.filter(id => id.toString() !== trackId);
+            await user.save();
+
+            res.status(200).json({ message: 'Track removed from favorites' });
+        } catch (error) {
+            res.status(500).json({ message: 'Error removing track from favorites', error: error.message });
+        }
+    },
+
+    // Follow artist
+    async followArtist(req, res) {
+        try {
+            const { artistId } = req.body;
+            const userId = req.user.id;
+
+            if (!artistId) {
+                return res.status(400).json({ message: 'Artist ID is required' });
+            }
+
+            const user = await User.findById(userId);
+            if (!user) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+
+            if (user.followingArtist.includes(artistId)) {
+                return res.status(400).json({ message: 'Already following this artist' });
+            }
+
+            user.followingArtist.push(artistId);
+            await user.save();
+
+            res.status(200).json({ message: 'Artist followed successfully' });
+        } catch (error) {
+            res.status(500).json({ message: 'Error following artist', error: error.message });
+        }
+    },
+
+    // Unfollow artist
+    async unfollowArtist(req, res) {
+        try {
+            const { artistId } = req.body;
+            const userId = req.user.id;
+
+            const user = await User.findById(userId);
+            if (!user) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+
+            user.followingArtist = user.followingArtist.filter(id => id.toString() !== artistId);
+            await user.save();
+
+            res.status(200).json({ message: 'Artist unfollowed successfully' });
+        } catch (error) {2
+            res.status(500).json({ message: 'Error unfollowing artist', error: error.message });
+        }
+    },
+
+    // add Like Albums
+    async addFavoriteAlbum(req, res) {
+        try {
+            const { albumId } = req.body;
+            const userId = req.user.id;
+
+            if (!albumId) {
+                return res.status(400).json({ message: 'Album ID is required' });
+            }
+
+            const user = await User.findById(userId);
+            if (!user) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+
+            if (user.likedAlbums.includes(albumId)) {
+                return res.status(400).json({ message: 'Album already in favorites' });
+            }
+
+            user.likedAlbums.push(albumId);
+            await user.save();
+
+            res.status(200).json({ message: 'Album added to favorites' });
+        } catch (error) {
+            res.status(500).json({ message: 'Error adding album to favorites', error: error.message });
+        }
+    },
+
+    async removeFavoriteAlbum(req, res) {
+        try {
+            const { albumId } = req.body;
+            const userId = req.user.id;
+
+            const user = await User.findById(userId);
+            if (!user) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+
+            user.likedAlbums = user.likedAlbums.filter(id => id.toString() !== albumId);
+            await user.save();
+
+            res.status(200).json({ message: 'Album removed from favorites' });
+        } catch (error) {
+            res.status(500).json({ message: 'Error removing album from favorites', error: error.message });
+        }
+    },
 
 module.exports = UserController;

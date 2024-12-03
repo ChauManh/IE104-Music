@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema({
     likedSongs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Song' }],
     followingArtist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Artist' }],
     listeningHistory: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Song' }],
+    likedAlbums: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Album' }]
 });
 
 const User = mongoose.model('user', userSchema);

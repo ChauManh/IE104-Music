@@ -36,7 +36,7 @@ const Sidebar = () => {
 
   const navigateToPlaylist = (playlistId) => {
     navigate(`/playlist/${playlistId}`);
-  };
+  }; 
   return (
     <div
       className={`${isSidebarExpanded ? "min-w-[20%]" : "min-w-[40%]"} mt-16 hidden max-h-full flex-col gap-2 pl-2 pr-2 text-white transition-all duration-300 lg:flex`}

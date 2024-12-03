@@ -141,4 +141,147 @@ const getRelatedArtists = async (id) => {
     }
 };
 
-export { createUser, fetchPopularTracks, fetchNewAlbums, fetchAlbum, getTrack, getWebPlayBackSDKToken, getRefreshToken, login, createPlaylist, getArtist, getArtistAlbums, getArtistTopTracks, getRelatedArtists };
+// Add track to favorites
+const addLikedSong = async (trackId) => {
+    try {
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            throw new Error('No access token found');
+        }
+
+        const response = await axios.post('http://localhost:3000/user/favorites/add', 
+            { trackId },
+            {
+                headers: { Authorization: `Bearer ${token}` }
+            }
+        );
+        return response.data;
+    } catch (error) {
+        console.error('API addLikedSong error:', error);
+        throw error;
+    }
+};
+
+// Remove track from favorites
+const removeLikedSong = async (trackId) => {
+    try {
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            throw new Error('No access token found');
+        }
+
+        const response = await axios.delete('http://localhost:3000/user/favorites/remove', 
+            {
+                headers: { Authorization: `Bearer ${token}` },
+                data: { trackId }
+            }
+        );
+        return response.data;
+    } catch (error) {
+        console.error('API removeLikedSong error:', error);
+        throw error;
+    }
+};
+
+// Follow artist
+const followArtist = async (artistId) => {
+    try {
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            throw new Error('No access token found');
+        }
+
+        const response = await axios.post('http://localhost:3000/user/artists/follow',
+            { artistId },
+            {
+                headers: { Authorization: `Bearer ${token}` }
+            }
+        );
+        return response.data;
+    } catch (error) {
+        console.error('API followArtist error:', error);
+        throw error;
+    }
+};
+
+// Unfollow artist
+const unfollowArtist = async (artistId) => {
+    try {
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            throw new Error('No access token found');
+        }
+
+        const response = await axios.delete('http://localhost:3000/user/artists/unfollow',
+            {
+                headers: { Authorization: `Bearer ${token}` },
+                data: { artistId }
+            }
+        );
+        return response.data;
+    } catch (error) {
+        console.error('API unfollowArtist error:', error);
+        throw error;
+    }
+};
+
+const addLikedAbum = async (albumId) => { 
+    try {
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            throw new Error('No access token found');
+        }
+
+        const response = await axios.post('http://localhost:3000/user/albums/add',
+            { albumId },
+            {
+                headers: { Authorization: `Bearer ${token}` }
+            }
+        );
+        return response.data;
+    } catch (error) {
+        console.error('API addLikedAlbum error:', error);
+        throw error;
+    }
+}
+
+const removeLikedAlbum = async (albumId) => {
+    try {
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            throw new Error('No access token found');
+        }
+
+        const response = await axios.delete('http://localhost:3000/user/albums/remove',
+            {
+                headers: { Authorization: `Bearer ${token}` },
+                data: { albumId }
+            }
+        );
+        return response.data;
+    } catch (error) {
+        console.error('API removeLikedAlbum error:', error);
+        throw error;
+    }
+}
+
+export { 
+    createUser, 
+    fetchPopularTracks, 
+    fetchNewAlbums, 
+    fetchAlbum, 
+    getTrack, 
+    getWebPlayBackSDKToken, 
+    getRefreshToken, 
+    login, 
+    createPlaylist, 
+    getArtist, 
+    getArtistAlbums, 
+    getArtistTopTracks, 
+    getRelatedArtists, 
+    addLikedSong, 
+    removeLikedSong, 
+    followArtist, 
+    unfollowArtist,
+    addLikedAbum,
+    removeLikedAlbum};
