@@ -1,7 +1,7 @@
 import React from 'react';
 import SongItem from './SongItem3';
 
-const Search = ({ results, query, onArtistClick }) => {
+const Search = ({ results, query, onArtistClick, onAlbumClick }) => {
   const topResult = results.tracks.items[0] || results.artists.items[0] || results.albums.items[0];
 
   return (
@@ -25,7 +25,10 @@ const Search = ({ results, query, onArtistClick }) => {
       />
 
       {/* Albums Grid */}
-      <AlbumsSection albums={results.albums.items} />
+      <AlbumsSection 
+        albums={results.albums.items}
+        onAlbumClick={onAlbumClick}
+      />
     </div>
   );
 };
@@ -98,7 +101,7 @@ const ArtistsSection = ({ artists, onArtistClick }) => {
   );
 };
 
-const AlbumsSection = ({ albums }) => {
+const AlbumsSection = ({ albums, onAlbumClick }) => {
   if (!albums?.length) return null;
 
   return (
@@ -108,7 +111,8 @@ const AlbumsSection = ({ albums }) => {
         {albums.map(album => (
           <div 
             key={album.id}
-            className='p-4 bg-[#181818] rounded-lg hover:bg-[#282828] transition-colors'
+            onClick={() => onAlbumClick(album.id)}
+            className='p-4 bg-[#181818] rounded-lg hover:bg-[#282828] transition-colors cursor-pointer'
           >
             <img 
               src={album.images[0].url}
