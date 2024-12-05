@@ -1,26 +1,25 @@
 import React, { useEffect, useState, useContext } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import axios from "axios";
 import SongItem from "../components/SongItem";
 import AlbumItem from "../components/AlbumItem";
 import PopupAbout from "../components/PopupAbout";
-import { assets } from '../assets/assets'
-import { PlayerContext } from '../context/PlayerContext'
-import { useQueue } from '../context/QueueContext';
-import ColorThief from 'colorthief';
+import { assets } from "../assets/assets";
+import { PlayerContext } from "../context/PlayerContext";
+import { useQueue } from "../context/QueueContext";
+import ColorThief from "colorthief";
 
 //npm install colorthief
 
 const ArtistPage = () => {
   const { id } = useParams();
   const [artist, setArtist] = useState(null);
-  const {play,  pause,  plus  } = useContext(PlayerContext);
+  const { play, pause, plus } = useContext(PlayerContext);
   const [topTracks, setTopTracks] = useState([]);
   const [albums, setAlbums] = useState([]);
   const [error, setError] = useState(null);
   const [isPopupVisible, setIsPopupVisible] = useState(false);
-  const [dominantColor, setDominantColor] = useState('#333333');
-
+  const [dominantColor, setDominantColor] = useState("#333333");
 
   const togglePopup = () => {
     setIsPopupVisible(!isPopupVisible);
@@ -45,16 +44,14 @@ const ArtistPage = () => {
         console.log("Albums:", albumsResponse.data); // Debugging log
         setAlbums(albumsResponse.data.items || []); // Ensure it's an array
 
-
         const img = new Image();
-        img.crossOrigin = 'Anonymous';
+        img.crossOrigin = "Anonymous";
         img.src = response.data.images[0]?.url;
         img.onload = () => {
           const colorThief = new ColorThief();
           const dominantColor = colorThief.getColor(img);
-          setDominantColor(`rgb(${dominantColor.join(',')})`);
+          setDominantColor(`rgb(${dominantColor.join(",")})`);
         };
-
       } catch (error) {
         setError("Error fetching artist data");
         console.error(
@@ -98,26 +95,31 @@ const ArtistPage = () => {
           </div>
         </div>
 
-          {/* Content button */}
-      <div className="relative px-6 py-4" style={{background: `linear-gradient(to bottom, ${dominantColor} 5%, #121212 15%)`,}}>
-        <div className="relative flex items-center pt-2 pb-6">
+      {/* Content button */}
+      <div
+        className="relative px-6 py-4"
+        style={{
+          background: `linear-gradient(to bottom, ${dominantColor} 5%, #121212 15%)`,
+        }}
+      >
+        <div className="relative flex items-center pb-6 pt-2">
           <div className="pr-8">
             <img
-              className='w-14 h-14 rounded-[30px] border-[18px] border-[#3be477] bg-[#3be477] cursor-pointer opacity-70 hover:opacity-100 transition-all'
+              className="h-14 w-14 cursor-pointer rounded-[30px] border-[18px] border-[#3be477] bg-[#3be477] opacity-70 transition-all hover:opacity-100"
               src={assets.play_icon}
               alt=""
             />
           </div>
 
-          <button className="flex p-4 border-2 h-4 items-center justify-center rounded-3xl border-solid cursor-pointer opacity-70 hover:opacity-100 transition-all">
-            Theo dõi
+          <button className="flex h-4 cursor-pointer items-center justify-center rounded-3xl border-2 border-solid p-4 opacity-70 transition-all hover:opacity-100">
+            Follow
           </button>
         </div>
 
         {/* Content */}
         <section className="relative z-10 mb-8">
-          <h2 className="mb-4 text-2xl font-bold">Phổ biến</h2>
-          
+          <h2 className="mb-4 text-2xl font-bold">Popular</h2>
+
           <div className="flex flex-col">
             {Array.isArray(topTracks) &&
               topTracks.map((track, index) => (
@@ -135,7 +137,7 @@ const ArtistPage = () => {
 
         <section className="relative z-10 mb-8">
           <h2 className="mb-4 text-xl font-bold">Albums</h2>
-          <div className="flex flex-row gap-6 overflow-hidden overflow-x-scroll">
+          <div className="flex flex-row overflow-hidden overflow-x-scroll">
             {Array.isArray(albums) &&
               albums.map((album, index) => (
                 <AlbumItem
@@ -149,7 +151,6 @@ const ArtistPage = () => {
               ))}
           </div>
         </section>
-
 
         {/* Content About */}
         <section className="relative z-10 mb-8">
