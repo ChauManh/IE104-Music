@@ -24,7 +24,7 @@ const FeaturedCharts = () => {
 
     loadAlbumsData();
   }, []);
-  console.log(albumsData);
+  // console.log(albumsData);
   
  
 

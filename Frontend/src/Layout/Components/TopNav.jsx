@@ -40,11 +40,14 @@ const TopNav = () => {
 
   return (
     <div className="fixed left-0 top-0 z-10 flex w-full items-center justify-between bg-black p-2 text-white">
-      <div className="cursor-pointer pl-3">
+      <div className="cursor-pointer pl-3 flex items-center space-x-2">
         <a href="http://localhost:5173/">
           <img className="w-10" src={assets.spotify_logo} alt="Logo" />
         </a>
+        <img onClick={()=>navigate(-1)} className="w-5 cursor-pointer transition-transform duration-300 hover:scale-110" src={assets.arrow_left} alt="Arrow Left" />
+        <img onClick={()=>navigate(1)} className="w-5 cursor-pointer transition-transform duration-300 hover:scale-110" src={assets.arrow_right} alt="Arrow Right" />
       </div>
+
 
       <div className="flex items-center gap-4">
         <div
