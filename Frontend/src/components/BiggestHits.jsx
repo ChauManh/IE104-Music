@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import SongItem2 from './SongItem2';
 import { fetchPopularTracks } from '../util/api';
+import { PlayerContext } from '../context/PlayerContext';
 
 const BiggestHits = () => {
   const [tracksData, setTrackData] = useState([]);
@@ -29,8 +30,15 @@ const BiggestHits = () => {
       <h1 className='my-5 font-bold text-2xl'>Today's biggest hits</h1>
       <div className='flex overflow-auto'>
         {tracksData.length > 0 ? (
-          tracksData.map((item, index) => (
-            <SongItem2  key={index} name={item.name} singer={item.singer} id={item.id} image={item.image} uri={item.uri} duration={item.duration} />
+          tracksData.slice(0, 10).map((item, index) => (
+            <SongItem2  
+            key={index} 
+            name={item.name} 
+            singer={item.singer} 
+            id={item.id} 
+            image={item.image} 
+            uri={item.uri} 
+            duration={item.duration} />
           ))
         ) : (
           <p>Loading...</p> // Hiển thị loading khi dữ liệu chưa có
