@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import axios from "axios";
 import { assets } from "../assets/assets";
 import ColorThief from "colorthief";
@@ -7,6 +7,7 @@ import AlbumItem from "../components/AlbumItem"; // Import AlbumItem component
 
 const AlbumPage = () => {
   const { id } = useParams();
+  const { locataion } = useLocation();
   const [artist, setArtist] = useState(null);
   const [album, setAlbum] = useState(null);
   const [albumTracks, setAlbumTracks] = useState([]);
@@ -16,6 +17,7 @@ const AlbumPage = () => {
   const [secondaryColor, setSecondaryColor] = useState("#333333");
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     const fetchAlbumData = async () => {
       try {
         const response = await axios.get(`http://localhost:3000/album/${id}`);
@@ -23,26 +25,24 @@ const AlbumPage = () => {
         setAlbum(response.data);
 
         const artistResponse = await axios.get(
-          `http://localhost:3000/artist/${response.data.artists[0].id}`
+          `http://localhost:3000/artist/${response.data.artists[0].id}`,
         );
         console.log("Artist data:", artistResponse.data); // Debugging log
         setArtist(artistResponse.data);
 
         const tracksResponse = await axios.get(
-          `http://localhost:3000/album/${id}/tracks`
+          `http://localhost:3000/album/${id}/tracks`,
         );
         console.log("Album tracks:", tracksResponse.data); // Debugging log
         setAlbumTracks(tracksResponse.data); // Ensure it's an array
 
         // Fetch related albums from the same artist
         const relatedAlbumsResponse = await axios.get(
-          `http://localhost:3000/artist/${response.data.artists[0].id}/albums`
+          `http://localhost:3000/artist/${response.data.artists[0].id}/albums`,
         );
         console.log("Related albums:", relatedAlbumsResponse.data); // Debugging log
         setRelatedAlbums(
-          relatedAlbumsResponse.data.items.filter(
-            (album) => album.id !== id
-          )
+          relatedAlbumsResponse.data.items.filter((album) => album.id !== id),
         );
 
         // Get dominant color from album image
@@ -59,17 +59,13 @@ const AlbumPage = () => {
         setError("Error fetching album data");
         console.error(
           "Error fetching album:",
-          error.response ? error.response.data : error.message
+          error.response ? error.response.data : error.message,
         );
       }
     };
 
     fetchAlbumData();
-  }, [id]);
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [id]);
+  }, [id, location.pathname]);
 
   const playWithUri = (trackId) => {
     // Implement playWithUri function
@@ -84,7 +80,7 @@ const AlbumPage = () => {
   const calculateTotalDuration = (tracks) => {
     const totalDuration = tracks.reduce(
       (acc, track) => acc + track.duration,
-      0
+      0,
     );
     const minutes = Math.floor(totalDuration / 60000);
     const seconds = Math.floor((totalDuration % 60000) / 1000);

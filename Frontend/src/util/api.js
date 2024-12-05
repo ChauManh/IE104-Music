@@ -1,4 +1,6 @@
 import axios from 'axios';
+import { GoogleAuthProvider, signInWithPopup  } from "firebase/auth";
+import { auth } from '../config/firebase';
 
 const createUser = async (name, email, password) => {
     try {
@@ -265,6 +267,32 @@ const removeLikedAlbum = async (albumId) => {
     }
 }
 
+const signInWithGoogle = async () => {
+    try {
+        if (!auth) {
+            throw new Error('Firebase authentication not initialized');
+        }
+        
+        const provider = new GoogleAuthProvider();
+        const result = await signInWithPopup(auth, provider);
+        
+        // Call backend to create/login user with Google credentials
+        const response = await axios.post("http://localhost:3000/auth/google", {
+            email: result.user.email,
+            name: result.user.displayName,
+            googleId: result.user.uid
+        });
+        
+        return response.data;
+    } catch (error) {
+        console.error("Google auth error:", error);
+        if (error.code === 'auth/configuration-not-found') {
+            throw new Error('Firebase configuration error. Please check your setup.');
+        }
+        throw error;
+    }
+};
+
 export { 
     createUser, 
     fetchPopularTracks, 
@@ -284,4 +312,5 @@ export {
     followArtist, 
     unfollowArtist,
     addLikedAbum,
-    removeLikedAlbum};
+    removeLikedAlbum,
+    signInWithGoogle };

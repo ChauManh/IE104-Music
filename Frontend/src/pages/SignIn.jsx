@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { login } from "../util/api";
+import { login, signInWithGoogle } from "../util/api";
 
 const SignIn = () => {
   const navigate = useNavigate();
@@ -37,6 +37,20 @@ const SignIn = () => {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    try {
+      const result = await signInWithGoogle();
+      if (result && result.EC === 0) {
+        localStorage.setItem("access_token", result.access_token);
+        localStorage.setItem("user", JSON.stringify(result.user));
+        navigate("/");
+      }
+    } catch (error) {
+      console.error("Google signin error:", error);
+      alert(error.message);
+    }
+  };
+
   return (
     <div className="flex min-h-screen w-full flex-col items-center gap-4 bg-black py-8">
       <header>
@@ -54,7 +68,10 @@ const SignIn = () => {
           Log in to Spotify
         </h1>
         <div className="flex w-[300px] flex-col justify-center gap-4">
-          <button className="flex w-full items-center rounded-md border border-gray-500 px-4 py-2 text-white transition duration-150 hover:border-green-300">
+          <button 
+            onClick={handleGoogleSignIn}
+            className="flex w-full items-center rounded-md border border-gray-500 px-4 py-2 text-white transition duration-150 hover:border-green-300"
+          >
             <img
               src="https://accounts.scdn.co/sso/images/new-google-icon.72fd940a229bc94cf9484a3320b3dccb.svg"
               alt="Google"
