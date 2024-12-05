@@ -25,7 +25,6 @@ const SearchPage = () => {
 
   return (
     <>
-      <Navbar />
       <Search
         results={searchResults}
         query={searchQuery}

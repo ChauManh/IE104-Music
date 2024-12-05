@@ -1,14 +1,18 @@
 import React from 'react';
 import SongItem from './SongItem3';
+import Navbar from './Navbar';
 
 const Search = ({ results, query, onArtistClick, onAlbumClick }) => {
   const topResult = results.tracks.items[0] || results.artists.items[0] || results.albums.items[0];
 
   return (
     <div className='px-6 pt-6'>
-      {query && (
-        <h1 className='text-3xl font-bold mb-6'>Results for "{query}"</h1>
-      )}
+      {/* {query && (
+        <h1 className='text-3xl font-bold mb-6'>Tìm kiếm kết quả cho "{query}"</h1>
+      )} */}
+      <div className="pb-4">
+        <Navbar/>
+      </div>
 
       <div className="grid grid-cols-2 gap-6 mb-8">
         {/* Top Result */}
@@ -38,7 +42,7 @@ const TopResultSection = ({ result }) => {
   
   return (
     <section>
-      <h2 className='text-xl font-bold mb-4'>Top Result</h2>
+      <h2 className='text-xl font-bold mb-4'>Kết quả hàng đầu</h2>
       <div className='p-5 bg-[#181818] rounded-lg hover:bg-[#282828] transition-colors'>
         <img 
           src={result.album?.images[0].url || result.images?.[0].url}
@@ -59,8 +63,8 @@ const SongsSection = ({ tracks }) => {
 
   return (
     <section className='pl-4 '>
-      <h2 className='text-xl font-bold mb-4'>Songs</h2>
-      <div className='flex flex-col gap-2'>
+      <h2 className='text-xl font-bold mb-4'>Bài hát</h2>
+      <div className='flex flex-col gap-0'>
         {tracks.slice(0, 4).map(track => (
           <SongItem 
             key={track.id}
@@ -80,7 +84,7 @@ const ArtistsSection = ({ artists, onArtistClick }) => {
 
   return (
     <section className='mb-8'>
-      <h2 className='text-2xl font-bold mb-4'>Artists</h2>
+      <h2 className='text-2xl font-bold mb-4'>Nghệ sĩ</h2>
       <div className='grid grid-cols-5 gap-4'>
         {artists.map(artist => (
           <div 
@@ -106,7 +110,7 @@ const AlbumsSection = ({ albums, onAlbumClick }) => {
 
   return (
     <section className='mb-8'>
-      <h2 className='text-2xl font-bold mb-4'>Albums</h2>
+      <h2 className='text-2xl font-bold mb-4'>Album</h2>
       <div className='grid grid-cols-5 gap-4'>
         {albums.map(album => (
           <div 

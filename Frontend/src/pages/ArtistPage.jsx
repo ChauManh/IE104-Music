@@ -72,27 +72,33 @@ const ArtistPage = () => {
 
   return (
     <div className="relative w-full bg-[#121212] px-0 text-white">
-      {/* Header Background */}
-      <div
-        className="flex h-[40vh] items-end p-6"
-        style={{
-          backgroundImage: `url(${artist.images[0]?.url})`,
-          backgroundRepeat: "no-repeat",
-          backgroundSize: "cover",
-          backgroundPosition: `50% 30%`,
-        }}
-      >
-        {/* Header Info */}
-        <div className="z-10">
-          <p className="text-sm font-bold">Verified Artist</p>
-          <h1 className="mb-6 text-8xl font-black">{artist.name}</h1>
-          <p className="text-l font-medium">
-            {artist.followers.total.toLocaleString()} monthly listeners
-          </p>
+        <div
+          className="flex h-[40vh] items-end p-6"
+          style={{
+            backgroundImage: `url(${artist.images[0]?.url})`,
+            backgroundRepeat: "no-repeat",
+            backgroundSize: "cover",
+            backgroundPosition: `50% 20%`,
+          }}
+        >
+          {/* Header Info */}
+          <div className="z-10">
+            <div className="flex items-center">
+          <img
+            className='w-7 h-7 opacity-100 mr-2'
+            src={assets.verified_icon}
+            alt=""
+          />
+          <p className="text-m font-Spotify">Nghệ sĩ được xác minh</p>
+            </div>
+            <h1 className="mb-4 mt-2 text-8xl font-black">{artist.name}</h1>
+            <h6 className="text-l font-Spotify">
+          {artist.followers.total.toLocaleString()} người nghe hằng tháng
+            </h6>
+          </div>
         </div>
-      </div>
 
-        {/* Content button */}
+          {/* Content button */}
       <div className="relative px-6 py-4" style={{background: `linear-gradient(to bottom, ${dominantColor} 5%, #121212 15%)`,}}>
         <div className="relative flex items-center pt-2 pb-6">
           <div className="pr-8">
@@ -104,13 +110,13 @@ const ArtistPage = () => {
           </div>
 
           <button className="flex p-4 border-2 h-4 items-center justify-center rounded-3xl border-solid cursor-pointer opacity-70 hover:opacity-100 transition-all">
-            Follow
+            Theo dõi
           </button>
         </div>
 
         {/* Content */}
         <section className="relative z-10 mb-8">
-          <h2 className="mb-4 text-2xl font-bold">Popular</h2>
+          <h2 className="mb-4 text-2xl font-bold">Phổ biến</h2>
           
           <div className="flex flex-col">
             {Array.isArray(topTracks) &&
@@ -147,7 +153,7 @@ const ArtistPage = () => {
 
         {/* Content About */}
         <section className="relative z-10 mb-8">
-          <h2 className="mb-4 text-xl font-bold">About</h2>
+          <h2 className="mb-4 text-xl font-bold">Giới thiệu</h2>
           <div className="relative h-[60vh]" onClick={togglePopup}>
             <div
               className="absolute inset-0 z-0"
@@ -160,7 +166,7 @@ const ArtistPage = () => {
             />
             <div className="relative z-10 mt-auto flex h-full flex-col justify-end p-6">
               <p className="text-l font-bold">
-                {artist.followers.total.toLocaleString()} monthly listeners
+                {artist.followers.total.toLocaleString()} người nghe hằng tháng
               </p>
               <p className="mb-4 mt-1">{albums[0]?.name}</p>
               <p className="text-l">{artist.description}</p>

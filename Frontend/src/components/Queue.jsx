@@ -17,11 +17,11 @@ const Queue = () => {
 
   return (
     <div className={`max-h-full min-w-[20%] bg-[#121212] gap-2 flex-col text-white pr-2 pl-2 overflow-y-auto rounded-l-3xl mt-16 shadow-lg ml-2 z-1 transform transition-all duration-300 ease-in-out ${!isVisible ? 'hidden': ''}`}>
-      <h2 className="font-semibold p-4 text-lg">Queue</h2>
+      <h2 className="font-semibold p-4 text-lg">Danh sách chờ</h2>
       
       {/* Now Playing */}
       <div className="hover:bg-[#333] active:bg-[#555] focus:bg-[#444] cursor-pointer rounded-md mb-4" tabIndex={0}>
-      <h3 className="text-gray-300 pl-4 pt-2">Now Playing</h3>
+      <h3 className="text-gray-300 pl-4 pt-2">Đang phát</h3>
         <div className="flex items-center gap-4 mb-4 p-2">
             { track.image ? <
               img className='mt-2 mb-2 w-14 h-14 min-h-[100%] rounded' src={track.image} alt="" /> : "" }
@@ -35,7 +35,7 @@ const Queue = () => {
             
       {/* Next in Queue */}
       <div>
-        <h3 className="text-gray-300 mb-2 pl-4">Next in Queue</h3>
+        <h3 className="text-gray-300 mb-2 pl-4">Tiếp theo</h3>
         {upcomingTracks.map((item, index) => (
           <div
             key={index}

@@ -130,6 +130,8 @@ const AlbumPage = () => {
               <p className="text-right mr-10">{formatDuration(track.duration)}</p>
             </div>
           ))}
+
+      
       </div>
     </>
   );

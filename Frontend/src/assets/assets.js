@@ -47,9 +47,8 @@ import facebook from './facebook.png'
 import apple from './apple.png'
 import apple_svg from './apple.svg'
 import avatar from './avatar.jpg'
-import mongyu from './mongyu.jpg'
-import vianhdaucobiet from './vianhdaucobiet.jpg'
 import arrow_rotate_icon from './arrow_rotate.png'
+import verified_icon from './verified.png'
 
 export const assets = {
     bell_icon,
@@ -82,8 +81,7 @@ export const assets = {
     apple,
     apple_svg,
     avatar,
-    mongyu,
-    vianhdaucobiet,
+    verified_icon,
     arrow_rotate_icon,
 }
 
