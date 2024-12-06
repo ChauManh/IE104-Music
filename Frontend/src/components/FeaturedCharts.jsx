@@ -33,7 +33,7 @@ const FeaturedCharts = () => {
     <h1 className='my-5 font-bold text-2xl'>Featured Charts</h1>
     <div className='flex overflow-auto'>
       {albumsData.length > 0 ? (
-        albumsData.map((item, index) => ( // Chỉ lấy 5 phần tử đầu tiên
+        albumsData.slice(0,4).map((item, index) => ( // Chỉ lấy 5 phần tử đầu tiên
           <AlbumItem 
             key={index} 
             name={item.name} 

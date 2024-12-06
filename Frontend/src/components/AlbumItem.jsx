@@ -20,7 +20,7 @@ const AlbumItem = ({ id, name, image, singer, time }) => {
   return (
     <div
       onClick={handleClick}
-      className="group relative flex max-h-[286px] min-w-[210px] cursor-pointer flex-col items-center rounded-md p-3.5 hover:bg-[#1e1e1e]"
+      className="group relative flex max-h-[286px] min-w-[205px] cursor-pointer flex-col items-center rounded p-3.5 hover:bg-[#1e1e1e]"
     >
       <div className="relative mb-2">
         <img
