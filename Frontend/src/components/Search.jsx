@@ -1,5 +1,7 @@
 import React from 'react';
 import SongItem from './SongItem3';
+import ArtistItem from './ArtistItem';
+import AlbumItem from './AlbumItem'; // Import the AlbumItem component
 
 const Search = ({ results, query, onArtistClick, onAlbumClick }) => {
   const topResult =
@@ -45,7 +47,7 @@ const Search = ({ results, query, onArtistClick, onAlbumClick }) => {
               key={album.id}
               id={album.id}
               name={album.name}
-              image={album.images[0].url}
+              image={album.images[0]?.url}
               singer={album.artists[0]?.name}
               time={album.release_date}
             />
@@ -71,8 +73,7 @@ const TopResultSection = ({ result }) => {
         />
         <p className="mb-2 text-2xl font-bold">{result.name}</p>
         <p className="text-sm text-gray-400">
-          {result.type.charAt(0).toUpperCase()}
-          {result.type.slice(1)} • {result.artists?.[0].name || "Artist"}
+          {result.type.charAt(0).toUpperCase()}{result.type.slice(1)} • {result.artists?.[0].name || "Artist"}
         </p>
       </div>
     </section>
