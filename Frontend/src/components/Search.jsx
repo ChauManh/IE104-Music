@@ -10,24 +10,24 @@ const Search = ({ results, query, onArtistClick, onAlbumClick }) => {
     results.albums.items[0];
 
   return (
-    <div className="px-6 pt-6">
+    <div className="px-4 pt-6 md:px-6">
       {query && (
-        <h1 className="mb-6 text-3xl font-bold">
+        <h1 className="mb-6 text-2xl font-bold md:text-3xl">
           Kết quả tìm kiếm cho "{query}"
         </h1>
       )}
 
       {/* Top Result and Songs Section */}
-      <div className="mb-8 grid grid-cols-2">
+      <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2">
         <TopResultSection result={topResult} />
         <SongsSection tracks={results.tracks.items} />
       </div>
 
       {/* Artists Section */}
       <section className="mb-8">
-        <h2 className="mb-1 text-2xl font-bold">Nghệ sĩ</h2>
-        <div className="grid grid-cols-4 grid-rows-2 gap-4">
-          {results.artists.items.slice(0, 8).map((artist) => (
+        <h2 className="mb-4 text-xl font-bold md:text-2xl">Nghệ sĩ</h2>
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
+          {results.artists.items.map((artist) => (
             <ArtistItem
               key={artist.id}
               id={artist.id}
@@ -40,9 +40,9 @@ const Search = ({ results, query, onArtistClick, onAlbumClick }) => {
 
       {/* Albums Section */}
       <section className="mb-8">
-        <h2 className="mb-1 text-2xl font-bold">Albums</h2>
-        <div className="grid grid-cols-4 grid-rows-2 gap-4">
-          {results.albums.items.slice(0, 8).map((album) => (
+        <h2 className="mb-4 text-xl font-bold md:text-2xl">Albums</h2>
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
+          {results.albums.items.map((album) => (
             <AlbumItem
               key={album.id}
               id={album.id}

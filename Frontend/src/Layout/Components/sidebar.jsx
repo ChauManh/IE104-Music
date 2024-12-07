@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { assets } from "../../assets/assets";
+import PlaylistItem from "../../components/PlaylistItem";
+import axios from "axios";
 import { createPlaylist } from "../../util/api";
 import { useNavigate } from "react-router-dom";
 
@@ -7,17 +9,34 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
   const [playlists, setPlaylists] = useState([]);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const fetchPlaylists = async () => {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      setIsLoggedIn(false);
+      setPlaylists([]);
+      return;
+    }
+
     try {
-      const response = await axios.get("http://localhost:3000/user/get_playlists", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`
-        }
-      });
+      const response = await axios.get(
+        "http://localhost:3000/user/get_playlists",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
       setPlaylists(response.data.playlists);
+      setIsLoggedIn(true);
     } catch (error) {
       console.error("Error fetching playlists:", error);
+      if (error.response?.status === 401) {
+        localStorage.removeItem("access_token");
+        setIsLoggedIn(false);
+        setPlaylists([]);
+      }
     }
   };
 
@@ -26,23 +45,27 @@ const Sidebar = () => {
   }, []);
 
   const handleCreatePlaylist = async () => {
-    try {
-      if (!localStorage.getItem("access_token")) {
-        alert("Please login first to create a playlist");
-        return;
-      }
+    if (!isLoggedIn) {
+      alert("Please login first to create a playlist");
+      navigate("/login");
+      return;
+    }
 
+    try {
       const response = await createPlaylist();
       if (response) {
-        alert(`Successfully created playlist: ${response.name}`);
         // Add new playlist to state
-        setPlaylists(prev => [...prev, response]);
+        setPlaylists((prev) => [...prev, response]);
         navigate(`/playlist/${response._id}`);
       }
     } catch (error) {
       console.error("Error creating playlist:", error);
       if (error.response?.status === 401) {
+        localStorage.removeItem("access_token");
+        setIsLoggedIn(false);
+        setPlaylists([]);
         alert("Please login again to create playlist");
+        navigate("/login");
       } else {
         alert("Failed to create playlist. Please try again.");
       }
@@ -51,40 +74,67 @@ const Sidebar = () => {
 
   return (
     <div className={`${isSidebarExpanded ? "min-w-[20%]" : "min-w-[40%]"} mt-16 hidden max-h-full flex-col gap-2 pl-2 pr-2 text-white transition-all duration-300 lg:flex`}>
-      <div className="h-[100%] rounded-3xl bg-[#121212]">
-        {/* Existing header */}
-        <div className="flex items-center justify-between p-4">
-          {/* ... existing header code ... */}
+      <div className="relative h-[100%] rounded-lg bg-[#121212] overflow-y-auto">
+        {/* Sticky Header with Shadow */}
+        <div className="sticky top-0 z-10 bg-[#121212] p-4 shadow-[0_4px_8px_rgba(0,0,0,0.3)]">
+          <div className="flex items-center justify-between">
+            {/* Rest of header content remains the same */}
+            <div className="flex cursor-default items-center gap-3">
+              <img className="w-8" src={assets.stack_icon} alt="" />
+              <p className="font-semibold">Thư viện</p>
+            </div>
+            {isLoggedIn && (
+              <div className="flex items-center gap-3">
+                <img
+                  onClick={handleCreatePlaylist}
+                  className="flex w-5 cursor-pointer rounded-full transition-transform duration-300 hover:scale-110"
+                  src={assets.plus_icon}
+                  alt=""
+                  title="Tạo danh sách phát và thư mục"
+                />
+                <img
+                  className="flex w-5 cursor-pointer rounded-full transition-transform duration-300 hover:scale-110"
+                  src={isSidebarExpanded ? assets.arrow_icon : assets.arrow_rotate_icon}
+                  alt=""
+                  onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
+                />
+              </div>
+            )}
+          </div>
         </div>
 
-        {playlists.length === 0 ? (
-          // Show create playlist prompt if no playlists exist
+        {/* Playlist Content */}
+        {isLoggedIn ? (
+          playlists.length === 0 ? (
+            <div className="m-2 flex flex-col items-start justify-start gap-1 rounded bg-[#242424] p-4 pl-4 font-semibold">
+              <h1>Tạo danh sách phát đầu tiên của bạn</h1>
+              <p className="font-light">Rất dễ! Chúng tôi sẽ giúp bạn</p>
+              <button
+                onClick={handleCreatePlaylist}
+                className="mt-4 rounded-full bg-white px-4 py-1.5 text-[15px] text-black"
+              >
+                Tạo danh sách phát
+              </button>
+            </div>
+          ) : (
+            <div className="mt-2 flex flex-col gap-2 p-2">
+              {playlists.map((playlist) => (
+                <PlaylistItem 
+                  key={playlist._id}
+                  playlist={playlist}
+                />
+              ))}
+            </div>
+          )
+        ) : (
           <div className="m-2 flex flex-col items-start justify-start gap-1 rounded bg-[#242424] p-4 pl-4 font-semibold">
-            <h1>Tạo danh sách phát đầu tiên của bạn</h1>
-            <p className="font-light">Rất dễ! Chúng tôi sẽ giúp bạn</p>
+            <h1>Đăng nhập để tạo và xem playlist</h1>
             <button
-              onClick={handleCreatePlaylist}
+              onClick={() => navigate("/login")}
               className="mt-4 rounded-full bg-white px-4 py-1.5 text-[15px] text-black"
             >
-              Tạo danh sách phát
+              Đăng nhập
             </button>
-          </div>
-        ) : (
-          // Show playlist list if playlists exist
-          <div className="mt-2 flex flex-col gap-2 p-2">
-            {playlists.map((playlist) => (
-              <div
-                key={playlist._id}
-                onClick={() => navigate(`/playlist/${playlist._id}`)}
-                className="flex items-center gap-3 rounded p-2 hover:bg-[#ffffff1a] cursor-pointer"
-              >
-                <img src={assets.plus_icon} alt="" className="w-12 h-12 rounded" />
-                <div>
-                  <p className="font-medium">{playlist.name}</p>
-                  <p className="text-sm text-[#b3b3b3]">Playlist</p>
-                </div>
-              </div>
-            ))}
           </div>
         )}
       </div>
