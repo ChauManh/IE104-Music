@@ -1,80 +1,122 @@
-import React, { useContext, useState } from 'react'
+import React, { useContext, useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { PlayerContext } from '../context/PlayerContext';
 import { assets } from '../assets/assets';
+import ColorThief from 'colorthief';
+import axios from 'axios';
+
 const PlaylistPage = () => {
-    const { albumTracks, playWithUri, albumsData } = useContext(PlayerContext); 
-    const {id} = useParams();
-    // const [view,setView]= useState([])
-    const formatDuration = (ms) => {
-        const minutes = Math.floor(ms / 60000);
-        const seconds = Math.floor((ms % 60000) / 1000);
-        return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  const { id } = useParams();
+  const { albumTracks, playWithUri } = useContext(PlayerContext);
+  const [dominantColor, setDominantColor] = useState("#333333");
+  const [secondaryColor, setSecondaryColor] = useState("#121212");
+  const [playlistData, setPlaylistData] = useState(null);
+  const [userData, setUserData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPlaylistData = async () => {
+      try {
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+          throw new Error('No access token found');
+        }
+
+        const response = await axios.get(`http://localhost:3000/user/playlist/${id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        const { playlist } = response.data;
+        setPlaylistData(playlist);
+
+        // Get user data from playlist.userID
+        if (playlist.userID) {
+          setUserData({
+            name: playlist.userID.name,
+            email: playlist.userID.email
+          });
+        }
+
+        // Get dominant color from playlist thumbnail
+        if (playlist.thumbnail) {
+          const img = new Image();
+          img.crossOrigin = "Anonymous";
+          img.src = playlist.thumbnail || assets.plus_icon;
+          img.onload = () => {
+            const colorThief = new ColorThief();
+            const dominantColor = colorThief.getColor(img);
+            setDominantColor(`rgb(${dominantColor.join(",")})`);
+            setSecondaryColor(`rgba(${dominantColor.join(",")}, 0.5)`);
+          };
+        }
+
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error fetching playlist:", error);
+        setIsLoading(false);
+      }
     };
-  
+
+    fetchPlaylistData();
+  }, [id]);
+
+
+
+  const formatDuration = (ms) => {
+    const minutes = Math.floor(ms / 60000);
+    const seconds = Math.floor((ms % 60000) / 1000);
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  };
+
   return (
-    <>
-      <div className='mt-10 flex gap-8 pl-8 flex-col md:flex-row md:items-end'>
-        <img 
-          src={assets.vianhdaucobiet} //can` doi anh nay (de tam)
-          alt="image" 
-          className='w-60 h-60 rounded-md' 
-        />
-        <div className='flex flex-col'>
-          <p>Playlist</p>
-          <h2 className='text-5xl font-bold mb-4 md:text-7xl'>BigDADDY</h2>
-          <h4></h4>
-          <p className='mt-1'>
-            <img className='inline-block w-5' src={assets.spotify_logo} alt="Spotify Logo" />
-            <b> Vũ ( can lay ten user ) </b> • 
-          </p>
+    <div className="relative w-full bg-[#121212] text-white">
+      {/* Header with gradient background */}
+      <div 
+        className="flex h-[240px] items-end p-4 md:h-[340px] md:p-8"
+        style={{
+          background: `linear-gradient(to bottom, ${dominantColor} 0%, ${secondaryColor} 100%)`,
+          filter: "brightness(0.8)"
+        }}
+      >
+        <div className="flex w-full flex-col gap-4 md:flex-row md:gap-6">
+          <img 
+            src={playlistData?.thumbnail || assets.plus_icon}
+            alt="Playlist Cover" 
+            className="h-40 w-40 rounded-md shadow-2xl md:h-60 md:w-60" 
+          />
+          <div className="flex flex-col justify-end">
+            <p className="text-xs font-normal md:text-sm">Playlist</p>
+            <h1 className="mb-2 text-4xl font-black md:mb-6 md:text-8xl text-white">
+              {playlistData?.name || "My Playlist"}
+            </h1>
+            <div className="flex items-center gap-2">
+              <span className="font-medium"></span>
+              <span className="opacity-70">0 songs</span>
+            </div>
+          </div>
         </div>
       </div>
-      <div className='grid grid-cols-3 sm:grid-cols-4 mt-10 mb-4 pl-2 text-[#a7a7a7]'>
-      <div className="relative flex items-center pt-2 pb-6 ml-2">
-        <div className="pr-8">
-        <img
-            className='w-14 h-14 rounded-[30px] border-[18px] border-[#3be477] bg-[#3be477] cursor-pointer opacity-70 hover:opacity-100 transition-all'
-            src={assets.play_icon}
-            alt=""
-        />
-        </div>
 
-          <button className="flex p-4 border-2 h-4 items-center justify-center rounded-3xl border-solid cursor-pointer opacity-70 hover:opacity-100 transition-all">
+      {/* Controls Section */}
+      <div 
+        className="relative px-8 py-6"
+        style={{
+          background: `linear-gradient(to bottom, ${secondaryColor} 0%, #121212 100%)`
+        }}
+      >
+        <div className="flex items-center gap-8">
+          <button className="flex h-14 w-14 items-center justify-center rounded-full bg-[#1ed760] hover:scale-105 hover:bg-[#1fdf64]">
+            <img className="h-8 w-8" src={assets.play_icon} alt="Play" />
+          </button>
+          <button className="flex h-8 items-center justify-center rounded-full border-[1px] border-white px-4 opacity-70 hover:opacity-100">
             Follow
           </button>
         </div>
       </div>
-      {/* <div className='grid grid-cols-3 sm:grid-cols-4 mt-10 mb-4 pl-2 text-[#a7a7a7]'>
-        <div className="flex items-center">
-          <span className="w-8 text-right mr-4">#</span>
-          <span className="truncate">Tiêu đề</span>
-        </div>
-        <p>Nghệ sĩ</p>
-        <p className='hidden sm:block'>Lượt phát</p>
-        <img className='m-auto w-4' src={assets.clock_icon} alt="Clock Icon" />
-      </div> */}
+    </div>
+  );
+};
 
-      {/* <hr /> */}
-      {/* {
-       albumTracks.map((track,index)=>(
-        <div 
-          onClick={() => playWithUri(track.id)} 
-          key={index} 
-          className='grid grid-cols-3 sm:grid-cols-4 gap-2 p-2 items-center text-[#a7a7a7] hover:bg-[#ffffff2b] cursor-pointer'
-        >
-          <div className="flex items-center">
-            <span className="w-8 text-right mr-4 text-[#a7a7a7]">{index + 1}</span>
-            <span className="text-white truncate">{track.name}</span>
-          </div>
-          <p className='text-[15px] truncate'>{track.singers.join(', ')}</p>
-          <p className='text-[15px] hidden sm:block'>0</p>
-          <p className='text-[15px] text-center'>{formatDuration(track.duration)}</p>
-        </div>
-      ))
-      } */}
-    </>
-  )
-}
-
-export default PlaylistPage
+export default PlaylistPage;

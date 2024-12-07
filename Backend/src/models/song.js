@@ -8,9 +8,13 @@ const songSchema = new mongoose.Schema({
     albumID: { type: mongoose.Schema.Types.ObjectId, ref: 'Album' },
     genre: String,
     audiofile: String,
-    releaseDate: Date
+    releaseDate: Date,
+    spotifyId: String, // Add this field for Spotify track IDs
+    name: String,      // Add this for track name
+    image: String      // Add this for track image
 });
 
-const Song = mongoose.model('Song', songSchema);
+// Make sure to register the model before using it
+const Song = mongoose.model('Song', songSchema, 'songs'); // Added collection name explicitly
 
 module.exports = Song;

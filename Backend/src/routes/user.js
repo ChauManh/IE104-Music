@@ -6,6 +6,7 @@ const UserController = require('../controllers/UserController');
 // Playlistr routes
 router.post('/create_playlist', UserController.createPlaylist);
 router.get('/get_playlists', UserController.getUserPlaylists);
+router.get('/playlist/:id', auth, UserController.getPlaylistById);
 router.post('/playlist/add_song', UserController.addSongToPlaylist);
 router.delete('/playlist/remove_song', UserController.removeSongFromPlaylist);
 router.delete('/delete_playlist/:id', UserController.deletePlaylist);
@@ -21,5 +22,4 @@ router.delete('/artists/unfollow', UserController.unfollowArtist);
 // Album following routes
 router.post('/albums/add', UserController.addFavoriteAlbum);
 router.delete('/albums/remove', UserController.removeFavoriteAlbum);
-
 module.exports = router;
