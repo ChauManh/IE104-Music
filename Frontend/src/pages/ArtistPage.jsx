@@ -137,9 +137,9 @@ const ArtistPage = () => {
 
         <section className="relative z-10 mb-8">
           <h2 className="mb-4 text-xl font-bold">Albums</h2>
-          <div className="flex flex-row overflow-hidden overflow-x-scroll">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-5 overflow-hidden overflow-x-scroll">
             {Array.isArray(albums) &&
-              albums.map((album, index) => (
+              albums.map((album) => (
                 <AlbumItem
                   key={album.id}
                   id={album.id}

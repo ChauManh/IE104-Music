@@ -51,6 +51,9 @@ const Sidebar = () => {
       return;
     }
 
+    const token = localStorage.getItem("access_token");
+    console.log("Access Token:", token); // Log the access token
+
     try {
       const response = await createPlaylist();
       if (response) {

@@ -8,16 +8,14 @@ const UserController = {
     async createPlaylist(req, res) {
         try {
             const userID = req.user.id;
-            console.log(userID);
-    
+
             if (!userID) {
-                return res.status(400).json({ message: 'userID are required' });
+                return res.status(400).json({ message: 'User ID is required' });
             }
 
             const playlistCount = await Playlist.countDocuments({ userID });
-    
+
             const name = `Danh sách phát #${playlistCount + 1}`;
-            console.log(name);
 
             const newPlaylist = new Playlist({
                 _id: new mongoose.Types.ObjectId(),
@@ -25,9 +23,9 @@ const UserController = {
                 userID,
                 songs: [],
             });
-    
+
             await newPlaylist.save();
-    
+
             res.status(201).json({ message: 'Playlist created successfully', playlist: newPlaylist });
         } catch (error) {
             res.status(500).json({ message: 'Internal server error', error: error.message });
