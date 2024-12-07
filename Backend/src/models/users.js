@@ -12,6 +12,7 @@ const userSchema = new mongoose.Schema({
     likedAlbums: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Album' }]
 });
 
-const User = mongoose.model('user', userSchema);
+// Change model name to 'User' to match references
+const User = mongoose.model('User', userSchema, 'users'); // Added collection name explicitly
 
 module.exports = User;

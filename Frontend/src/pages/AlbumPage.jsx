@@ -196,13 +196,13 @@ const AlbumPage = () => {
           <h2 className="mb-4 text-xl font-bold">
             More by {album?.artists[0]?.name}
           </h2>
-          <div className="flex flex-row overflow-hidden overflow-x-scroll">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
             {relatedAlbums.map((album) => (
               <AlbumItem
                 key={album.id}
                 id={album.id}
                 name={album.name}
-                image={album.images[0]?.url}
+                image={album.images[0].url}
                 time={album.release_date}
                 singer={album.artists[0]?.name}
               />

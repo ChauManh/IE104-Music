@@ -1,6 +1,8 @@
 const axios = require('axios');
 const Playlist = require('../models/playlist');
 const mongoose = require('mongoose');
+const User = require('../models/users');
+const Song = require('../models/song'); // Add this import
 
 const UserController = {
     async createPlaylist(req, res) {
@@ -268,6 +270,48 @@ const UserController = {
             res.status(200).json({ message: 'Album removed from favorites' });
         } catch (error) {
             res.status(500).json({ message: 'Error removing album from favorites', error: error.message });
+        }
+    },
+
+    async getPlaylistById(req, res) {
+        try {
+            const playlistId = req.params.id;
+            const userId = req.user.id;
+
+            if (!playlistId) {
+                return res.status(400).json({ message: 'Playlist ID is required' });
+            }
+
+            // Find playlist by ID and verify ownership
+            const playlist = await Playlist.findOne({ 
+                _id: playlistId,
+                userID: userId
+            }).populate('userID', 'name email');
+
+            if (!playlist) {
+                return res.status(404).json({ 
+                    message: 'Playlist not found or unauthorized access' 
+                });
+            }
+
+            res.status(200).json({
+                message: 'Playlist fetched successfully',
+                playlist: {
+                    _id: playlist._id,
+                    name: playlist.name,
+                    thumbnail: playlist.thumbnail,
+                    userID: playlist.userID,
+                    songs: playlist.songs || [], // Return empty array if no songs
+                    createdAt: playlist.createdAt
+                }
+            });
+
+        } catch (error) {
+            console.error('Error fetching playlist:', error);
+            res.status(500).json({ 
+                message: 'Error fetching playlist', 
+                error: error.message 
+            });
         }
     }
 }
