@@ -11,9 +11,13 @@ const Sidebar = () => {
   const [playlists, setPlaylists] = useState([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+  // Update fetchPlaylists to properly check login status
   const fetchPlaylists = async () => {
     const token = localStorage.getItem("access_token");
-    if (!token) {
+    const user = localStorage.getItem("user");
+
+    // Check both token and user exist
+    if (!token || !user) {
       setIsLoggedIn(false);
       setPlaylists([]);
       return;
@@ -26,22 +30,33 @@ const Sidebar = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        },
+        }
       );
-      setPlaylists(response.data.playlists);
-      setIsLoggedIn(true);
+      
+      if (response.data.playlists) {
+        setPlaylists(response.data.playlists);
+        setIsLoggedIn(true); // Set login state after successful API call
+      }
     } catch (error) {
       console.error("Error fetching playlists:", error);
       if (error.response?.status === 401) {
         localStorage.removeItem("access_token");
+        localStorage.removeItem("user");
         setIsLoggedIn(false);
         setPlaylists([]);
       }
     }
   };
 
+  // Add effect to check login status whenever token changes
   useEffect(() => {
-    fetchPlaylists();
+    const token = localStorage.getItem("access_token");
+    const user = localStorage.getItem("user");
+    setIsLoggedIn(Boolean(token && user));
+    
+    if (token && user) {
+      fetchPlaylists();
+    }
   }, []);
 
   const handleCreatePlaylist = async () => {
