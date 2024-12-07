@@ -5,21 +5,17 @@ const mongoose = require('mongoose');
 const UserController = {
     async createPlaylist(req, res) {
         try {
-            const name = "Danh sách phát #";
             const userID = req.user.id;
-            console.log(name);
             console.log(userID);
     
-            if (!name || !userID) {
-                return res.status(400).json({ message: 'Name and userID are required' });
+            if (!userID) {
+                return res.status(400).json({ message: 'userID are required' });
             }
+
+            const playlistCount = await Playlist.countDocuments({ userID });
     
-            const existingPlaylist = await Playlist.findOne({ name, userID });
-            if (existingPlaylist) {
-                return res.status(400).json({
-                    message: `Playlist with name '${name}' already exists for this user.`,
-                });
-            }
+            const name = `Danh sách phát #${playlistCount + 1}`;
+            console.log(name);
 
             const newPlaylist = new Playlist({
                 _id: new mongoose.Types.ObjectId(),

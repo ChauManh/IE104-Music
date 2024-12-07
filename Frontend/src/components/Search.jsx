@@ -1,70 +1,90 @@
 import React from 'react';
 import SongItem from './SongItem3';
-import Navbar from './Navbar';
 
 const Search = ({ results, query, onArtistClick, onAlbumClick }) => {
-  const topResult = results.tracks.items[0] || results.artists.items[0] || results.albums.items[0];
+  const topResult =
+    results.tracks.items[0] ||
+    results.artists.items[0] ||
+    results.albums.items[0];
 
   return (
     <div className='px-6 pt-6'>
-      {/* {query && (
-        <h1 className='text-3xl font-bold mb-6'>Tìm kiếm kết quả cho "{query}"</h1>
-      )} */}
-      <div className="pb-4">
-        <Navbar/>
-      </div>
+      {query && (
+        <h1 className='text-3xl font-bold mb-6'>Results for "{query}"</h1>
+      )}
 
-      <div className="grid grid-cols-2 gap-6 mb-8">
-        {/* Top Result */}
+      {/* Top Result and Songs Section */}
+      <div className="mb-8 grid grid-cols-2">
         <TopResultSection result={topResult} />
-        
-        {/* Songs Preview */}
         <SongsSection tracks={results.tracks.items} />
       </div>
 
-      {/* Artists Grid */}
-      <ArtistsSection 
-        artists={results.artists.items} 
-        onArtistClick={onArtistClick}
-      />
+      {/* Artists Section */}
+      <section className="mb-8">
+        <h2 className="mb-1 text-2xl font-bold">Nghệ sĩ</h2>
+        <div className="grid grid-cols-4 grid-rows-2 gap-4">
+          {results.artists.items.slice(0, 8).map((artist) => (
+            <ArtistItem
+              key={artist.id}
+              id={artist.id}
+              name={artist.name}
+              image={artist.images[0]?.url}
+            />
+          ))}
+        </div>
+      </section>
 
-      {/* Albums Grid */}
-      <AlbumsSection 
-        albums={results.albums.items}
-        onAlbumClick={onAlbumClick}
-      />
+      {/* Albums Section */}
+      <section className="mb-8">
+        <h2 className="mb-1 text-2xl font-bold">Albums</h2>
+        <div className="grid grid-cols-4 grid-rows-2 gap-4">
+          {results.albums.items.slice(0, 8).map((album) => (
+            <AlbumItem
+              key={album.id}
+              id={album.id}
+              name={album.name}
+              image={album.images[0].url}
+              singer={album.artists[0]?.name}
+              time={album.release_date}
+            />
+          ))}
+        </div>
+      </section>
     </div>
   );
 };
 
+// Top Result Section remains the same
 const TopResultSection = ({ result }) => {
   if (!result) return null;
-  
+
   return (
     <section>
-      <h2 className='text-xl font-bold mb-4'>Kết quả hàng đầu</h2>
+      <h2 className='text-xl font-bold mb-4'>Top Result</h2>
       <div className='p-5 bg-[#181818] rounded-lg hover:bg-[#282828] transition-colors'>
         <img 
           src={result.album?.images[0].url || result.images?.[0].url}
           alt={result.name}
-          className='w-24 h-24 rounded-md mb-4 shadow-lg'
+          className="mb-4 h-24 w-24 rounded-md shadow-lg"
         />
-        <p className='text-2xl font-bold mb-2'>{result.name}</p>
-        <p className='text-sm text-gray-400'>
-          {result.type.charAt(0).toUpperCase()}{result.type.slice(1)} • {result.artists?.[0].name || 'Artist'}
+        <p className="mb-2 text-2xl font-bold">{result.name}</p>
+        <p className="text-sm text-gray-400">
+          {result.type.charAt(0).toUpperCase()}
+          {result.type.slice(1)} • {result.artists?.[0].name || "Artist"}
         </p>
       </div>
     </section>
   );
 };
 
+// Songs Section using SongItem
 const SongsSection = ({ tracks }) => {
   if (!tracks?.length) return null;
 
   return (
     <section className='pl-4 '>
-      <h2 className='text-xl font-bold mb-4'>Bài hát</h2>
-      <div className='flex flex-col gap-0'>
+      <h2 className='text-xl font-bold mb-4'>Songs</h2>
+      <div className='flex flex-col gap-2'>
         {tracks.slice(0, 4).map(track => (
           <SongItem 
             key={track.id}
@@ -84,7 +104,7 @@ const ArtistsSection = ({ artists, onArtistClick }) => {
 
   return (
     <section className='mb-8'>
-      <h2 className='text-2xl font-bold mb-4'>Nghệ sĩ</h2>
+      <h2 className='text-2xl font-bold mb-4'>Artists</h2>
       <div className='grid grid-cols-5 gap-4'>
         {artists.map(artist => (
           <div 
@@ -110,7 +130,7 @@ const AlbumsSection = ({ albums, onAlbumClick }) => {
 
   return (
     <section className='mb-8'>
-      <h2 className='text-2xl font-bold mb-4'>Album</h2>
+      <h2 className='text-2xl font-bold mb-4'>Albums</h2>
       <div className='grid grid-cols-5 gap-4'>
         {albums.map(album => (
           <div 

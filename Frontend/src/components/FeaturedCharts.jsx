@@ -31,7 +31,7 @@ const FeaturedCharts = () => {
  return (
   <div className='mb-6'>
     <h1 className='my-5 font-bold text-2xl'>Featured Charts</h1>
-    <div className='flex overflow-auto'>
+    <div className='flex overflow-x-scroll'>
       {albumsData.length > 0 ? (
         albumsData.slice(0, 10).map((item, index) => (
           <AlbumItem 
