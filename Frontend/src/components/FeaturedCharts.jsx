@@ -24,31 +24,27 @@ const FeaturedCharts = () => {
 
     loadAlbumsData();
   }, []);
-  // console.log(albumsData);
-  
- 
 
- return (
-  <div className='mb-6'>
-    <h1 className='my-5 font-bold text-2xl'>Featured Charts</h1>
-    <div className='flex overflow-x-scroll'>
+  return (
+    <div className='mb-6 px-4'>
+      <h1 className='my-5 font-bold text-2xl'>Featured Charts</h1>
       {albumsData.length > 0 ? (
-        albumsData.slice(0, 10).map((item, index) => (
-          <AlbumItem 
-            key={index} 
-            name={item.name} 
-            singer={item.singer} 
-            id={item.id} 
-            image={item.image}
-          />
-        ))
+        <div className='grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6'>
+          {albumsData.slice(0, 10).map((item) => (
+            <AlbumItem 
+              key={item.id}
+              name={item.name} 
+              singer={item.singer} 
+              id={item.id} 
+              image={item.image}
+            />
+          ))}
+        </div>
       ) : (
-        <p>Loading...</p> // Hiển thị loading khi dữ liệu chưa có
+        <p>Loading...</p>
       )}
     </div>
-  </div>
-);
-
-}
+  );
+};
 
 export default FeaturedCharts;

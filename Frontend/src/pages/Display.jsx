@@ -13,7 +13,7 @@ const Display = () => {
   return (
     <div
       ref={displayRef}
-      className="mt-16 overflow-auto rounded-3xl bg-[#121212] text-white lg:ml-0 lg:w-[100%]"
+      className="mt-16 overflow-auto rounded-lg bg-[#121212] text-white lg:ml-0 lg:w-[100%]"
     >
       <Routes>
         <Route path="/" element={<DisplayHome />} />
