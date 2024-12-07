@@ -20,6 +20,7 @@ const AlbumItem = ({ id, name, image, singer, time }) => {
     <div
       onClick={handleClick}
       className="group relative flex cursor-pointer flex-col items-center rounded p-2 sm:p-3 hover:bg-[#1e1e1e]"
+      style={{ width: '200px' }} // Set a fixed width for consistency
     >
       <div className="relative mb-2 w-full">
         {/* Image container with responsive sizing */}
@@ -28,6 +29,7 @@ const AlbumItem = ({ id, name, image, singer, time }) => {
             className="h-full w-full rounded-md object-cover"
             src={image}
             alt={name}
+            style={{ height: '200px', width: '200px' }} // Set fixed dimensions for the image
           />
           {/* Play button with responsive sizing */}
           <div className="absolute bottom-2 right-2 translate-y-2 opacity-0 transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100">

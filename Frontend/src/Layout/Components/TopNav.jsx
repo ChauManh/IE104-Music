@@ -1,14 +1,15 @@
 import React, { useState, useRef } from "react";
 import { assets } from "../../assets/assets";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import Search from "../../components/Search";
 import axios from "axios";
 
-const TopNav = () => {
+const TopNav = ({ handleLogout }) => {
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const [query, setQuery] = useState("");
+  const [dropdownVisible, setDropdownVisible] = useState(false);
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -36,6 +37,10 @@ const TopNav = () => {
     } catch (error) {
       console.error("Error searching:", error);
     }
+  };
+
+  const toggleDropdown = () => {
+    setDropdownVisible(!dropdownVisible);
   };
 
   return (

@@ -47,7 +47,7 @@ const Sidebar = () => {
   const handleCreatePlaylist = async () => {
     if (!isLoggedIn) {
       alert("Please login first to create a playlist");
-      navigate("/login");
+      navigate("/signin");
       return;
     }
 
@@ -65,7 +65,7 @@ const Sidebar = () => {
         setIsLoggedIn(false);
         setPlaylists([]);
         alert("Please login again to create playlist");
-        navigate("/login");
+        navigate("/signin");
       } else {
         alert("Failed to create playlist. Please try again.");
       }
@@ -130,7 +130,7 @@ const Sidebar = () => {
           <div className="m-2 flex flex-col items-start justify-start gap-1 rounded bg-[#242424] p-4 pl-4 font-semibold">
             <h1>Đăng nhập để tạo và xem playlist</h1>
             <button
-              onClick={() => navigate("/login")}
+              onClick={() => navigate("/signin")}
               className="mt-4 rounded-full bg-white px-4 py-1.5 text-[15px] text-black"
             >
               Đăng nhập
