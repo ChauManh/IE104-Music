@@ -4,7 +4,7 @@ const auth = require('../middleware/auth');
 const UserController = require('../controllers/UserController');
 
 // Playlistr routes
-router.post('/create_playlist', UserController.createPlaylist);
+router.post('/create_playlist', auth, UserController.createPlaylist);
 router.get('/get_playlists', UserController.getUserPlaylists);
 router.get('/playlist/:id', auth, UserController.getPlaylistById);
 router.post('/playlist/add_song', UserController.addSongToPlaylist);

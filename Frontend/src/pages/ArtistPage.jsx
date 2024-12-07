@@ -69,25 +69,31 @@ const ArtistPage = () => {
 
   return (
     <div className="relative w-full bg-[#121212] px-0 text-white">
-      {/* Header Background */}
-      <div
-        className="flex h-[40vh] items-end p-6"
-        style={{
-          backgroundImage: `url(${artist.images[0]?.url})`,
-          backgroundRepeat: "no-repeat",
-          backgroundSize: "cover",
-          backgroundPosition: `50% 30%`,
-        }}
-      >
-        {/* Header Info */}
-        <div className="z-10">
-          <p className="text-sm font-bold">Verified Artist</p>
-          <h1 className="mb-6 text-8xl font-black">{artist.name}</h1>
-          <p className="text-l font-medium">
-            {artist.followers.total.toLocaleString()} monthly listeners
-          </p>
+        <div
+          className="flex h-[40vh] items-end p-6"
+          style={{
+            backgroundImage: `url(${artist.images[0]?.url})`,
+            backgroundRepeat: "no-repeat",
+            backgroundSize: "cover",
+            backgroundPosition: `50% 20%`,
+          }}
+        >
+          {/* Header Info */}
+          <div className="z-10">
+            <div className="flex items-center">
+          <img
+            className='w-7 h-7 opacity-100 mr-2'
+            src={assets.verified_icon}
+            alt=""
+          />
+          <p className="text-m font-Spotify">Nghệ sĩ được xác minh</p>
+            </div>
+            <h1 className="mb-4 mt-2 text-8xl font-black">{artist.name}</h1>
+            <h6 className="text-l font-Spotify">
+          {artist.followers.total.toLocaleString()} người nghe hằng tháng
+            </h6>
+          </div>
         </div>
-      </div>
 
       {/* Content button */}
       <div
@@ -131,9 +137,9 @@ const ArtistPage = () => {
 
         <section className="relative z-10 mb-8">
           <h2 className="mb-4 text-xl font-bold">Albums</h2>
-          <div className="flex flex-row overflow-hidden overflow-x-scroll">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-5 overflow-hidden overflow-x-scroll">
             {Array.isArray(albums) &&
-              albums.map((album, index) => (
+              albums.map((album) => (
                 <AlbumItem
                   key={album.id}
                   id={album.id}
@@ -148,7 +154,7 @@ const ArtistPage = () => {
 
         {/* Content About */}
         <section className="relative z-10 mb-8">
-          <h2 className="mb-4 text-xl font-bold">About</h2>
+          <h2 className="mb-4 text-xl font-bold">Giới thiệu</h2>
           <div className="relative h-[60vh]" onClick={togglePopup}>
             <div
               className="absolute inset-0 z-0"
@@ -161,7 +167,7 @@ const ArtistPage = () => {
             />
             <div className="relative z-10 mt-auto flex h-full flex-col justify-end p-6">
               <p className="text-l font-bold">
-                {artist.followers.total.toLocaleString()} monthly listeners
+                {artist.followers.total.toLocaleString()} người nghe hằng tháng
               </p>
               <p className="mb-4 mt-1">{albums[0]?.name}</p>
               <p className="text-l">{artist.description}</p>

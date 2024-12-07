@@ -186,6 +186,8 @@ const AlbumPage = () => {
               </p>
             </div>
           ))}
+
+      
       </div>
 
       {/* More from Artist Section */}

@@ -1,14 +1,15 @@
 import React, { useState, useRef } from "react";
 import { assets } from "../../assets/assets";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import Search from "../../components/Search";
 import axios from "axios";
 
-const TopNav = () => {
+const TopNav = ({ handleLogout }) => {
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const [query, setQuery] = useState("");
+  const [dropdownVisible, setDropdownVisible] = useState(false);
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -36,6 +37,10 @@ const TopNav = () => {
     } catch (error) {
       console.error("Error searching:", error);
     }
+  };
+
+  const toggleDropdown = () => {
+    setDropdownVisible(!dropdownVisible);
   };
 
   return (
@@ -89,13 +94,6 @@ const TopNav = () => {
               <p className="truncate text-sm text-gray-400">user@email.com</p>
             </div>
             <div className="border-t border-gray-700">
-              <a
-                onClick={() => handleLoginRedirect()}
-                href="#"
-                className="block px-4 py-2 text-sm text-gray-300 hover:bg-[#3E3E3E]"
-              >
-                Account
-              </a>
               <a
                 href="#"
                 className="block px-4 py-2 text-sm text-gray-300 hover:bg-[#3E3E3E]"
