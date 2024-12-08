@@ -27,7 +27,7 @@ const SearchController = {
         } catch (error) {
             res.status(500).json({ error: 'Failed to fetch search results' });
         }
-    },
+    }
 };
 
 module.exports = SearchController;

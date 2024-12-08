@@ -19,7 +19,7 @@
 
 /* Custom Scrollbar Styling */
 ::-webkit-scrollbar {
-  width: 12px;
+  width: 6px;
   opacity: 0;
   transition: all 0.3s ease;
 }
@@ -57,4 +57,22 @@
 
 .hide-scrollbar::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Opera */
+}
+
+/* Custom Scrollbar Styling */
+.album-scrollbar::-webkit-scrollbar {
+  height: 6px; /* Adjust the height of the scrollbar */
+}
+
+.album-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.album-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+.album-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
 }

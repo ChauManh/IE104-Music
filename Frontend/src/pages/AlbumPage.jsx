@@ -144,7 +144,7 @@ const AlbumPage = () => {
           </div>
 
           <button className="flex h-4 cursor-pointer items-center justify-center rounded-3xl border-2 border-solid p-4 opacity-70 transition-all hover:opacity-100">
-            Follow
+            Theo dõi
           </button>
         </div>
 
@@ -168,7 +168,7 @@ const AlbumPage = () => {
             <div
               onClick={() => playWithUri(track.id)}
               key={index}
-              className="grid cursor-pointer grid-cols-[auto_1fr_auto] items-center gap-2 rounded-s p-2 text-[#a7a7a7] hover:bg-[#ffffff2b]"
+              className="grid cursor-pointer grid-cols-[auto_1fr_auto] items-center gap-2 rounded-s p-2 text-[#a7a7a7] hover:bg-[#ffffff2b] rounded"
             >
               <div className="flex items-center">
                 <p className="mr-4 w-8 text-right">{index + 1}</p>
@@ -194,9 +194,9 @@ const AlbumPage = () => {
       {relatedAlbums.length > 0 && (
         <section className="relative z-10 mb-8 px-6">
           <h2 className="mb-4 text-xl font-bold">
-            More by {album?.artists[0]?.name}
+            Album khác của {album?.artists[0]?.name}
           </h2>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+          <div className="grid grid-flow-col auto-cols-[200px] gap-4 overflow-x-auto album-scrollbar">
             {relatedAlbums.map((album) => (
               <AlbumItem
                 key={album.id}

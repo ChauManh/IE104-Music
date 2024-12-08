@@ -26,10 +26,10 @@ const FeaturedCharts = () => {
   }, []);
 
   return (
-    <div className='mb-6 px-4'>
+    <div className='mb-6 px-2 pb-2'>
       <h1 className='my-5 font-bold text-2xl'>Featured Charts</h1>
       {albumsData.length > 0 ? (
-        <div className='grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6'>
+        <div className='grid grid-flow-col auto-cols-[200px] gap-2 overflow-x-auto album-scrollbar'>
           {albumsData.slice(0, 10).map((item) => (
             <AlbumItem 
               key={item.id}

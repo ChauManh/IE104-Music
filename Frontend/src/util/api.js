@@ -87,14 +87,14 @@ const login = async (email, password) => {
     }
 };
 
-const createPlaylist = async () => {
+const createPlaylist = async (name) => {
     try {
         const token = localStorage.getItem('access_token'); // Get token from localStorage
         if (!token) {
             throw new Error('No access token found');
         }
 
-        const response = await axios.post("http://localhost:3000/user/create_playlist", {}, {
+        const response = await axios.post("http://localhost:3000/user/create_playlist", { name }, {
             headers: {
                 Authorization: `Bearer ${token}`
             }
@@ -105,6 +105,25 @@ const createPlaylist = async () => {
         console.error("API createPlaylist error:", error);
         throw error;
     }   
+};
+
+const addSongToPlaylist = async (playlistId, trackId) => {
+    try {
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            throw new Error('No access token found');
+        }
+
+        const response = await axios.post("http://localhost:3000/user/add_song_to_playlist", { playlistId, trackId }, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error("API addSongToPlaylist error:", error);
+        throw error;
+    }
 };
 
 const getArtist = async (id) => {
@@ -303,6 +322,7 @@ export {
     getRefreshToken, 
     login, 
     createPlaylist, 
+    addSongToPlaylist,
     getArtist, 
     getArtistAlbums, 
     getArtistTopTracks, 
