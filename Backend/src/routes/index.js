@@ -7,7 +7,8 @@ const searchRouter = require('./search');
 const authMiddleware = require('../middleware/auth');
 const userRouter = require('./user');
 const artistRouter = require('./artist');
-  
+const songRouter = require('./songs');
+
 function router(app) {
   app.use('/track', trackRouter);
   app.use('/album', albumRouter);
@@ -17,6 +18,7 @@ function router(app) {
   app.use('/search', searchRouter);
   app.use('/user', authMiddleware, userRouter);
   app.use('/artist', artistRouter);
+  app.use('/songs', songRouter);
 }
 
 module.exports = router;

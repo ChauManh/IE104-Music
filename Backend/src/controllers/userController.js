@@ -3,6 +3,8 @@ const Playlist = require('../models/playlist');
 const mongoose = require('mongoose');
 const User = require('../models/users');
 const Song = require('../models/song'); // Add this import
+const { uploadImage } = require('../config/cloudinary/cloudinary_config');
+const fs = require('fs');
 
 const UserController = {
     async createPlaylist(req, res) {
@@ -15,7 +17,7 @@ const UserController = {
 
             const playlistCount = await Playlist.countDocuments({ userID });
 
-            const name = `Danh sách phát #${playlistCount + 1}`;
+            const name = `Danh sách phát của tôi #${playlistCount + 1}`;
 
             const newPlaylist = new Playlist({
                 _id: new mongoose.Types.ObjectId(),
@@ -35,57 +37,83 @@ const UserController = {
     async addSongToPlaylist(req, res) {
         try {    
             const { playlistID, songID } = req.body;
+            const userId = req.user.id;
 
             if (!playlistID || !songID) {
-                return res.status(400).json({ message: 'Playlist ID and Song ID are required.' });
+                return res.status(400).json({ 
+                    message: 'Playlist ID and Song ID are required.' 
+                });
             }
     
-            const playlist = await Playlist.findById(playlistID);
+            const playlist = await Playlist.findOne({ 
+                _id: playlistID,
+                userID: userId 
+            });
+    
             if (!playlist) {
-                return res.status(404).json({ message: 'Playlist not found.' });
+                return res.status(404).json({ 
+                    message: 'Playlist not found or unauthorized.' 
+                });
             }
     
             if (playlist.songs.includes(songID)) {
-                return res.status(400).json({ message: 'Song already exists in the playlist.' });
+                return res.status(400).json({ 
+                    message: 'Bài hát đã có trong playlist.' 
+                });
             }
     
             playlist.songs.push(songID);
-    
             await playlist.save();
     
-            res.status(200).json({ message: 'Song added to playlist successfully.', playlist });
-        } catch (e) {
-            res.status(500).json({ message: 'Internal server error', error: e.message });
+            res.status(200).json({ 
+                message: 'Song added to playlist successfully.',
+                playlist 
+            });
+        } catch (error) {
+            console.error('Error in addSongToPlaylist:', error);
+            res.status(500).json({ 
+                message: 'Error adding song to playlist', 
+                error: error.message 
+            });
         }
     },
 
     async removeSongFromPlaylist(req, res) {
         try {
             const { playlistID, songID } = req.body;
-    
+            const userId = req.user.id; // Get user ID from auth middleware
+
             if (!playlistID || !songID) {
                 return res.status(400).json({ message: 'Playlist ID and Song ID are required.' });
             }
-    
-            const playlist = await Playlist.findById(playlistID);
+
+            // Find playlist and verify ownership
+            const playlist = await Playlist.findOne({ 
+                _id: playlistID,
+                userID: userId 
+            });
+
             if (!playlist) {
-                return res.status(404).json({ message: 'Playlist not found.' });
+                return res.status(404).json({ message: 'Playlist not found or unauthorized access.' });
             }
-    
-            if (!playlist.songs.includes(songID)) {
+
+            // Check if song exists in playlist
+            const songIndex = playlist.songs.indexOf(songID);
+            if (songIndex === -1) {
                 return res.status(400).json({ message: 'Song does not exist in the playlist.' });
             }
-    
-            playlist.songs = playlist.songs.filter(song => song.toString() !== songID);
-    
+
+            // Remove song from playlist
+            playlist.songs.splice(songIndex, 1);
             await playlist.save();
-    
+
             res.status(200).json({ 
                 message: 'Song removed from playlist successfully.', 
                 playlist 
             });
-        } catch (e) {
-            res.status(500).json({ message: 'Internal server error', error: e.message });
+        } catch (error) {
+            console.error('Error in removeSongFromPlaylist:', error);
+            res.status(500).json({ message: 'Internal server error', error: error.message });
         }
     },
 
@@ -309,6 +337,67 @@ const UserController = {
             res.status(500).json({ 
                 message: 'Error fetching playlist', 
                 error: error.message 
+            });
+        }
+    },
+
+    async updatePlaylistThumbnail(req, res) {
+        try {
+            if (!req.file) {
+                return res.status(400).json({ 
+                    message: 'No file uploaded' 
+                });
+            }
+
+            const playlistId = req.body.playlistId;
+            const userId = req.user.id;
+
+            if (!playlistId) {
+                return res.status(400).json({
+                    message: 'Playlist ID is required'
+                });
+            }
+
+            // Find playlist and verify ownership
+            const playlist = await Playlist.findOne({ 
+                _id: playlistId,
+                userID: userId 
+            });
+
+            if (!playlist) {
+                return res.status(404).json({ 
+                    message: 'Playlist not found or unauthorized access' 
+                });
+            }
+
+            try {
+                // Upload image to Cloudinary
+                const result = await uploadImage(req.file.path);
+
+                // Update playlist with Cloudinary URL
+                playlist.thumbnail = result.secure_url;
+                await playlist.save();
+
+                // Delete local file after upload
+                fs.unlinkSync(req.file.path);
+
+                res.status(200).json({
+                    message: 'Thumbnail updated successfully',
+                    playlist
+                });
+            } catch (uploadError) {
+                // Clean up local file if upload fails
+                if (req.file) {
+                    fs.unlinkSync(req.file.path);
+                }
+                throw uploadError;
+            }
+
+        } catch (error) {
+            console.error('Error in updatePlaylistThumbnail:', error);
+            res.status(500).json({
+                message: 'Error updating thumbnail',
+                error: error.message
             });
         }
     }
