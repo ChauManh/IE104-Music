@@ -4,14 +4,11 @@ const songSchema = new mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
     title: String,
     duration: Number,
-    artistID: { type: mongoose.Schema.Types.ObjectId, ref: 'Artist' },
-    albumID: { type: mongoose.Schema.Types.ObjectId, ref: 'Album' },
-    genre: String,
-    audiofile: String,
-    releaseDate: Date,
-    spotifyId: String, // Add this field for Spotify track IDs
-    name: String,      // Add this for track name
-    image: String      // Add this for track image
+    artistName: String,
+    album: String,
+    image: String,
+    spotifyId: String,
+    createdAt: { type: Date, default: Date.now }
 });
 
 // Make sure to register the model before using it
