@@ -110,18 +110,28 @@ const createPlaylist = async (name) => {
 const addSongToPlaylist = async (playlistId, trackId) => {
     try {
         const token = localStorage.getItem('access_token');
-        if (!token) {
-            throw new Error('No access token found');
-        }
+        if (!token) throw new Error('No access token found');
 
-        const response = await axios.post("http://localhost:3000/user/add_song_to_playlist", { playlistId, trackId }, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        });
+        // First create/get song
+        const songResponse = await axios.post(
+            'http://localhost:3000/songs/create',
+            { spotifyId: trackId },
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        // Add song to playlist
+        const response = await axios.post(
+            'http://localhost:3000/user/playlist/add_song',
+            {
+                playlistID: playlistId,
+                songID: songResponse.data.song._id
+            },
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+
         return response.data;
     } catch (error) {
-        console.error("API addSongToPlaylist error:", error);
+        console.error('Error adding song to playlist:', error);
         throw error;
     }
 };
@@ -312,6 +322,142 @@ const signInWithGoogle = async () => {
     }
 };
 
+// Playlist API functions
+const getPlaylistById = async (playlistId) => {
+    try {
+        const token = localStorage.getItem('access_token');
+        if (!token) throw new Error('No access token found');
+
+        const response = await axios.get(
+            `http://localhost:3000/user/playlist/${playlistId}`,
+            {
+                headers: { Authorization: `Bearer ${token}` }
+            }
+        );
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching playlist:', error);
+        throw error;
+    }
+};
+
+const removeSongFromPlaylist = async (playlistId, songId) => {
+    try {
+        const token = localStorage.getItem('access_token');
+        if (!token) throw new Error('No access token found');
+
+        const response = await axios.delete(
+            'http://localhost:3000/user/playlist/remove_song',
+            {
+                headers: { Authorization: `Bearer ${token}` },
+                data: { playlistID: playlistId, songID: songId }
+            }
+        );
+        return response.data;
+    } catch (error) {
+        console.error('Error removing song from playlist:', error);
+        throw error;
+    }
+};
+
+const updatePlaylistThumbnail = async (playlistId, file) => {
+    try {
+        const token = localStorage.getItem('access_token');
+        if (!token) throw new Error('No access token found');
+
+        const formData = new FormData();
+        formData.append('thumbnail', file);
+        formData.append('playlistId', playlistId);
+
+        const response = await axios.post(
+            'http://localhost:3000/user/playlist/update_thumbnail',
+            formData,
+            {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'multipart/form-data'
+                }
+            }
+        );
+        return response.data;
+    } catch (error) {
+        console.error('Error updating thumbnail:', error);
+        throw error;
+    }
+};
+
+const searchContent = async (query) => {
+    try {
+        const token = localStorage.getItem('access_token');
+        if (!token) throw new Error('No access token found');
+
+        const response = await axios.get('http://localhost:3000/search', {
+            params: { q: query, type: 'track,artist,album' },
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error searching content:', error);
+        throw error;
+    }
+};
+
+const fetchPlaylistData = async (playlistId) => {
+    try {
+        const token = localStorage.getItem('access_token');
+        if (!token) throw new Error('No access token found');
+
+        const response = await axios.get(
+            `http://localhost:3000/user/playlist/${playlistId}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        );
+
+        const { playlist } = response.data;
+
+        // Fetch song details if playlist has songs
+        if (playlist.songs && playlist.songs.length > 0) {
+            const songsWithDetails = await Promise.all(
+                playlist.songs.map(async (songId) => {
+                    const songResponse = await axios.get(
+                        `http://localhost:3000/songs/${songId}`,
+                        {
+                            headers: {
+                                Authorization: `Bearer ${token}`
+                            }
+                        }
+                    );
+                    return songResponse.data;
+                })
+            );
+            return {
+                playlist: {
+                    ...playlist,
+                    songs: songsWithDetails
+                },
+                userData: playlist.userID ? {
+                    name: playlist.userID.name,
+                    email: playlist.userID.email
+                } : null
+            };
+        }
+
+        return {
+            playlist,
+            userData: playlist.userID ? {
+                name: playlist.userID.name,
+                email: playlist.userID.email
+            } : null
+        };
+    } catch (error) {
+        console.error('Error fetching playlist data:', error);
+        throw error;
+    }
+};
+
 export { 
     createUser, 
     fetchPopularTracks, 
@@ -333,4 +479,10 @@ export {
     unfollowArtist,
     addLikedAbum,
     removeLikedAlbum,
-    signInWithGoogle };
+    signInWithGoogle,
+    getPlaylistById,
+    removeSongFromPlaylist,
+    updatePlaylistThumbnail,
+    searchContent,
+    fetchPlaylistData
+};
