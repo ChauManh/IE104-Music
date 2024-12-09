@@ -18,7 +18,7 @@ const SongItem = ({ name, image, singer, id, duration, index }) => {
   return (
     <div onClick={handleClick} className='min-w-[180px] p-2 px-3 rounded cursor-pointer hover:bg-[#ffffff26] transition-colors duration-200'>
       <div className='grid grid-cols-4 gap-6 items-center pl-2 pr-4'>
-        <p className='text-gray-400'>{index + 1}</p> {/* Display the index */}
+        <p className='text-gray-400'>{index + 1}</p>
         <img 
           className='rounded w-12 h-12'
           src={image} 

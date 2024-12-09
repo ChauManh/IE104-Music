@@ -19,7 +19,7 @@ const AlbumItem = ({ id, name, image, singer, time }) => {
   return (
     <div
       onClick={handleClick}
-      className="group relative flex cursor-pointer flex-col items-center rounded transition-colors duration-200 hover:bg-[#1e1e1e] lg:p-2 xl:p-4"
+      className="group relative flex cursor-pointer flex-col items-center rounded transition-colors  duration-200 hover:bg-[#1e1e1e] lg:p-2 xl:p-4"
     >
       <div className="relative mb-4 w-full sm:mb-3 md:mb-2">
         {/* Image container with responsive sizing */}

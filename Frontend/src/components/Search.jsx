@@ -26,7 +26,7 @@ const Search = ({ results, query, onArtistClick, onAlbumClick }) => {
       {/* Artists Section */}
       <section className="mb-8">
         <h2 className="mb-4 text-xl font-bold md:text-2xl">Nghệ sĩ</h2>
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
+        <div className="grid grid-flow-col auto-cols-[200px] gap-4 overflow-x-auto album-scrollbar">
           {results.artists.items.map((artist) => (
             <ArtistItem
               key={artist.id}
@@ -40,8 +40,8 @@ const Search = ({ results, query, onArtistClick, onAlbumClick }) => {
 
       {/* Albums Section */}
       <section className="mb-8">
-        <h2 className="mb-4 text-xl font-bold md:text-2xl">Albums</h2>
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
+        <h2 className="mb-4 text-xl font-bold md:text-2xl">Danh sách đĩa nhạc</h2>
+        <div className="grid grid-flow-col auto-cols-[200px] gap-4 overflow-x-auto album-scrollbar">
           {results.albums.items.map((album) => (
             <AlbumItem
               key={album.id}
@@ -64,7 +64,7 @@ const TopResultSection = ({ result }) => {
 
   return (
     <section>
-      <h2 className='text-xl font-bold mb-4'>Top Result</h2>
+      <h2 className='text-xl font-bold mb-4'>Kết quả hàng đầu</h2>
       <div className='p-5 bg-[#181818] rounded-lg hover:bg-[#282828] transition-colors'>
         <img 
           src={result.album?.images[0].url || result.images?.[0].url}
@@ -86,7 +86,7 @@ const SongsSection = ({ tracks }) => {
 
   return (
     <section className='pl-4 '>
-      <h2 className='text-xl font-bold mb-4'>Songs</h2>
+      <h2 className='text-xl font-bold mb-4'>Bài hát</h2>
       <div className='flex flex-col gap-2'>
         {tracks.slice(0, 4).map(track => (
           <SongItem 
