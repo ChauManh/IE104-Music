@@ -32,7 +32,6 @@ const DisplaySong = () => {
   
   return (
     <>
-        <Navbar/>
     </>
   )
 }

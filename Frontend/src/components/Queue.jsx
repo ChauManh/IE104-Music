@@ -1,5 +1,5 @@
 import React, { useEffect, useContext } from 'react';
-import { useQueue } from '../context/QueueContext';
+import { QueueProvider, useQueue } from '../context/QueueContext';
 import { PlayerContext } from '../context/PlayerContext';
 
 const Queue = () => {
@@ -11,10 +11,12 @@ const Queue = () => {
     setTrack(queue[index]);
   };
 
-  const upcomingTracks = queue.filter((item, index) => 
-    index > currentTrackIndex && item.name !== track.name
+  const upcomingTracks = queue.filter(
+    (item, index) => index > currentTrackIndex && item.id !== track.id
   );
+  console.log(upcomingTracks);
 
+  
   return (
     <div className={`max-h-full min-w-[20%] bg-[#121212] gap-2 flex-col text-white pr-2 pl-2 overflow-y-auto rounded-lg mt-16 shadow-lg ml-2 z-1 transform transition-all duration-300 ease-in-out ${!isVisible ? 'hidden': ''}`}>
       <h2 className="font-semibold p-4 text-lg">Danh sách chờ</h2>
@@ -41,12 +43,16 @@ const Queue = () => {
             key={index}
             onClick={() => handleTrackClick(currentTrackIndex + index + 1)}
             className="flex items-center gap-4 mb-2 pl-2 cursor-pointer hover:bg-[#333] active:bg-[#555] focus:bg-[#444] p-2 rounded-md"
-            tabIndex={0}
+            tabIndex={index}
           >
-            <img src={item.album.images[0].url} alt={item.name} className="w-12 h-12 rounded-md" />
+            <img 
+              src={item.image || 'default_image_url'} 
+              alt={item.name} 
+              className="w-12 h-12 rounded-md" 
+            />
             <div>
               <p>{item.name}</p>
-              <p className="text-gray-400 text-sm">{item.artists[0].name}</p>
+              <p className="text-gray-400 text-sm">{item.name}</p>
             </div>
           </div>
         ))}

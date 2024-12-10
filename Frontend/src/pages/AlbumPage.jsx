@@ -1,11 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import axios from "axios";
 import { assets } from "../assets/assets";
 import ColorThief from "colorthief";
 import AlbumItem from "../components/AlbumItem"; // Import AlbumItem component
+import { PlayerContext } from "../context/PlayerContext"; // Import PlayerContext
+import { useQueue } from '../context/QueueContext';
 
 const AlbumPage = () => {
+  const { isVisible, queue, currentTrackIndex, setQueue, moveToTop } = useQueue();
+  const { track, setTrack, playWithUri } = useContext(PlayerContext); // Lấy playWithUri từ context
   const { id } = useParams();
   const { locataion } = useLocation();
   const [artist, setArtist] = useState(null);
@@ -16,6 +20,35 @@ const AlbumPage = () => {
   const [dominantColor, setDominantColor] = useState("#333333");
   const [secondaryColor, setSecondaryColor] = useState("#333333");
 
+  const handleTrackClick = (track) => {
+    setTrack({
+      id: track.id,
+      name: track.name,
+      album: album.name,
+      image: album.images[0]?.url,
+      singer: track.singers.join(", "),
+      duration: track.duration,
+      uri: track.uri, // Nếu có URI bài hát
+    });
+    
+    // Thêm album vào queue
+    setQueue((prevQueue) => [
+      ...prevQueue, // Nếu cần thêm các bài hát đã có trong queue
+      ...albumTracks.map((item) => ({
+        id: item.id,
+        name: item.name,
+        album: album.name,
+        image: album.images[0]?.url,
+        singer: item.singers.join(", "),
+        duration: item.duration,
+        uri: item.uri, // URI bài hát từ album
+      })),
+    ]);
+
+    // Phát bài hát (nếu cần)
+    playWithUri(track.uri);
+  };
+  
   useEffect(() => {
     window.scrollTo(0, 0);
     const fetchAlbumData = async () => {
@@ -66,10 +99,6 @@ const AlbumPage = () => {
 
     fetchAlbumData();
   }, [id, location.pathname]);
-
-  const playWithUri = (trackId) => {
-    // Implement playWithUri function
-  };
 
   const formatDuration = (ms) => {
     const minutes = Math.floor(ms / 60000);
@@ -166,7 +195,7 @@ const AlbumPage = () => {
         {Array.isArray(albumTracks) &&
           albumTracks.map((track, index) => (
             <div
-              onClick={() => playWithUri(track.id)}
+              onClick={() => handleTrackClick(track)}
               key={index}
               className="grid cursor-pointer grid-cols-[auto_1fr_auto] items-center gap-2 rounded-s p-2 text-[#a7a7a7] hover:bg-[#ffffff2b] rounded"
             >
