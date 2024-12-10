@@ -1,12 +1,9 @@
 import React, { useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import { PlayerContext } from "../context/PlayerContext";
 import { assets } from "../assets/assets";
 
 const AlbumItem = ({ id, name, image, singer, time }) => {
   const navigate = useNavigate();
-  const { setAlbumTracks } = useContext(PlayerContext);
 
   const handleClick = async () => {
     try {
@@ -47,7 +44,7 @@ const AlbumItem = ({ id, name, image, singer, time }) => {
           {name}
         </p>
         <p className="truncate text-sm text-[#b3b3b3] sm:text-xs">
-          {time?.slice(0, 4)} • {singer}
+          {time?.slice(0, 4)}  {singer}
         </p>
       </div>
     </div>
