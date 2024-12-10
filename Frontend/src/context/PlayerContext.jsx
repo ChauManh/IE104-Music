@@ -21,12 +21,16 @@ const PlayerContextProvider = ({ children }) => {
   const [isDeviceReady, setIsDeviceReady] = useState(false); // Trạng thái chờ
   const [token, setToken] = useState(null); // Token state
   const [tokenReady, setTokenReady] = useState(false); // Trạng thái token đã sẵn sàng
+  const [repeatStatus, setRepeatStatus] = useState("off");
+  const [volume, setVolume] = useState(0.2); // Mặc định là 20%
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
 
   useEffect(() => {
     const getAccessToken = async () => {
       try {
-        const response = await getWebPlayBackSDKToken();
-        setToken(response.access_token);
+        const web_playback_token = localStorage.getItem("web_playback_token");
+        setToken(web_playback_token);
         setTokenReady(true); 
       } catch (error) {
         console.error("Error fetching token:", error);
@@ -52,7 +56,7 @@ const PlayerContextProvider = ({ children }) => {
         getOAuthToken: (cb) => {
           cb(token);
         },
-        volume: 0.5,
+        volume: volume,
       });
 
       setPlayer(player);
@@ -62,6 +66,29 @@ const PlayerContextProvider = ({ children }) => {
         setDeviceId(device_id);
         setIsDeviceReady(true); // Đã sẵn sàng
       });
+
+      player.addListener("player_state_changed", (state) => {
+        if (!state) {
+          console.log("Player state is null");
+          return;
+        }
+  
+        const { paused, position, duration } = state;
+        setCurrentTime(position / 1000);
+        setDuration(duration / 1000);
+        if (paused && position === 0 && duration > 0) {
+          setPlayStatus(false);
+          console.log("Track ended");
+        }
+        const interval = setInterval(() => {
+          player.getCurrentState().then((state) => {
+            if (state) {
+              setCurrentTime(state.position / 1000); // Cập nhật thời gian hiện tại
+            }
+          });
+        }, 1000);
+        return () => clearInterval(interval);
+      }, [player]);
 
       player.connect();
     };
@@ -107,23 +134,64 @@ const PlayerContextProvider = ({ children }) => {
       );
       setTrack((prevTrack) => ({ ...prevTrack, uri }));
       setPlayStatus(true);
-      player.getCurrentState().then((state) => {
-        if (!state) {
-          console.error(
-            "User is not playing music through the Web Playback SDK",
-          );
-          return;
-        }
-
-        var current_track = state.track_window.current_track;
-        var next_track = state.track_window.next_tracks[0];
-
-        console.log("Currently Playing", current_track);
-        console.log("Playing Next", next_track);
-      });
+      setTimeout(() => {
+        player.getCurrentState().then((state) => {
+          if (!state) {
+            console.error(
+              "User is not playing music through the Web Playback SDK",
+            );
+            return;
+          }
+          console.log("Repeat", state.repeat_mode);
+          console.log(repeatStatus);
+        });
+      }, 500);
     } catch (error) {
       console.error("Error while playing track with URI:", error);
     }
+  };
+
+  const toggleRepeat = () => {
+  
+    const newRepeatStatus = 
+    repeatStatus === "off" ? "track" : 
+    repeatStatus === "track" ? "context" : 
+    "off";
+
+    setRepeatStatus(newRepeatStatus);
+
+    axios.put(
+      `https://api.spotify.com/v1/me/player/repeat?state=${newRepeatStatus}`,
+      {},
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+    .then(response => {
+      console.log('Response from API:', response.data);
+      console.log(repeatStatus);
+    })
+    .catch(error => {
+      console.error('Error setting repeat mode:', error.response?.data || error.message);
+    });
+
+  };
+
+  const changeVolume = (newVolume) => {
+    if (player) {
+      player.setVolume(newVolume).then(() => {
+        console.log(`Volume set to ${newVolume * 100}%`);
+        setVolume(newVolume); // Cập nhật state volume
+      });
+    } else {
+      console.log("Player chưa sẵn sàng.");
+    }
+  };
+
+  const handleTimeClick = (e) => {
+    const progressBar = e.target;
+    const clickPosition = e.clientX - progressBar.getBoundingClientRect().left;
+    const newTime = (clickPosition / progressBar.offsetWidth) * duration;
+    player.seek(newTime * 1000); 
+    setCurrentTime(newTime);
   };
 
   const contextValue = {
@@ -139,6 +207,14 @@ const PlayerContextProvider = ({ children }) => {
     pause,
     playWithUri,
     deviceId,
+    repeatStatus,
+    toggleRepeat,
+    volume,
+    setVolume,
+    changeVolume,
+    currentTime,
+    duration, 
+    handleTimeClick,
   };
 
   // if (!isDeviceReady) {

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { login, signInWithGoogle } from "../util/api";
+import { login, signInWithGoogle, getWebPlayBackSDKToken } from "../util/api";
 
 const SignIn = () => {
   const navigate = useNavigate();
@@ -8,6 +8,8 @@ const SignIn = () => {
     email: "",
     password: "",
   });
+
+  // const res = getWebPlayBackSDKToken();
 
   const handleChange = (e) => {
     setFormData({
@@ -43,7 +45,13 @@ const SignIn = () => {
       if (result && result.EC === 0) {
         localStorage.setItem("access_token", result.access_token);
         localStorage.setItem("user", JSON.stringify(result.user));
-        navigate("/");
+        alert("Login with Google successful!");
+        window.location.href = "http://localhost:3000/spotify_auth/login";
+        const webPlaybackToken = await getWebPlayBackSDKToken(); // Gọi hàm lấy token WebPlayback
+      if (webPlaybackToken) {
+        localStorage.setItem("web_playback_token", webPlaybackToken);
+        console.log("Web Playback SDK Token:", webPlaybackToken);
+      }
       }
     } catch (error) {
       console.error("Google signin error:", error);

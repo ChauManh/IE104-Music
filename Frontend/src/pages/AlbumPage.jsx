@@ -32,7 +32,7 @@ const AlbumPage = () => {
     });
 
     const trackIndex = albumTracks.findIndex((t) => t.id === track.id);
-
+    setQueue("");
     // Thêm bài hát được click và các bài hát sau nó vào queue
     setQueue((prevQueue) => [
       ...prevQueue, // Các bài hát trước đó (nếu có)

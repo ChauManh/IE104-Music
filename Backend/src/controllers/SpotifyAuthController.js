@@ -65,7 +65,7 @@ const AuthController = {
 
             const { access_token, refresh_token, expires_in } = response.data;
             global.access_token = access_token;
-            res.json(response.data);
+            res.redirect('http://localhost:5173');
         } catch (error) {
             console.error('Error fetching tokens:', error);
             res.status(500).json({ error: "Failed to fetch tokens" });

@@ -148,7 +148,7 @@ const UserController = {
             const playlists = await Playlist.find({ userID });
     
             if (!playlists.length) {
-                return res.status(404).json({ message: 'No playlists found for this user.' });
+                return res.status(200).json({ message: 'No playlists found for this user.' });
             }
     
             res.status(200).json({ message: 'User playlists fetched successfully.', playlists });

@@ -55,10 +55,11 @@ const fetchAlbum = async (id) => {
 
 const getWebPlayBackSDKToken = async () => {
     try {
-        const response = await axios.get("/auth/login");
-        console.log("token", response)
+        // const response = await axios.get("http://localhost:3000/spotify_auth/login");
+        // console.log("token", response)
         const res = await axios.get("http://localhost:3000/spotify_auth/token");
-        return res.data;
+        console.log("res", res)
+        return res.data.access_token;
     } catch (error) {
         alert(error.message);
     }
@@ -141,6 +142,7 @@ const getArtist = async (id) => {
         const response = await axios.get(`http://localhost:3000/artist/${id}`);
         return response.data;
     } catch (error) {
+        console.error(error);
         throw error;
     }
 };
@@ -150,6 +152,7 @@ const getArtistAlbums = async (id) => {
         const response = await axios.get(`http://localhost:3000/artist/${id}/albums`);
         return response.data;
     } catch (error) {
+        console.error(error);
         throw error;
     }
 };
@@ -159,6 +162,7 @@ const getArtistTopTracks = async (id) => {
         const response = await axios.get(`http://localhost:3000/artist/${id}/top-tracks`);
         return response.data;
     } catch (error) {
+        console.error(error);
         throw error;
     }
 };
@@ -168,6 +172,7 @@ const getRelatedArtists = async (id) => {
         const response = await axios.get(`http://localhost:3000/artist/${id}/related-artists`);
         return response.data;
     } catch (error) {
+        console.error(error);
         throw error;
     }
 };

@@ -24,8 +24,6 @@ const Queue = () => {
   const upcomingTracks = queue.filter(
     (item, index) => index > currentTrackIndex && item.id !== track.id
   );
-  console.log(upcomingTracks);
-
   
   return (
     <div className={`max-h-full min-w-[20%] bg-[#121212] gap-2 flex-col text-white pr-2 pl-2 overflow-y-auto rounded-lg mt-16 shadow-lg ml-2 z-1 transform transition-all duration-300 ease-in-out ${!isVisible ? 'hidden': ''}`}>
