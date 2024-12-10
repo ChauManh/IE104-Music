@@ -40,6 +40,7 @@ const FeaturedCharts = () => {
             />
           ))}
         </div>
+        
       ) : (
         <p>Loading...</p>
       )}
