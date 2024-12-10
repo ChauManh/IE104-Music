@@ -30,11 +30,13 @@ const AlbumPage = () => {
       duration: track.duration,
       uri: track.uri, // Nếu có URI bài hát
     });
-    
-    // Thêm album vào queue
+
+    const trackIndex = albumTracks.findIndex((t) => t.id === track.id);
+
+    // Thêm bài hát được click và các bài hát sau nó vào queue
     setQueue((prevQueue) => [
-      ...prevQueue, // Nếu cần thêm các bài hát đã có trong queue
-      ...albumTracks.map((item) => ({
+      ...prevQueue, // Các bài hát trước đó (nếu có)
+      ...albumTracks.slice(trackIndex).map((item) => ({
         id: item.id,
         name: item.name,
         album: album.name,
@@ -44,7 +46,7 @@ const AlbumPage = () => {
         uri: item.uri, // URI bài hát từ album
       })),
     ]);
-
+    
     // Phát bài hát (nếu cần)
     playWithUri(track.uri);
   };

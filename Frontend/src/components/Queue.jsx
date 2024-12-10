@@ -7,8 +7,18 @@ const Queue = () => {
   const { track, setTrack } = useContext(PlayerContext);
 
   const handleTrackClick = (index) => {
+    const selectedTrack = queue[index];
+ 
     moveToTop(index);
-    setTrack(queue[index]);
+
+    setTrack(selectedTrack);
+
+    // Update queue: Keep the selected track at the top and the rest after it
+    setQueue((prevQueue) => {
+      const newQueue = [...prevQueue];
+      newQueue.splice(0, newQueue.length, selectedTrack, ...newQueue.slice(index + 1));
+      return newQueue;
+    });
   };
 
   const upcomingTracks = queue.filter(
