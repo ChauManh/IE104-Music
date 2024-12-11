@@ -51,6 +51,7 @@ router.post(
   UserController.updatePlaylistThumbnail
 );
 router.put('/playlist/:id', auth, UserController.updatePlaylist);
+router.put('/playlist/:id/thumbnail', auth, upload.single('thumbnail'), UserController.updatePlaylistThumbnail);
 
 // Favorite tracks routes
 router.post('/favorites/add', UserController.addFavoriteTrack);

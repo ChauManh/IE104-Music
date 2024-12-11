@@ -319,35 +319,36 @@ const UserController = {
         try {
             const playlistId = req.params.id;
             const userId = req.user.id;
-
+    
             if (!playlistId) {
                 return res.status(400).json({ message: 'Playlist ID is required' });
             }
-
+    
             // Find playlist by ID and verify ownership
             const playlist = await Playlist.findOne({ 
                 _id: playlistId,
                 userID: userId
             }).populate('userID', 'name email');
-
+    
             if (!playlist) {
                 return res.status(404).json({ 
                     message: 'Playlist not found or unauthorized access' 
                 });
             }
-
+    
             res.status(200).json({
                 message: 'Playlist fetched successfully',
                 playlist: {
                     _id: playlist._id,
                     name: playlist.name,
+                    description: playlist.description, // Make sure description is included
                     thumbnail: playlist.thumbnail,
                     userID: playlist.userID,
-                    songs: playlist.songs || [], // Return empty array if no songs
+                    songs: playlist.songs || [],
                     createdAt: playlist.createdAt
                 }
             });
-
+    
         } catch (error) {
             console.error('Error fetching playlist:', error);
             res.status(500).json({ 
@@ -364,53 +365,54 @@ const UserController = {
                     message: 'No file uploaded' 
                 });
             }
-
-            const playlistId = req.body.playlistId;
+    
+            const playlistId = req.params.id;
             const userId = req.user.id;
-
-            if (!playlistId) {
-                return res.status(400).json({
-                    message: 'Playlist ID is required'
-                });
-            }
-
+    
             // Find playlist and verify ownership
             const playlist = await Playlist.findOne({ 
                 _id: playlistId,
                 userID: userId 
             });
-
+    
             if (!playlist) {
+                // Delete uploaded file if playlist not found
+                if (req.file.path) {
+                    fs.unlink(req.file.path, () => {});
+                }
                 return res.status(404).json({ 
                     message: 'Playlist not found or unauthorized access' 
                 });
             }
-
+    
             try {
                 // Upload image to Cloudinary
                 const result = await uploadImage(req.file.path);
-
+                
                 // Update playlist with Cloudinary URL
                 playlist.thumbnail = result.secure_url;
                 await playlist.save();
-
-                // Delete local file after upload
-                fs.unlinkSync(req.file.path);
-
+    
+                // Delete local file after successful upload
+                if (req.file.path) {
+                    fs.unlink(req.file.path, (err) => {
+                        if (err) console.error('Error deleting local file:', err);
+                    });
+                }
+    
                 res.status(200).json({
                     message: 'Thumbnail updated successfully',
                     playlist
                 });
             } catch (uploadError) {
-                // Clean up local file if upload fails
-                if (req.file) {
-                    fs.unlinkSync(req.file.path);
+                // Delete local file if upload fails
+                if (req.file.path) {
+                    fs.unlink(req.file.path, () => {});
                 }
                 throw uploadError;
             }
-
         } catch (error) {
-            console.error('Error in updatePlaylistThumbnail:', error);
+            console.error('Error updating playlist thumbnail:', error);
             res.status(500).json({
                 message: 'Error updating thumbnail',
                 error: error.message
@@ -423,22 +425,23 @@ const UserController = {
             const playlistId = req.params.id;
             const userId = req.user.id;
             const { name, description } = req.body;
-
+    
             const playlist = await Playlist.findOne({ 
                 _id: playlistId,
                 userID: userId 
             });
-
+    
             if (!playlist) {
                 return res.status(404).json({ 
                     message: 'Playlist not found or unauthorized access' 
                 });
             }
-
+    
+            // Update both name and description
             if (name) playlist.name = name;
             if (description !== undefined) playlist.description = description;
             await playlist.save();
-
+    
             res.status(200).json({
                 message: 'Playlist updated successfully',
                 playlist

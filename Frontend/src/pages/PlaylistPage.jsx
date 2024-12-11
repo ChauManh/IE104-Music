@@ -291,92 +291,105 @@ const PlaylistPage = () => {
   const handleThumbnailUpload = async (e) => {
     const file = e.target.files[0];
     if (file && file.type.startsWith("image/")) {
-      setIsThumbnailLoading(true);
-      try {
-        const formData = new FormData();
-        formData.append("thumbnail", file);
+        setIsThumbnailLoading(true);
+        try {
+            const formData = new FormData();
+            formData.append("thumbnail", file);
 
-        const token = localStorage.getItem("access_token");
-        const response = await axios.put(
-          `http://localhost:3000/user/playlist/${id}/thumbnail`,
-          formData,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "multipart/form-data",
-            },
-          }
-        );
+            const token = localStorage.getItem("access_token");
+            const response = await axios.put(
+                `http://localhost:3000/user/playlist/${id}/thumbnail`,
+                formData,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "multipart/form-data",
+                    },
+                }
+            );
 
-        if (response.data.playlist) {
-          setPlaylistData(response.data.playlist);
+            if (response.data.playlist) {
+                setPlaylistData(response.data.playlist);
+                setShowNotification(true);
+                setNotificationMessage("Đã cập nhật ảnh bìa");
+                setTimeout(() => setShowNotification(false), 2000);
+                window.dispatchEvent(new Event('playlistsUpdated'));
+                return; // Exit early on success
+            }
+        } catch (error) {
+            console.error("Error uploading thumbnail:", error);
+            // Only show error alerts for actual errors
+            if (error.response?.status === 413) {
+                alert("File too large. Please choose a smaller image.");
+            } else if (error.response?.status === 415) {
+                alert("Invalid file type. Please choose an image file.");
+            } else {
+                alert("Failed to update playlist thumbnail. Please try again.");
+            }
+        } finally {
+            setIsThumbnailLoading(false);
         }
-      } catch (error) {
-        console.error("Error uploading thumbnail:", error);
-        alert("Failed to update playlist thumbnail");
-      } finally {
-        setIsThumbnailLoading(false);
-      }
+    } else if (file) {
+        alert("Please select an image file.");
     }
-  };
+};
 
   useEffect(() => {
     const fetchPlaylistData = async () => {
       setIsLoading(true);
       try {
-        const token = localStorage.getItem("access_token");
-        if (!token) {
-          throw new Error("No access token found");
-        }
-
-        const response = await axios.get(
-          `http://localhost:3000/user/playlist/${id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+          const token = localStorage.getItem("access_token");
+          if (!token) {
+              throw new Error("No access token found");
           }
-        );
-
-        const { playlist } = response.data;
-        setPlaylistData(playlist);
-
-        // Get user data
-        const userData = JSON.parse(localStorage.getItem("user"));
-        setUserData(userData);
-
-        // Fetch song details if playlist has songs
-        if (playlist.songs && playlist.songs.length > 0) {
-          const songsWithDetails = await Promise.all(
-            playlist.songs.map(async (songId) => {
-              const songResponse = await axios.get(
-                `http://localhost:3000/songs/${songId}`,
-                {
+  
+          const response = await axios.get(
+              `http://localhost:3000/user/playlist/${id}`,
+              {
                   headers: {
-                    Authorization: `Bearer ${token}`,
+                      Authorization: `Bearer ${token}`,
                   },
-                }
-              );
-              return songResponse.data;
-            })
+              }
           );
-          setPlaylistSongs(songsWithDetails);
-
-          // Update playlist description with stats
-          const totalDuration = calculateTotalDuration(songsWithDetails);
-          const playlistDescription = `${userData?.name} • ${songsWithDetails.length} bài hát, ${totalDuration}`;
-          setPlaylistData(prev => ({
-            ...prev,
-            description: playlistDescription
-          }));
-        }
+  
+          const { playlist } = response.data;
+          
+          // Set all playlist data including description
+          setPlaylistData(playlist);
+          
+          // Set edit form data with current values
+          setEditFormData({
+              name: playlist.name || "",
+              description: playlist.description || ""
+          });
+  
+          // Get user data
+          const userData = JSON.parse(localStorage.getItem("user"));
+          setUserData(userData);
+  
+          // Fetch song details if playlist has songs
+          if (playlist.songs && playlist.songs.length > 0) {
+              const songsWithDetails = await Promise.all(
+                  playlist.songs.map(async (songId) => {
+                      const songResponse = await axios.get(
+                          `http://localhost:3000/songs/${songId}`,
+                          {
+                              headers: {
+                                  Authorization: `Bearer ${token}`,
+                              },
+                          }
+                      );
+                      return songResponse.data;
+                  })
+              );
+              setPlaylistSongs(songsWithDetails);
+          }
       } catch (error) {
-        console.error("Error fetching playlist:", error);
+          console.error("Error fetching playlist:", error);
       } finally {
-        setIsLoading(false);
+          setIsLoading(false);
       }
-    };
-
+  };
     if (id) {
       fetchPlaylistData();
     }
@@ -740,35 +753,33 @@ const PlaylistPage = () => {
 
   const handleSaveChanges = async () => {
     try {
-      const token = localStorage.getItem('access_token');
-      const response = await axios.put(
-        `http://localhost:3000/user/playlist/${id}`,
-        editFormData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
+        const token = localStorage.getItem('access_token');
+        const response = await axios.put(
+            `http://localhost:3000/user/playlist/${id}`,
+            {
+                name: editFormData.name,
+                description: editFormData.description // Make sure description is included
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        );
+
+        if (response.data.playlist) {
+            // Update local state with new data
+            setPlaylistData(response.data.playlist);
+            setShowEditDialog(false);
+            setShowNotification(true);
+            setTimeout(() => setShowNotification(false), 2000);
+            window.dispatchEvent(new Event('playlistsUpdated'));
         }
-      );
-
-      if (response.data) {
-        // Update local state immediately
-        setPlaylistData(prev => ({
-          ...prev,
-          name: editFormData.name,
-          description: editFormData.description
-        }));
-
-        // Close dialog and show notification
-        setShowEditDialog(false);
-        setShowNotification(true);
-        setTimeout(() => setShowNotification(false), 2000);
-      }
     } catch (error) {
-      console.error("Error updating playlist:", error);
-      alert("Không thể cập nhật thông tin playlist");
+        console.error("Error updating playlist:", error);
+        alert("Không thể cập nhật thông tin playlist");
     }
-  };
+};
 
   const handleTitleClick = () => {
     setEditFormData({
