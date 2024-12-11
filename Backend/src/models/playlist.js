@@ -8,16 +8,16 @@ const playlistSchema = new mongoose.Schema({
     songs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Song' }],
     type: { 
         type: String, 
-        enum: ['playlist', 'artist', 'album'], // Add 'album' type
+        enum: ['playlist', 'artist', 'album'],
         default: 'playlist' 
     },
     artistId: String,
-    albumId: String, // Add albumId field
-    createdAt: { type: Date, default: Date.now },
+    albumId: String,
     thumbnail: { 
         type: String,
         default: null
-    }
+    },
+    createdAt: { type: Date, default: Date.now }
 });
 
 const Playlist = mongoose.model('Playlist', playlistSchema, 'playlists');

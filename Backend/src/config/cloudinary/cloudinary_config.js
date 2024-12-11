@@ -1,20 +1,19 @@
 const cloudinary = require('cloudinary').v2;
 require('dotenv').config();
 
-// Configure Cloudinary
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// Upload file to Cloudinary
 const uploadImage = async (file) => {
   try {
     const result = await cloudinary.uploader.upload(file, {
-      folder: 'playlist-thumbnails', // Folder in Cloudinary
+      folder: 'playlist-thumbnails',
       use_filename: true,
-      unique_filename: true
+      unique_filename: true,
+      resource_type: 'auto'
     });
     return result;
   } catch (error) {
