@@ -23,8 +23,8 @@ const PlaylistItem = ({ playlist }) => {
       onClick={handleClick}
       className="group flex cursor-pointer items-center justify-between rounded p-2 transition-colors hover:bg-[#ffffff1a]"
     >
-      <div className="flex items-center gap-3">
-        <div className="relative h-12 w-12 bg-white opacity-90 rounded-3xl">
+      <div className="flex items-center gap-3 pr-2">
+        <div className="relative h-10 w-10 bg-white opacity-90 rounded-3xl">
           <img
             src={playlist.thumbnail || assets.music_icon}
             alt={playlist.name}
@@ -32,7 +32,7 @@ const PlaylistItem = ({ playlist }) => {
           />
         </div>
         <div className="flex flex-col">
-          <p className="font-medium text-white truncate max-w-64">{playlist.name}</p>
+          <p className="font-medium text-white truncate max-w-48">{playlist.name}</p>
           <p className="text-sm text-[#b3b3b3]">
             {playlist.type === 'artist' ? 'Nghệ sĩ' : 
              playlist.type === 'album' ? 'Album' : 
