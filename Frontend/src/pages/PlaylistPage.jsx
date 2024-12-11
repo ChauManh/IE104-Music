@@ -4,7 +4,6 @@ import { PlayerContext } from "../context/PlayerContext";
 import { assets } from "../assets/assets";
 import ColorThief from "colorthief";
 import axios from "axios";
-import AlbumItem from "../components/AlbumItem"; // Add this import
 import {
   fetchPlaylistData,
   addSongToPlaylist,
@@ -37,6 +36,12 @@ const PlaylistPage = () => {
   const [playlistSongs, setPlaylistSongs] = useState([]);
   const [showNotification, setShowNotification] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    name: "",
+    description: "",
+  });
+  const [isThumbnailLoading, setIsThumbnailLoading] = useState(false);
 
   // Update the Notification component styling
   const Notification = ({ message }) => (
@@ -87,6 +92,7 @@ const PlaylistPage = () => {
   const handleThumbnailUpload = async (e) => {
     const file = e.target.files[0];
     if (file && file.type.startsWith("image/")) {
+      setIsThumbnailLoading(true);
       try {
         const response = await updatePlaylistThumbnail(id, file);
         if (response.playlist) {
@@ -95,6 +101,8 @@ const PlaylistPage = () => {
         }
       } catch (error) {
         alert("Không thể cập nhật ảnh bìa. Vui lòng thử lại.");
+      } finally {
+        setIsThumbnailLoading(false);
       }
     }
   };
@@ -488,13 +496,53 @@ const PlaylistPage = () => {
     return new Date(date).toLocaleDateString("vi-VN");
   };
 
+  const handleSaveChanges = async () => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await axios.put(
+        `http://localhost:3000/user/playlist/${id}`,
+        editFormData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      if (response.data) {
+        // Update local state immediately
+        setPlaylistData(prev => ({
+          ...prev,
+          name: editFormData.name,
+          description: editFormData.description
+        }));
+
+        // Close dialog and show notification
+        setShowEditDialog(false);
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 2000);
+      }
+    } catch (error) {
+      console.error("Error updating playlist:", error);
+      alert("Không thể cập nhật thông tin playlist");
+    }
+  };
+
+  const handleTitleClick = () => {
+    setEditFormData({
+      name: playlistData?.name || "",
+      description: playlistData?.description || "",
+    });
+    setShowEditDialog(true);
+  };
+
   return (
     <div className="relative w-full bg-[#121212] text-white">
       {/* Header section */}
       <div
         className="flex h-[240px] items-end p-4 sm:h-[280px] sm:p-6 md:h-[340px] md:p-8"
         style={{
-          background: `linear-gradient(to bottom, ${dominantColor} 5%, ${secondaryColor} 90%)`
+          background: `linear-gradient(to bottom, ${dominantColor} 5%, ${secondaryColor} 90%)`,
         }}
       >
         <div className="flex w-full flex-col gap-2 sm:gap-3 md:flex-row md:gap-6">
@@ -506,6 +554,11 @@ const PlaylistPage = () => {
                 alt="Playlist Cover"
                 className="h-full w-full rounded-md object-cover shadow-2xl"
               />
+              {isThumbnailLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-md">
+                  <div className="loader"></div>
+                </div>
+              )}
               <div className="absolute inset-0 flex items-center justify-center rounded-md bg-black bg-opacity-50 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
                 <label className="cursor-pointer">
                   <input
@@ -532,9 +585,17 @@ const PlaylistPage = () => {
             <p className="text-xs font-normal sm:text-sm md:text-base">
               Playlist
             </p>
-            <h1 className="mb-1 text-2xl font-black sm:mb-2 sm:text-3xl md:mb-6 xl:text-6xl 2xl:text-7xl">
+            <h1
+              className="mb-1 cursor-pointer text-2xl font-black sm:mb-2 sm:text-3xl md:mb-3 xl:text-6xl 2xl:text-7xl"
+              onClick={handleTitleClick}
+            >
               {playlistData?.name || "My Playlist"}
             </h1>
+            {playlistData?.description && (
+              <p className="mb-2 text-sm text-[#b3b3b3] sm:text-base md:mb-4">
+                {playlistData.description}
+              </p>
+            )}
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium sm:text-base">
                 {userData?.name}
@@ -555,92 +616,92 @@ const PlaylistPage = () => {
       </div>
 
       {/* Controls Section */}
-        <div
-          className="relative px-8 pb-12"
-          style={{
-            background: `linear-gradient(to bottom, ${secondaryColor} 0%, #121212 100%)`,
-          }}
-        >
-          <div className="flex items-center gap-8">
-            <button className="flex h-14 w-14 items-center justify-center rounded-full bg-[#1ed760] hover:scale-105 hover:bg-[#1fdf64]">
-              <img className="h-8 w-8" src={assets.play_icon} alt="Play" />
-            </button>
-            <button className="flex h-8 items-center justify-center rounded-full border-[1px] border-white px-4 opacity-70 hover:opacity-100">
-              Follow
-            </button>
-          </div>
+      <div
+        className="relative px-8 pb-12"
+        style={{
+          background: `linear-gradient(to bottom, ${secondaryColor} 0%, #121212 100%)`,
+        }}
+      >
+        <div className="flex items-center gap-8">
+          <button className="flex h-14 w-14 items-center justify-center rounded-full bg-[#1ed760] hover:scale-105 hover:bg-[#1fdf64]">
+            <img className="h-8 w-8" src={assets.play_icon} alt="Play" />
+          </button>
+          <button className="flex h-8 items-center justify-center rounded-full border-[1px] border-white px-4 opacity-70 hover:opacity-100">
+            Follow
+          </button>
         </div>
-  
-        {/* Playlist Songs Section */}
-        <div className="px-8 py-6">
-          {playlistSongs.length > 0 && (
-            <div className="mb-8">
-              {/* Headers */}
-              <div className="hidden grid-cols-[16px_4fr_3fr_2fr_1fr_80px] gap-4 px-4 py-2 text-sm text-[#b3b3b3] md:grid">
-                <span className="flex items-center">#</span>
-                <span className="flex items-center">Tiêu đề</span>
-                <span className="hidden items-center sm:flex">Album</span>
-                <span className="hidden items-center md:flex">Ngày thêm</span>
-                <div className="flex items-center justify-end">
-                  <img
-                    src={assets.clock_icon}
-                    alt="Duration"
-                    className="h-5 w-5"
-                  />
-                </div>
-                <span></span> {/* Empty space for delete button column */}
+      </div>
+
+      {/* Playlist Songs Section */}
+      <div className="px-8 py-6">
+        {playlistSongs.length > 0 && (
+          <div className="mb-8">
+            {/* Headers */}
+            <div className="hidden grid-cols-[16px_4fr_3fr_2fr_1fr_80px] gap-4 px-4 py-2 text-sm text-[#b3b3b3] md:grid">
+              <span className="flex items-center">#</span>
+              <span className="flex items-center">Tiêu đề</span>
+              <span className="hidden items-center sm:flex">Album</span>
+              <span className="hidden items-center md:flex">Ngày thêm</span>
+              <div className="flex items-center justify-end">
+                <img
+                  src={assets.clock_icon}
+                  alt="Duration"
+                  className="h-5 w-5"
+                />
               </div>
-  
-              <hr className="my-2 border-t border-[#2a2a2a]" />
-  
-              {/* Song List */}
-              <div className="mt-4 flex flex-col gap-2">
-                {playlistSongs.map((song, index) => (
-                  <div
-                    key={song._id}
-                    className="group grid grid-cols-[16px_1fr_80px] gap-4 rounded-md px-4 py-2 text-sm hover:bg-[#ffffff1a] sm:grid-cols-[16px_4fr_3fr_80px] md:grid-cols-[16px_4fr_3fr_2fr_1fr_80px]"
-                  >
-                    <span className="flex items-center text-[#b3b3b3]">
-                      {index + 1}
-                    </span>
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={song.image}
-                        alt={song.title}
-                        className="h-10 w-10 rounded"
-                      />
-                      <div className="flex flex-col overflow-hidden">
-                        <span className="max-w-[200px] truncate text-white sm:max-w-[300px] md:max-w-[450px]">
-                          {song.title}
-                        </span>
-                        <span className="truncate text-[#b3b3b3]">
-                          {song.artistName}
-                        </span>
-                      </div>
-                    </div>
-                    <span className="hidden items-center overflow-hidden truncate text-[#b3b3b3] sm:flex">
-                      {song.album || "Unknown Album"}
-                    </span>
-                    <span className="hidden items-center text-[#b3b3b3] md:flex">
-                      {formatDate(song.createdAt)}
-                    </span>
-                    <div className="hidden items-center justify-end text-[#b3b3b3] md:flex">
-                      {formatDuration(song.duration)}
-                    </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemoveSong(song._id);
-                      }}
-                      className="rounded-full border border-white bg-transparent px-4 py-1 text-sm text-white opacity-0 transition-all hover:scale-105 group-hover:opacity-100"
-                    >
-                      Xóa
-                    </button>
-                  </div>
-                ))}
-              </div>
+              <span></span> {/* Empty space for delete button column */}
             </div>
-          )}
+
+            <hr className="my-2 border-t border-[#2a2a2a]" />
+
+            {/* Song List */}
+            <div className="mt-4 flex flex-col gap-2">
+              {playlistSongs.map((song, index) => (
+                <div
+                  key={song._id}
+                  className="group grid grid-cols-[16px_1fr_80px] gap-4 rounded-md px-4 py-2 text-sm hover:bg-[#ffffff1a] sm:grid-cols-[16px_4fr_3fr_80px] md:grid-cols-[16px_4fr_3fr_2fr_1fr_80px]"
+                >
+                  <span className="flex items-center text-[#b3b3b3]">
+                    {index + 1}
+                  </span>
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={song.image}
+                      alt={song.title}
+                      className="h-10 w-10 rounded"
+                    />
+                    <div className="flex flex-col overflow-hidden">
+                      <span className="max-w-[200px] truncate text-white sm:max-w-[300px] md:max-w-[450px]">
+                        {song.title}
+                      </span>
+                      <span className="truncate text-[#b3b3b3]">
+                        {song.artistName}
+                      </span>
+                    </div>
+                  </div>
+                  <span className="hidden items-center overflow-hidden truncate text-[#b3b3b3] sm:flex">
+                    {song.album || "Unknown Album"}
+                  </span>
+                  <span className="hidden items-center text-[#b3b3b3] md:flex">
+                    {formatDate(song.createdAt)}
+                  </span>
+                  <div className="hidden items-center justify-end text-[#b3b3b3] md:flex">
+                    {formatDuration(song.duration)}
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveSong(song._id);
+                    }}
+                    className="rounded-full border border-white bg-transparent px-4 py-1 text-sm text-white opacity-0 transition-all hover:scale-105 group-hover:opacity-100"
+                  >
+                    Xóa
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Search Section */}
         <div className="mt-8">
@@ -669,6 +730,118 @@ const PlaylistPage = () => {
       {showNotification && (
         <Notification message={`Đã thêm vào ${playlistData?.name}`} />
       )}
+      {showEditDialog && (
+        <EditPlaylistDialog
+          playlistData={playlistData}
+          editFormData={editFormData}
+          setEditFormData={setEditFormData}
+          handleThumbnailUpload={handleThumbnailUpload}
+          handleSaveChanges={handleSaveChanges}
+          setShowEditDialog={setShowEditDialog}
+        />
+      )}
+    </div>
+  );
+};
+
+// Move EditPlaylistDialog outside main component to prevent re-rendering
+const EditPlaylistDialog = ({ 
+  playlistData, 
+  editFormData, 
+  setEditFormData, 
+  handleThumbnailUpload, 
+  handleSaveChanges, 
+  setShowEditDialog 
+}) => {
+  const handleNameChange = (e) => {
+    setEditFormData(prev => ({
+      ...prev,
+      name: e.target.value
+    }));
+  };
+
+  const handleDescriptionChange = (e) => {
+    setEditFormData(prev => ({
+      ...prev,
+      description: e.target.value
+    }));
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="w-[500px] rounded-lg bg-[#282828] p-6">
+        <h2 className="mb-6 text-2xl font-bold text-white">
+          Chỉnh sửa thông tin
+        </h2>
+        <div className="mb-6 flex gap-4">
+          <div className="relative h-48 w-48">
+            <img
+              src={playlistData?.thumbnail || assets.plus_icon}
+              alt="Playlist Cover"
+              className="h-full w-full rounded-md object-cover"
+            />
+            <div className="absolute inset-0 flex items-center justify-center rounded-md bg-black bg-opacity-50 opacity-0 transition-all hover:opacity-100">
+              <label className="cursor-pointer">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleThumbnailUpload}
+                  className="hidden"
+                />
+                <div className="text-center text-white">
+                  <img
+                    src={assets.plus_icon}
+                    alt="Change thumbnail"
+                    className="mx-auto mb-2 h-8 w-8"
+                  />
+                  <p>Chọn ảnh</p>
+                </div>
+              </label>
+            </div>
+          </div>
+          <div className="flex-1">
+            <div className="mb-4">
+              <label className="mb-2 block text-sm text-[#a7a7a7]">Tên</label>
+              <input
+                type="text"
+                value={editFormData.name}
+                onChange={handleNameChange}
+                className="w-full rounded bg-[#3e3e3e] p-2 text-white focus:outline-none"
+                placeholder="Tên playlist"
+                autoComplete="off"
+                spellCheck="false"
+              />
+            </div>
+            <div className="mb-4">
+              <label className="mb-2 block text-sm text-[#a7a7a7]">
+                Mô tả
+              </label>
+              <textarea
+                value={editFormData.description}
+                onChange={handleDescriptionChange}
+                className="h-20 w-full rounded bg-[#3e3e3e] p-2 text-white focus:outline-none"
+                placeholder="Thêm mô tả tùy chọn"
+                autoComplete="off"
+                spellCheck="false"
+              />
+            </div>
+          </div>
+        </div>
+        <div className="flex justify-end gap-4">
+          <button
+            onClick={() => setShowEditDialog(false)}
+            className="rounded-full px-8 py-2 text-white hover:bg-[#ffffff1a]"
+          >
+            Hủy
+          </button>
+          <button
+            onClick={handleSaveChanges}
+            className="rounded-full bg-[#1ed760] px-8 py-2 font-semibold text-black hover:scale-105"
+          >
+            Lưu
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

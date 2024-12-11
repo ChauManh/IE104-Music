@@ -1,5 +1,4 @@
 import React from 'react';
-import Navbar from '../components/Navbar';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import Search from '../components/Search';
 
