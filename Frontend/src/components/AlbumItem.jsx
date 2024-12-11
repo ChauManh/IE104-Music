@@ -7,6 +7,7 @@ const AlbumItem = ({ id, name, image, singer, time }) => {
 
   const handleClick = async () => {
     try {
+      console.log("Album ID:", id); // Debug log to check ID
       navigate(`/album/${id}`);
     } catch (error) {
       console.error("Error navigating to album:", error.message);

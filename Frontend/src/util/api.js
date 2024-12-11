@@ -88,19 +88,25 @@ const login = async (email, password) => {
     }
 };
 
-const createPlaylist = async (name) => {
+const createPlaylist = async () => {
     try {
-        const token = localStorage.getItem('access_token'); // Get token from localStorage
+        const token = localStorage.getItem('access_token');
         if (!token) {
             throw new Error('No access token found');
         }
 
-        const response = await axios.post("http://localhost:3000/user/create_playlist", { name }, {
-            headers: {
-                Authorization: `Bearer ${token}`
+        // Don't send a name, let the backend generate it
+        const response = await axios.post("http://localhost:3000/user/create_playlist", 
+            {
+                type: 'playlist' // Explicitly set type as 'playlist'
+            }, 
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
             }
-        });
-        return response.data.playlist; // Return the playlist object
+        );
+        return response.data.playlist;
     }
     catch (error) { 
         console.error("API createPlaylist error:", error);

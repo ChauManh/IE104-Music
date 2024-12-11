@@ -5,6 +5,7 @@ import { assets } from "../assets/assets";
 import ColorThief from "colorthief";
 import axios from "axios";
 import AlbumItem from "../components/AlbumItem"; // Add this import
+<<<<<<< HEAD
 import {
   fetchPlaylistData,
   addSongToPlaylist,
@@ -14,9 +15,45 @@ import {
   getTrack,
   getIdSpotifFromSongId,
 } from "../util/api";
+=======
+
+// Add this function at the top of your PlaylistPage component
+const searchContent = async (query) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) throw new Error("No access token found");
+
+    const response = await axios.get(`http://localhost:3000/search`, {
+      params: {
+        q: query,
+        type: 'track,artist,album'
+      },
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Error searching:", error);
+    return {
+      tracks: { items: [] },
+      artists: { items: [] },
+      albums: { items: [] }
+    };
+  }
+};
+>>>>>>> 38e4a7d4e765c215d0df1f6799f60e080c2af068
 
 const PlaylistPage = () => {
+  const token = localStorage.getItem('access_token');
   const { id } = useParams();
+
+  // If this is the liked songs playlist, render the LikedSongsPlaylist component
+  if (id === 'liked') {
+    return <LikedSongsPlaylist token={token} />;
+  }
+
   const navigate = useNavigate();
   const { playWithUri, track, setTrack } = useContext(PlayerContext);
   const [dominantColor, setDominantColor] = useState("#333333");
@@ -39,6 +76,12 @@ const PlaylistPage = () => {
   const [playlistSongs, setPlaylistSongs] = useState([]);
   const [showNotification, setShowNotification] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    name: "",
+    description: "",
+  });
+  const [isThumbnailLoading, setIsThumbnailLoading] = useState(false);
 
   const handlePlayTrack = async (id) => {
     try {
@@ -65,17 +108,172 @@ const PlaylistPage = () => {
     return playlistSongs.some((song) => song.spotifyId === trackId);
   };
 
+  // Add function to check if playlist exists
+  const isPlaylistExists = async (playlistName) => {
+    try {
+      const token = localStorage.getItem("access_token");
+      if (!token) {
+        throw new Error("No access token found");
+      }
+
+      const response = await axios.get(
+        "http://localhost:3000/user/get_playlists",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      // Check if a playlist with this name already exists
+      return response.data.playlists.some(
+        (playlist) => playlist.name === playlistName
+      );
+    } catch (error) {
+      console.error("Error checking playlist existence:", error);
+      return false;
+    }
+  };
+
+  const handleFollowAlbum = async (album) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      alert("Please login first to follow album");
+      return;
+    }
+
+    // Check if album playlist already exists
+    const playlistsResponse = await axios.get(
+      "http://localhost:3000/user/get_playlists",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const exists = playlistsResponse.data.playlists.some(
+      (playlist) => playlist.type === 'album' && playlist.albumId === album.id
+    );
+
+    if (exists) {
+      alert("Album already in your library");
+      return;
+    }
+
+    // Create new album playlist
+    const createPlaylistResponse = await axios.post(
+      "http://localhost:3000/user/create_playlist",
+      { 
+        name: album.name,
+        thumbnail: album.images[0]?.url,
+        type: 'album',
+        albumId: album.id
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    // Show notification
+    setNotificationMessage(`Đã thêm ${album.name} vào thư viện`);
+    setShowNotification(true);
+    setTimeout(() => setShowNotification(false), 2000);
+    window.dispatchEvent(new Event('playlistsUpdated'));
+
+  } catch (error) {
+    console.error("Error following album:", error);
+    alert("Failed to add album to library");
+  }
+};
+
   const handleAddToPlaylist = async (trackId) => {
     try {
-      const response = await addSongToPlaylist(id, trackId);
-      if (response.message === "Song added to playlist successfully.") {
-        setShowNotification(true);
-        setTimeout(() => setShowNotification(false), 2000);
+      const token = localStorage.getItem("access_token");
+      if (!token) {
+        throw new Error("No access token found");
+      }
 
-        // Fetch updated playlist data
-        const updatedData = await fetchPlaylistData(id);
-        setPlaylistData(updatedData.playlist);
-        setPlaylistSongs(updatedData.playlist.songs);
+      // First create/get song in database with album name
+      let songResponse;
+      try {
+        songResponse = await axios.post(
+          "http://localhost:3000/songs/create",
+          {
+            spotifyId: trackId,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        // Get the MongoDB _id from the created/existing song
+        const songId = songResponse.data.song._id;
+
+        // Add song to playlist using MongoDB _id
+        const response = await axios.post(
+          "http://localhost:3000/user/playlist/add_song",
+          {
+            playlistID: id,
+            songID: songId,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        if (response.data.message === "Song added to playlist successfully.") {
+          // Show notification
+          setShowNotification(true);
+          setTimeout(() => setShowNotification(false), 2000); // Hide after 2 seconds
+
+          // Fetch updated playlist data including new song
+          const updatedPlaylistResponse = await axios.get(
+            `http://localhost:3000/user/playlist/${id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          );
+
+          const { playlist } = updatedPlaylistResponse.data;
+          setPlaylistData(playlist);
+
+          // Fetch details for all songs including the new one
+          if (playlist.songs && playlist.songs.length > 0) {
+            const songsWithDetails = await Promise.all(
+              playlist.songs.map(async (songId) => {
+                const songResponse = await axios.get(
+                  `http://localhost:3000/songs/${songId}`,
+                  {
+                    headers: {
+                      Authorization: `Bearer ${token}`,
+                    },
+                  },
+                );
+                return songResponse.data;
+              }),
+            );
+            setPlaylistSongs(songsWithDetails);
+
+            // Filter out the added song from search results
+            setSearchResults((prev) => ({
+              ...prev,
+              tracks: prev.tracks.filter((track) => track.id !== trackId),
+            }));
+          }
+        }
+      } catch (err) {
+        console.error("Error creating/adding song:", err);
+        throw err;
       }
     } catch (error) {
       alert(
@@ -86,13 +284,29 @@ const PlaylistPage = () => {
 
   const handleRemoveSong = async (songId) => {
     try {
-      const response = await removeSongFromPlaylist(id, songId);
-      if (response.message === "Song removed from playlist successfully.") {
+      const token = localStorage.getItem("access_token");
+      if (!token) {
+        throw new Error("No access token found");
+      }
+
+      const response = await axios.delete(
+        `http://localhost:3000/user/playlist/${id}/songs/${songId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.message === "Song removed from playlist successfully.") {
         setPlaylistSongs((prev) => prev.filter((song) => song._id !== songId));
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 2000);
       }
     } catch (error) {
+      console.error("Error removing song:", error);
       alert(
-        error.response?.data?.message || "Không thể xóa bài hát khỏi playlist",
+        error.response?.data?.message || "Không thể xóa bài hát khỏi playlist"
       );
     }
   };
@@ -100,49 +314,95 @@ const PlaylistPage = () => {
   const handleThumbnailUpload = async (e) => {
     const file = e.target.files[0];
     if (file && file.type.startsWith("image/")) {
+      setIsThumbnailLoading(true);
       try {
-        const response = await updatePlaylistThumbnail(id, file);
-        if (response.playlist) {
-          setPlaylistData(response.playlist);
-          // ... rest of thumbnail update handling
+        const formData = new FormData();
+        formData.append("thumbnail", file);
+
+        const token = localStorage.getItem("access_token");
+        const response = await axios.put(
+          `http://localhost:3000/user/playlist/${id}/thumbnail`,
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+
+        if (response.data.playlist) {
+          setPlaylistData(response.data.playlist);
         }
       } catch (error) {
-        alert("Không thể cập nhật ảnh bìa. Vui lòng thử lại.");
+        console.error("Error uploading thumbnail:", error);
+        alert("Failed to update playlist thumbnail");
+      } finally {
+        setIsThumbnailLoading(false);
       }
     }
   };
 
   useEffect(() => {
-    const loadPlaylistData = async () => {
+    const fetchPlaylistData = async () => {
+      setIsLoading(true);
       try {
-        const data = await fetchPlaylistData(id);
-        setPlaylistData(data.playlist);
-        setUserData(data.userData);
-
-        // Set playlist songs
-        setPlaylistSongs(data.playlist.songs);
-
-        // Get dominant color from playlist thumbnail
-        if (data.playlist.thumbnail) {
-          const img = new Image();
-          img.crossOrigin = "Anonymous";
-          img.src = data.playlist.thumbnail;
-          img.onload = () => {
-            const colorThief = new ColorThief();
-            const dominantColor = colorThief.getColor(img);
-            setDominantColor(`rgb(${dominantColor.join(",")})`);
-            setSecondaryColor(`rgba(${dominantColor.join(",")}, 0.5)`);
-          };
+        const token = localStorage.getItem("access_token");
+        if (!token) {
+          throw new Error("No access token found");
         }
 
-        setIsLoading(false);
+        const response = await axios.get(
+          `http://localhost:3000/user/playlist/${id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const { playlist } = response.data;
+        setPlaylistData(playlist);
+
+        // Get user data
+        const userData = JSON.parse(localStorage.getItem("user"));
+        setUserData(userData);
+
+        // Fetch song details if playlist has songs
+        if (playlist.songs && playlist.songs.length > 0) {
+          const songsWithDetails = await Promise.all(
+            playlist.songs.map(async (songId) => {
+              const songResponse = await axios.get(
+                `http://localhost:3000/songs/${songId}`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                }
+              );
+              return songResponse.data;
+            })
+          );
+          setPlaylistSongs(songsWithDetails);
+
+          // Update playlist description with stats
+          const totalDuration = calculateTotalDuration(songsWithDetails);
+          const playlistDescription = `${userData?.name} • ${songsWithDetails.length} bài hát, ${totalDuration}`;
+          setPlaylistData(prev => ({
+            ...prev,
+            description: playlistDescription
+          }));
+        }
       } catch (error) {
-        console.error("Error loading playlist:", error);
+        console.error("Error fetching playlist:", error);
+      } finally {
         setIsLoading(false);
       }
     };
 
-    loadPlaylistData();
+    if (id) {
+      fetchPlaylistData();
+    }
   }, [id]);
 
   // Add calculateTotalDuration helper function
@@ -501,53 +761,96 @@ const PlaylistPage = () => {
     return new Date(date).toLocaleDateString("vi-VN");
   };
 
+  const handleSaveChanges = async () => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await axios.put(
+        `http://localhost:3000/user/playlist/${id}`,
+        editFormData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      if (response.data) {
+        // Update local state immediately
+        setPlaylistData(prev => ({
+          ...prev,
+          name: editFormData.name,
+          description: editFormData.description
+        }));
+
+        // Close dialog and show notification
+        setShowEditDialog(false);
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 2000);
+      }
+    } catch (error) {
+      console.error("Error updating playlist:", error);
+      alert("Không thể cập nhật thông tin playlist");
+    }
+  };
+
+  const handleTitleClick = () => {
+    setEditFormData({
+      name: playlistData?.name || "",
+      description: playlistData?.description || "",
+    });
+    setShowEditDialog(true);
+  };
+
   return (
     <div className="relative w-full bg-[#121212] text-white">
       {/* Header section */}
       <div
         className="flex h-[240px] items-end p-4 sm:h-[280px] sm:p-6 md:h-[340px] md:p-8"
         style={{
-          background: `linear-gradient(to bottom, ${dominantColor} 5%, ${secondaryColor} 90%)`
+          background: `linear-gradient(to bottom, ${dominantColor} 5%, ${secondaryColor} 90%)`,
         }}
       >
-        <div className="flex w-full flex-col gap-2 sm:gap-3 md:flex-row md:gap-6">
-          {/* Thumbnail Section */}
-          <div className="group relative">
-            <div className="aspect-square w-32 sm:w-36 md:w-60 xl:w-60">
-              <img
-                src={playlistData?.thumbnail || assets.plus_icon}
-                alt="Playlist Cover"
-                className="h-full w-full rounded-md object-cover shadow-2xl"
-              />
-              <div className="absolute inset-0 flex items-center justify-center rounded-md bg-black bg-opacity-50 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                <label className="cursor-pointer">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleThumbnailUpload}
-                    className="hidden"
+        <div className="flex w-full flex-col gap-4 md:flex-row md:gap-6">
+          <div className="relative group">
+            <img
+              src={playlistData?.thumbnail || assets.plus_icon}
+              alt="Playlist Cover"
+              className="h-40 w-40 rounded-md shadow-2xl md:h-60 md:w-60 object-cover"
+            />
+            <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-md flex items-center justify-center">
+              <label className="cursor-pointer">
+                <input 
+                  type="file"
+                  accept="image/*"
+                  onChange={handleThumbnailUpload}
+                  className="hidden"
+                />
+                <div className="text-white text-center">
+                  <img 
+                    src={assets.plus_icon} 
+                    alt="Change thumbnail" 
+                    className="w-8 h-8 mx-auto mb-2"
                   />
-                  <div className="text-center text-white">
-                    <img
-                      src={assets.plus_icon}
-                      alt="Change thumbnail"
-                      className="mx-auto mb-1 h-6 w-6 sm:mb-1.5 sm:h-7 sm:w-7 md:mb-2 md:h-8 md:w-8"
-                    />
-                    <p className="text-xs sm:text-sm">Chọn ảnh</p>
-                  </div>
-                </label>
-              </div>
+                  <p className="text-sm">Chọn ảnh</p>
+                </div>
+              </label>
             </div>
           </div>
-
-          {/* Text Content */}
           <div className="flex flex-col justify-end">
             <p className="text-xs font-normal sm:text-sm md:text-base">
               Playlist
             </p>
-            <h1 className="mb-1 text-2xl font-black sm:mb-2 sm:text-3xl md:mb-6 xl:text-6xl 2xl:text-7xl">
+            <h1
+              className="mb-1 cursor-pointer text-2xl font-black sm:mb-2 sm:text-3xl md:mb-3 xl:text-6xl 2xl:text-7xl"
+              onClick={handleTitleClick}
+            >
               {playlistData?.name || "My Playlist"}
             </h1>
+            {playlistData?.description && (
+              <p className="mb-2 text-sm text-[#b3b3b3] sm:text-base md:mb-4">
+                {playlistData.description}
+              </p>
+            )}
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium sm:text-base">
                 {userData?.name}
@@ -568,21 +871,18 @@ const PlaylistPage = () => {
       </div>
 
       {/* Controls Section */}
-        <div
-          className="relative px-8 pb-12"
-          style={{
-            background: `linear-gradient(to bottom, ${secondaryColor} 0%, #121212 100%)`,
-          }}
-        >
-          <div className="flex items-center gap-8">
-            <button className="flex h-14 w-14 items-center justify-center rounded-full bg-[#1ed760] hover:scale-105 hover:bg-[#1fdf64]">
-              <img className="h-8 w-8" src={assets.play_icon} alt="Play" />
-            </button>
-            <button className="flex h-8 items-center justify-center rounded-full border-[1px] border-white px-4 opacity-70 hover:opacity-100">
-              Follow
-            </button>
-          </div>
+      <div
+        className="relative px-8 pb-12"
+        style={{
+          background: `linear-gradient(to bottom, ${secondaryColor} 0%, #121212 100%)`,
+        }}
+      >
+        <div className="flex items-center gap-8">
+          <button className="flex h-14 w-14 items-center justify-center rounded-full bg-[#1ed760] hover:scale-105 hover:bg-[#1fdf64]">
+            <img className="h-8 w-8" src={assets.play_icon} alt="Play" />
+          </button>
         </div>
+<<<<<<< HEAD
   
         {/* Playlist Songs Section */}
         <div className="px-8 py-6">
@@ -652,9 +952,80 @@ const PlaylistPage = () => {
                     </button>
                   </div>
                 ))}
+=======
+      </div>
+
+      {/* Playlist Songs Section */}
+      <div className="px-8 py-6">
+        {playlistSongs.length > 0 && (
+          <div className="mb-8">
+            {/* Headers */}
+            <div className="hidden grid-cols-[16px_4fr_3fr_2fr_1fr_80px] gap-4 px-4 py-2 text-sm text-[#b3b3b3] md:grid">
+              <span className="flex items-center">#</span>
+              <span className="flex items-center">Tiêu đề</span>
+              <span className="hidden items-center sm:flex">Album</span>
+              <span className="hidden items-center md:flex">Ngày thêm</span>
+              <div className="flex items-center justify-end">
+                <img
+                  src={assets.clock_icon}
+                  alt="Duration"
+                  className="h-5 w-5"
+                />
+>>>>>>> 38e4a7d4e765c215d0df1f6799f60e080c2af068
               </div>
+              <span></span> {/* Empty space for delete button column */}
             </div>
-          )}
+
+            <hr className="my-2 border-t border-[#2a2a2a]" />
+
+            {/* Song List */}
+            <div className="mt-4 flex flex-col gap-2">
+              {playlistSongs.map((song, index) => (
+                <div
+                  key={song._id}
+                  className="group grid grid-cols-[16px_1fr_80px] gap-4 rounded-md px-4 py-2 text-sm hover:bg-[#ffffff1a] sm:grid-cols-[16px_4fr_3fr_80px] md:grid-cols-[16px_4fr_3fr_2fr_1fr_80px]"
+                >
+                  <span className="flex items-center text-[#b3b3b3]">
+                    {index + 1}
+                  </span>
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={song.image}
+                      alt={song.title}
+                      className="h-10 w-10 rounded"
+                    />
+                    <div className="flex flex-col overflow-hidden">
+                      <span className="max-w-[200px] truncate text-white sm:max-w-[300px] md:max-w-[450px]">
+                        {song.title}
+                      </span>
+                      <span className="truncate text-[#b3b3b3]">
+                        {song.artistName}
+                      </span>
+                    </div>
+                  </div>
+                  <span className="hidden items-center overflow-hidden truncate text-[#b3b3b3] sm:flex">
+                    {song.album || "Unknown Album"}
+                  </span>
+                  <span className="hidden items-center text-[#b3b3b3] md:flex">
+                    {formatDate(song.createdAt)}
+                  </span>
+                  <div className="hidden items-center justify-end text-[#b3b3b3] md:flex">
+                    {formatDuration(song.duration)}
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveSong(song._id);
+                    }}
+                    className="rounded-full border border-white bg-transparent px-4 py-1 text-sm text-white opacity-0 transition-all hover:scale-105 group-hover:opacity-100"
+                  >
+                    Xóa
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Search Section */}
         <div className="mt-8">
@@ -683,6 +1054,118 @@ const PlaylistPage = () => {
       {showNotification && (
         <Notification message={`Đã thêm vào ${playlistData?.name}`} />
       )}
+      {showEditDialog && (
+        <EditPlaylistDialog
+          playlistData={playlistData}
+          editFormData={editFormData}
+          setEditFormData={setEditFormData}
+          handleThumbnailUpload={handleThumbnailUpload}
+          handleSaveChanges={handleSaveChanges}
+          setShowEditDialog={setShowEditDialog}
+        />
+      )}
+    </div>
+  );
+};
+
+// Move EditPlaylistDialog outside main component to prevent re-rendering
+const EditPlaylistDialog = ({ 
+  playlistData, 
+  editFormData, 
+  setEditFormData, 
+  handleThumbnailUpload, 
+  handleSaveChanges, 
+  setShowEditDialog 
+}) => {
+  const handleNameChange = (e) => {
+    setEditFormData(prev => ({
+      ...prev,
+      name: e.target.value
+    }));
+  };
+
+  const handleDescriptionChange = (e) => {
+    setEditFormData(prev => ({
+      ...prev,
+      description: e.target.value
+    }));
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="w-[500px] rounded-lg bg-[#282828] p-6">
+        <h2 className="mb-6 text-2xl font-bold text-white">
+          Chỉnh sửa thông tin
+        </h2>
+        <div className="mb-6 flex gap-4">
+          <div className="relative h-48 w-48">
+            <img
+              src={playlistData?.thumbnail || assets.plus_icon}
+              alt="Playlist Cover"
+              className="h-full w-full rounded-md object-cover"
+            />
+            <div className="absolute inset-0 flex items-center justify-center rounded-md bg-black bg-opacity-50 opacity-0 transition-all hover:opacity-100">
+              <label className="cursor-pointer">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleThumbnailUpload}
+                  className="hidden"
+                />
+                <div className="text-center text-white">
+                  <img
+                    src={assets.plus_icon}
+                    alt="Change thumbnail"
+                    className="mx-auto mb-2 h-8 w-8"
+                  />
+                  <p>Chọn ảnh</p>
+                </div>
+              </label>
+            </div>
+          </div>
+          <div className="flex-1">
+            <div className="mb-4">
+              <label className="mb-2 block text-sm text-[#a7a7a7]">Tên</label>
+              <input
+                type="text"
+                value={editFormData.name}
+                onChange={handleNameChange}
+                className="w-full rounded bg-[#3e3e3e] p-2 text-white focus:outline-none"
+                placeholder="Tên playlist"
+                autoComplete="off"
+                spellCheck="false"
+              />
+            </div>
+            <div className="mb-4">
+              <label className="mb-2 block text-sm text-[#a7a7a7]">
+                Mô tả
+              </label>
+              <textarea
+                value={editFormData.description}
+                onChange={handleDescriptionChange}
+                className="h-20 w-full rounded bg-[#3e3e3e] p-2 text-white focus:outline-none"
+                placeholder="Thêm mô tả tùy chọn"
+                autoComplete="off"
+                spellCheck="false"
+              />
+            </div>
+          </div>
+        </div>
+        <div className="flex justify-end gap-4">
+          <button
+            onClick={() => setShowEditDialog(false)}
+            className="rounded-full px-8 py-2 text-white hover:bg-[#ffffff1a]"
+          >
+            Hủy
+          </button>
+          <button
+            onClick={handleSaveChanges}
+            className="rounded-full bg-[#1ed760] px-8 py-2 font-semibold text-black hover:scale-105"
+          >
+            Lưu
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

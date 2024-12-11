@@ -5,18 +5,45 @@ import axios from "axios";
 import { createPlaylist } from "../../util/api";
 import { useNavigate } from "react-router-dom";
 
+// Export the function to be used by other components
+export const refreshPlaylists = async (setPlaylists) => {
+  const token = localStorage.getItem("access_token");
+  const user = localStorage.getItem("user");
+
+  if (!token || !user) return;
+
+  try {
+    const response = await axios.get(
+      "http://localhost:3000/user/get_playlists",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    if (response.data.playlists) {
+      setPlaylists(response.data.playlists);
+    }
+  } catch (error) {
+    console.error("Error fetching playlists:", error);
+  }
+};
+
+// In sidebar.jsx
+export const refreshApp = () => {
+  window.dispatchEvent(new Event('appStateUpdated'));
+};
+
 const Sidebar = () => {
   const navigate = useNavigate();
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
   const [playlists, setPlaylists] = useState([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Update fetchPlaylists to properly check login status
   const fetchPlaylists = async () => {
     const token = localStorage.getItem("access_token");
     const user = localStorage.getItem("user");
 
-    // Check both token and user exist
     if (!token || !user) {
       setIsLoggedIn(false);
       setPlaylists([]);
@@ -35,28 +62,27 @@ const Sidebar = () => {
       
       if (response.data.playlists) {
         setPlaylists(response.data.playlists);
-        setIsLoggedIn(true); // Set login state after successful API call
+        setIsLoggedIn(true);
       }
     } catch (error) {
       console.error("Error fetching playlists:", error);
-      if (error.response?.status === 401) {
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("user");
-        setIsLoggedIn(false);
-        setPlaylists([]);
-      }
     }
   };
 
-  // Add effect to check login status whenever token changes
+  // Effect to fetch playlists when mounted and when token changes
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
-    const user = localStorage.getItem("user");
-    setIsLoggedIn(Boolean(token && user));
-    
-    if (token && user) {
+    fetchPlaylists();
+
+    // Listen for playlist updates
+    const handlePlaylistsUpdate = () => {
       fetchPlaylists();
-    }
+    };
+
+    window.addEventListener('playlistsUpdated', handlePlaylistsUpdate);
+
+    return () => {
+      window.removeEventListener('playlistsUpdated', handlePlaylistsUpdate);
+    };
   }, []);
 
   const handleCreatePlaylist = async () => {
@@ -66,14 +92,11 @@ const Sidebar = () => {
       return;
     }
 
-    const token = localStorage.getItem("access_token");
-    console.log("Access Token:", token); // Log the access token
-
     try {
       const response = await createPlaylist();
       if (response) {
-        // Add new playlist to state
-        setPlaylists((prev) => [...prev, response]);
+        // Fetch all playlists again to ensure sidebar is up to date
+        await fetchPlaylists();
         navigate(`/playlist/${response._id}`);
       }
     } catch (error) {

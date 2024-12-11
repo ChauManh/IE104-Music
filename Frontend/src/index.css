@@ -107,3 +107,17 @@ input[type="range"]:hover::-webkit-slider-thumb {
   background: #1ed760; /* Màu xanh nhạt khi hover */
   border: 2px solid #1ed760; /* Viền chuyển sang xanh nhạt khi hover */
 }
+
+.loader {
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top: 4px solid #fff;
+  width: 24px;
+  height: 24px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
