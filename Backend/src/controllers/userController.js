@@ -10,8 +10,8 @@ const UserController = {
     async createPlaylist(req, res) {
         try {
             const userID = req.user.id;
-            const { name, type, artistId, albumId, thumbnail } = req.body;
-            const { name, description } = req.body;
+            const { type, artistId, albumId, thumbnail, description } = req.body;
+            let { name } = req.body; // Use let since we might modify it
 
             if (!userID) {
                 return res.status(400).json({ message: 'User ID is required' });
@@ -19,11 +19,14 @@ const UserController = {
 
             const playlistCount = await Playlist.countDocuments({ userID });
 
-            const name = `Danh sách phát của tôi #${playlistCount + 1}`;
+            // Set default name if none provided
+            if (!name) {
+                name = `Danh sách phát của tôi #${playlistCount + 1}`;
+            }
 
             const newPlaylist = new Playlist({
                 _id: new mongoose.Types.ObjectId(),
-                name: name || defaultName,
+                name,  // Use the name variable
                 description: description || '',
                 userID,
                 type: type || 'playlist',

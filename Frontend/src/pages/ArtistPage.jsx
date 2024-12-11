@@ -174,8 +174,21 @@ const handleFollowArtist = async () => {
       return;
     }
 
+    // Get existing playlists
+    const playlistsResponse = await axios.get(
+      "http://localhost:3000/user/get_playlists",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
     // Check if artist playlist already exists
-    const exists = await isPlaylistExistsById('artist', id);
+    const exists = playlistsResponse.data.playlists.some(
+      playlist => playlist.type === 'artist' && playlist.artistId === id
+    );
+
     if (exists) {
       alert("Artist already followed");
       return;
@@ -188,7 +201,7 @@ const handleFollowArtist = async () => {
         name: artist.name,
         thumbnail: artist.images[0]?.url,
         type: 'artist',
-        artistId: id
+        artistId: id     // Make sure this matches the artist ID from Spotify
       },
       {
         headers: {
@@ -205,6 +218,9 @@ const handleFollowArtist = async () => {
 
   } catch (error) {
     console.error("Error following artist:", error);
+    if (error.response) {
+      console.log("Error response:", error.response.data);
+    }
     alert("Failed to follow artist");
   }
 };

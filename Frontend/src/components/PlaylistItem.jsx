@@ -32,7 +32,7 @@ const PlaylistItem = ({ playlist }) => {
           />
         </div>
         <div className="flex flex-col">
-          <p className="font-medium text-white">{playlist.name}</p>
+          <p className="font-medium text-white truncate max-w-64">{playlist.name}</p>
           <p className="text-sm text-[#b3b3b3]">
             {playlist.type === 'artist' ? 'Nghệ sĩ' : 
              playlist.type === 'album' ? 'Album' : 
