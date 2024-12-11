@@ -45,12 +45,16 @@ const SignIn = () => {
       if (result && result.EC === 0) {
         localStorage.setItem("access_token", result.access_token);
         localStorage.setItem("user", JSON.stringify(result.user));
+        localStorage.removeItem("web_playback_token");
         alert("Login with Google successful!");
         window.location.href = "http://localhost:3000/spotify_auth/login";
-        const webPlaybackToken = await getWebPlayBackSDKToken(); // Gọi hàm lấy token WebPlayback
-      if (webPlaybackToken) {
-        localStorage.setItem("web_playback_token", webPlaybackToken);
-        console.log("Web Playback SDK Token:", webPlaybackToken);
+        const res = await getWebPlayBackSDKToken(); // Gọi hàm lấy token WebPlayback
+      if (res) {
+        console.log(res);
+        localStorage.setItem("web_playback_token", res.access_token);
+        localStorage.setItem("refresh_token", res.refresh_token);
+        localStorage.setItem("expires_in", res.expires_in);
+        console.log("Web Playback SDK Token:", res.access_token);
       }
       }
     } catch (error) {

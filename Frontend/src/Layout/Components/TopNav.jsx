@@ -4,7 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 import Search from "../../components/Search";
 import axios from "axios";
 
-const TopNav = ({ handleLogout }) => {
+const TopNav = () => {
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -42,6 +42,11 @@ const TopNav = ({ handleLogout }) => {
   const toggleDropdown = () => {
     setDropdownVisible(!dropdownVisible);
   };
+
+  const handleLogout = () => {
+    window.location.href = "/signin";
+    localStorage.clear();
+  }
 
   return (
     <div className="fixed left-0 top-0 z-10 flex w-full items-center justify-between bg-black p-2 text-white">

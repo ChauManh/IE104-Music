@@ -8,6 +8,8 @@ const CLIENT_SECRET = process.env.CLIENT_SECRET;
 const REDIRECT_URI = process.env.REDIRECT_URI;
 
 global.access_token = '';
+global.refresh_token = '';
+global.expires_in = '';
 
 if (!CLIENT_ID || !CLIENT_SECRET || !REDIRECT_URI) {
     console.error('Missing Spotify API credentials');
@@ -65,6 +67,8 @@ const AuthController = {
 
             const { access_token, refresh_token, expires_in } = response.data;
             global.access_token = access_token;
+            global.refresh_token = refresh_token;
+            global.expires_in = expires_in;
             res.redirect('http://localhost:5173');
         } catch (error) {
             console.error('Error fetching tokens:', error);
@@ -73,7 +77,7 @@ const AuthController = {
     },
 
     async getToken(req, res) {
-        res.json({ access_token: access_token})
+        res.json({ access_token: access_token, refresh_token: refresh_token, expires_in: expires_in});
     },
 
     async getRefreshToken(req, res) {

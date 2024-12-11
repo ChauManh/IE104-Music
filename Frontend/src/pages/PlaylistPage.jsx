@@ -11,12 +11,14 @@ import {
   removeSongFromPlaylist,
   updatePlaylistThumbnail,
   searchContent,
+  getTrack,
+  getIdSpotifFromSongId,
 } from "../util/api";
 
 const PlaylistPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { playWithUri } = useContext(PlayerContext);
+  const { playWithUri, track, setTrack } = useContext(PlayerContext);
   const [dominantColor, setDominantColor] = useState("#333333");
   const [secondaryColor, setSecondaryColor] = useState("#121212");
   const [playlistData, setPlaylistData] = useState(null);
@@ -37,6 +39,17 @@ const PlaylistPage = () => {
   const [playlistSongs, setPlaylistSongs] = useState([]);
   const [showNotification, setShowNotification] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
+
+  const handlePlayTrack = async (id) => {
+    try {
+        const spotifyId = await getIdSpotifFromSongId(id);
+        const response = await getTrack(spotifyId); 
+        setTrack(response); 
+        playWithUri(response.uri); 
+    } catch (error) {
+        console.error("Error handling play track:", error);
+    }
+  };  
 
   // Update the Notification component styling
   const Notification = ({ message }) => (
@@ -598,7 +611,8 @@ const PlaylistPage = () => {
                 {playlistSongs.map((song, index) => (
                   <div
                     key={song._id}
-                    className="group grid grid-cols-[16px_1fr_80px] gap-4 rounded-md px-4 py-2 text-sm hover:bg-[#ffffff1a] sm:grid-cols-[16px_4fr_3fr_80px] md:grid-cols-[16px_4fr_3fr_2fr_1fr_80px]"
+                    className="group grid grid-cols-[16px_1fr_80px] gap-4 rounded-md px-4 py-2 text-sm hover:bg-[#ffffff1a] sm:grid-cols-[16px_4fr_3fr_80px] md:grid-cols-[16px_4fr_3fr_2fr_1fr_80px] cursor-pointer"
+                    onClick={() => handlePlayTrack(song._id)}
                   >
                     <span className="flex items-center text-[#b3b3b3]">
                       {index + 1}

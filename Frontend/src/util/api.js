@@ -59,7 +59,7 @@ const getWebPlayBackSDKToken = async () => {
         // console.log("token", response)
         const res = await axios.get("http://localhost:3000/spotify_auth/token");
         console.log("res", res)
-        return res.data.access_token;
+        return res.data;
     } catch (error) {
         alert(error.message);
     }
@@ -463,6 +463,24 @@ const fetchPlaylistData = async (playlistId) => {
     }
 };
 
+    const getIdSpotifFromSongId = async (songId) => {
+        try {
+            const token = localStorage.getItem('access_token');
+            if (!token) throw new Error('No access token found');
+            const response = await axios.get(
+                `http://localhost:3000/songs/${songId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                })
+            return response.data.spotifyId;            
+        } catch (error) {
+            console.error('Error fetching song ID from Spotify:', error);
+            throw error;
+        }
+    }
+
 export { 
     createUser, 
     fetchPopularTracks, 
@@ -489,5 +507,6 @@ export {
     removeSongFromPlaylist,
     updatePlaylistThumbnail,
     searchContent,
-    fetchPlaylistData
+    fetchPlaylistData,
+    getIdSpotifFromSongId
 };
