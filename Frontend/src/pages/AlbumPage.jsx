@@ -3,6 +3,7 @@ import { useParams, useLocation } from "react-router-dom";
 import axios from "axios";
 import { assets } from "../assets/assets";
 import ColorThief from "colorthief";
+import { refreshPlaylists } from '../Layout/Components/sidebar';
 import AlbumItem from "../components/AlbumItem"; // Import AlbumItem component
 import { PlayerContext } from "../context/PlayerContext"; // Import PlayerContext
 import { useQueue } from '../context/QueueContext';
@@ -17,8 +18,19 @@ const AlbumPage = () => {
   const [albumTracks, setAlbumTracks] = useState([]);
   const [relatedAlbums, setRelatedAlbums] = useState([]); // State for related albums
   const [error, setError] = useState(null);
+  const [showNotification, setShowNotification] = useState(false); 
+  const [notificationMessage, setNotificationMessage] = useState("");
   const [dominantColor, setDominantColor] = useState("#333333");
   const [secondaryColor, setSecondaryColor] = useState("#333333");
+
+  const Notification = ({ message }) => (
+    <div className="fixed bottom-24 left-1/2 z-50 -translate-x-1/2 transform">
+      <div className="rounded-full bg-[#1ed760] px-4 py-2 text-center text-sm font-medium text-black shadow-lg">
+        <span>{message}</span>
+      </div>
+    </div>
+  );
+
 
   const handleTrackClick = (track) => {
     setTrack({
@@ -102,6 +114,10 @@ const AlbumPage = () => {
     fetchAlbumData();
   }, [id, location.pathname]);
 
+  const playWithUri = (trackId) => {
+    // Implement playWithUri function
+  };
+
   const formatDuration = (ms) => {
     const minutes = Math.floor(ms / 60000);
     const seconds = Math.floor((ms % 60000) / 1000);
@@ -174,8 +190,10 @@ const AlbumPage = () => {
             />
           </div>
 
-          <button className="flex h-4 cursor-pointer items-center justify-center rounded-3xl border-2 border-solid p-4 opacity-70 transition-all hover:opacity-100">
-            Theo dõi
+          <button 
+          onClick={handleFollowAlbum}
+          className="flex h-4 cursor-pointer items-center justify-center rounded-3xl border-2 border-solid p-4 opacity-70 transition-all hover:opacity-100">
+            Thêm vào thư viện
           </button>
         </div>
 
@@ -241,7 +259,12 @@ const AlbumPage = () => {
           </div>
         </section>
       )}
+        {showNotification && (
+        <>
+          <Notification message={notificationMessage} />
+        </>)}
     </>
+    
   );
 };
 

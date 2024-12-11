@@ -4,16 +4,17 @@ import { PlayerContext } from "../context/PlayerContext";
 import { assets } from "../assets/assets";
 import ColorThief from "colorthief";
 import axios from "axios";
-import {
-  fetchPlaylistData,
-  addSongToPlaylist,
-  removeSongFromPlaylist,
-  updatePlaylistThumbnail,
-  searchContent,
-} from "../util/api";
+import AlbumItem from "../components/AlbumItem"; // Add this import
 
 const PlaylistPage = () => {
+  const token = localStorage.getItem('access_token');
   const { id } = useParams();
+
+  // If this is the liked songs playlist, render the LikedSongsPlaylist component
+  if (id === 'liked') {
+    return <LikedSongsPlaylist token={token} />;
+  }
+
   const navigate = useNavigate();
   const { playWithUri } = useContext(PlayerContext);
   const [dominantColor, setDominantColor] = useState("#333333");
@@ -57,17 +58,119 @@ const PlaylistPage = () => {
     return playlistSongs.some((song) => song.spotifyId === trackId);
   };
 
+  // Add function to check if playlist exists
+  const isPlaylistExists = async (playlistName) => {
+    try {
+      const token = localStorage.getItem("access_token");
+      if (!token) {
+        throw new Error("No access token found");
+      }
+
+      const response = await axios.get(
+        "http://localhost:3000/user/get_playlists",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      // Check if a playlist with this name already exists
+      return response.data.playlists.some(
+        (playlist) => playlist.name === playlistName
+      );
+    } catch (error) {
+      console.error("Error checking playlist existence:", error);
+      return false;
+    }
+  };
+
+  
+
   const handleAddToPlaylist = async (trackId) => {
     try {
-      const response = await addSongToPlaylist(id, trackId);
-      if (response.message === "Song added to playlist successfully.") {
-        setShowNotification(true);
-        setTimeout(() => setShowNotification(false), 2000);
+      const token = localStorage.getItem("access_token");
+      if (!token) {
+        throw new Error("No access token found");
+      }
 
-        // Fetch updated playlist data
-        const updatedData = await fetchPlaylistData(id);
-        setPlaylistData(updatedData.playlist);
-        setPlaylistSongs(updatedData.playlist.songs);
+      // First create/get song in database with album name
+      let songResponse;
+      try {
+        songResponse = await axios.post(
+          "http://localhost:3000/songs/create",
+          {
+            spotifyId: trackId,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        // Get the MongoDB _id from the created/existing song
+        const songId = songResponse.data.song._id;
+
+        // Add song to playlist using MongoDB _id
+        const response = await axios.post(
+          "http://localhost:3000/user/playlist/add_song",
+          {
+            playlistID: id,
+            songID: songId,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        if (response.data.message === "Song added to playlist successfully.") {
+          // Show notification
+          setShowNotification(true);
+          setTimeout(() => setShowNotification(false), 2000); // Hide after 2 seconds
+
+          // Fetch updated playlist data including new song
+          const updatedPlaylistResponse = await axios.get(
+            `http://localhost:3000/user/playlist/${id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          );
+
+          const { playlist } = updatedPlaylistResponse.data;
+          setPlaylistData(playlist);
+
+          // Fetch details for all songs including the new one
+          if (playlist.songs && playlist.songs.length > 0) {
+            const songsWithDetails = await Promise.all(
+              playlist.songs.map(async (songId) => {
+                const songResponse = await axios.get(
+                  `http://localhost:3000/songs/${songId}`,
+                  {
+                    headers: {
+                      Authorization: `Bearer ${token}`,
+                    },
+                  },
+                );
+                return songResponse.data;
+              }),
+            );
+            setPlaylistSongs(songsWithDetails);
+
+            // Filter out the added song from search results
+            setSearchResults((prev) => ({
+              ...prev,
+              tracks: prev.tracks.filter((track) => track.id !== trackId),
+            }));
+          }
+        }
+      } catch (err) {
+        console.error("Error creating/adding song:", err);
+        throw err;
       }
     } catch (error) {
       alert(
@@ -137,7 +240,7 @@ const PlaylistPage = () => {
       }
     };
 
-    loadPlaylistData();
+    fetchPlaylistData();
   }, [id]);
 
   // Add calculateTotalDuration helper function
@@ -545,42 +648,32 @@ const PlaylistPage = () => {
           background: `linear-gradient(to bottom, ${dominantColor} 5%, ${secondaryColor} 90%)`,
         }}
       >
-        <div className="flex w-full flex-col gap-2 sm:gap-3 md:flex-row md:gap-6">
-          {/* Thumbnail Section */}
-          <div className="group relative">
-            <div className="aspect-square w-32 sm:w-36 md:w-60 xl:w-60">
-              <img
-                src={playlistData?.thumbnail || assets.plus_icon}
-                alt="Playlist Cover"
-                className="h-full w-full rounded-md object-cover shadow-2xl"
-              />
-              {isThumbnailLoading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-md">
-                  <div className="loader"></div>
-                </div>
-              )}
-              <div className="absolute inset-0 flex items-center justify-center rounded-md bg-black bg-opacity-50 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                <label className="cursor-pointer">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleThumbnailUpload}
-                    className="hidden"
+        <div className="flex w-full flex-col gap-4 md:flex-row md:gap-6">
+          <div className="relative group">
+            <img
+              src={playlistData?.thumbnail || assets.plus_icon}
+              alt="Playlist Cover"
+              className="h-40 w-40 rounded-md shadow-2xl md:h-60 md:w-60 object-cover"
+            />
+            <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-md flex items-center justify-center">
+              <label className="cursor-pointer">
+                <input 
+                  type="file"
+                  accept="image/*"
+                  onChange={handleThumbnailUpload}
+                  className="hidden"
+                />
+                <div className="text-white text-center">
+                  <img 
+                    src={assets.plus_icon} 
+                    alt="Change thumbnail" 
+                    className="w-8 h-8 mx-auto mb-2"
                   />
-                  <div className="text-center text-white">
-                    <img
-                      src={assets.plus_icon}
-                      alt="Change thumbnail"
-                      className="mx-auto mb-1 h-6 w-6 sm:mb-1.5 sm:h-7 sm:w-7 md:mb-2 md:h-8 md:w-8"
-                    />
-                    <p className="text-xs sm:text-sm">Chọn ảnh</p>
-                  </div>
-                </label>
-              </div>
+                  <p className="text-sm">Chọn ảnh</p>
+                </div>
+              </label>
             </div>
           </div>
-
-          {/* Text Content */}
           <div className="flex flex-col justify-end">
             <p className="text-xs font-normal sm:text-sm md:text-base">
               Playlist
@@ -625,9 +718,6 @@ const PlaylistPage = () => {
         <div className="flex items-center gap-8">
           <button className="flex h-14 w-14 items-center justify-center rounded-full bg-[#1ed760] hover:scale-105 hover:bg-[#1fdf64]">
             <img className="h-8 w-8" src={assets.play_icon} alt="Play" />
-          </button>
-          <button className="flex h-8 items-center justify-center rounded-full border-[1px] border-white px-4 opacity-70 hover:opacity-100">
-            Follow
           </button>
         </div>
       </div>

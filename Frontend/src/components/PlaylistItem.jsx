@@ -6,7 +6,16 @@ const PlaylistItem = ({ playlist }) => {
   const navigate = useNavigate();
   
   const handleClick = () => {
-    navigate(`/playlist/${playlist._id}`);
+    console.log("Playlist type:", playlist.type); // Debug log
+    console.log("Album ID:", playlist.albumId); // Debug log
+    
+    if (playlist.type === 'artist') {
+      navigate(`/artist/${playlist.artistId}`);
+    } else if (playlist.type === 'album') {
+      navigate(`/album/${playlist.albumId}`);
+    } else {
+      navigate(`/playlist/${playlist._id}`);
+    }
   };
 
   return (
@@ -15,17 +24,19 @@ const PlaylistItem = ({ playlist }) => {
       className="group flex cursor-pointer items-center justify-between rounded p-2 transition-colors hover:bg-[#ffffff1a]"
     >
       <div className="flex items-center gap-3">
-        <div className="relative h-12 w-12">
+        <div className="relative h-12 w-12 bg-white opacity-90 rounded-3xl">
           <img
-            src={playlist.thumbnail || assets.plus_icon}
+            src={playlist.thumbnail || assets.music_icon}
             alt={playlist.name}
-            className="h-full w-full rounded object-cover"
+            className="h-full w-full rounded-3xl object-cover"
           />
         </div>
         <div className="flex flex-col">
           <p className="font-medium text-white">{playlist.name}</p>
           <p className="text-sm text-[#b3b3b3]">
-            Danh sách phát của bạn
+            {playlist.type === 'artist' ? 'Nghệ sĩ' : 
+             playlist.type === 'album' ? 'Album' : 
+             'Danh sách phát của bạn'}
           </p>
         </div>
       </div>

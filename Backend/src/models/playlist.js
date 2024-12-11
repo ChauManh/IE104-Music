@@ -6,10 +6,17 @@ const playlistSchema = new mongoose.Schema({
     description: String,
     userID: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     songs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Song' }],
+    type: { 
+        type: String, 
+        enum: ['playlist', 'artist', 'album'], // Add 'album' type
+        default: 'playlist' 
+    },
+    artistId: String,
+    albumId: String, // Add albumId field
     createdAt: { type: Date, default: Date.now },
     thumbnail: { 
         type: String,
-        default: null  // Default value for when no thumbnail is set
+        default: null
     }
 });
 

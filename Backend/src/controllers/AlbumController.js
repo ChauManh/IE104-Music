@@ -53,13 +53,22 @@ const AlbumController = {
 
   async getAlbum(req, res) {
     try {
+      const albumId = req.params.id;
+      console.log("Fetching album with ID:", albumId); // Debug log
+      
       const token = await getSpotifyToken();
-      const response = await axios.get(`https://api.spotify.com/v1/albums/${req.params.id}`, {
-        headers: { Authorization: `Bearer ${token}` }
+      const response = await axios.get(`https://api.spotify.com/v1/albums/${albumId}`, {
+        headers: { 
+          Authorization: `Bearer ${token}` 
+        }
       });
       res.json(response.data);
     } catch (error) {
-      res.status(500).json({ error: 'Failed to fetch album data' });
+      console.error("Album fetch error:", error); // Better error logging
+      res.status(500).json({ 
+        error: 'Failed to fetch album data',
+        details: error.message 
+      });
     }
   }
 };
