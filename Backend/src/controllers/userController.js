@@ -10,27 +10,34 @@ const UserController = {
     async createPlaylist(req, res) {
         try {
             const userID = req.user.id;
+            const { name, type, artistId, albumId, thumbnail } = req.body;
 
             if (!userID) {
                 return res.status(400).json({ message: 'User ID is required' });
             }
 
-            const playlistCount = await Playlist.countDocuments({ userID });
-
-            const name = `Danh sách phát của tôi #${playlistCount + 1}`;
-
             const newPlaylist = new Playlist({
                 _id: new mongoose.Types.ObjectId(),
                 name,
                 userID,
-                songs: [],
+                type: type || 'playlist',
+                artistId: type === 'artist' ? artistId : undefined,
+                albumId: type === 'album' ? albumId : undefined,
+                thumbnail,
+                songs: []
             });
 
             await newPlaylist.save();
 
-            res.status(201).json({ message: 'Playlist created successfully', playlist: newPlaylist });
+            res.status(201).json({ 
+                message: 'Playlist created successfully', 
+                playlist: newPlaylist 
+            });
         } catch (error) {
-            res.status(500).json({ message: 'Internal server error', error: error.message });
+            res.status(500).json({ 
+                message: 'Internal server error', 
+                error: error.message 
+            });
         }
     },
 

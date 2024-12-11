@@ -49,6 +49,7 @@ import apple_svg from './apple.svg'
 import avatar from './avatar.jpg'
 import arrow_rotate_icon from './arrow_rotate.png'
 import verified_icon from './verified.png'
+import music_icon from './music.png'
 
 export const assets = {
     bell_icon,
@@ -83,6 +84,7 @@ export const assets = {
     avatar,
     verified_icon,
     arrow_rotate_icon,
+    music_icon,
 }
 
 export const albumsData = [

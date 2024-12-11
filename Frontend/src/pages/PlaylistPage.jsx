@@ -5,9 +5,18 @@ import { assets } from "../assets/assets";
 import ColorThief from "colorthief";
 import axios from "axios";
 import AlbumItem from "../components/AlbumItem"; // Add this import
+import LikedSongsPlaylist from '../components/LikedSongsPlaylist';
+import { refreshApp } from '../Layout/Components/sidebar';
 
 const PlaylistPage = () => {
+  const token = localStorage.getItem('access_token');
   const { id } = useParams();
+
+  // If this is the liked songs playlist, render the LikedSongsPlaylist component
+  if (id === 'liked') {
+    return <LikedSongsPlaylist token={token} />;
+  }
+
   const navigate = useNavigate();
   const { playWithUri } = useContext(PlayerContext);
   const [dominantColor, setDominantColor] = useState("#333333");
@@ -45,6 +54,35 @@ const PlaylistPage = () => {
     return playlistSongs.some((song) => song.spotifyId === trackId);
   };
 
+  // Add function to check if playlist exists
+  const isPlaylistExists = async (playlistName) => {
+    try {
+      const token = localStorage.getItem("access_token");
+      if (!token) {
+        throw new Error("No access token found");
+      }
+
+      const response = await axios.get(
+        "http://localhost:3000/user/get_playlists",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      // Check if a playlist with this name already exists
+      return response.data.playlists.some(
+        (playlist) => playlist.name === playlistName
+      );
+    } catch (error) {
+      console.error("Error checking playlist existence:", error);
+      return false;
+    }
+  };
+
+  
+
   const handleAddToPlaylist = async (trackId) => {
     try {
       const token = localStorage.getItem("access_token");
@@ -52,7 +90,29 @@ const PlaylistPage = () => {
         throw new Error("No access token found");
       }
 
-      // First create/get song in database with album name
+      // Check if playlist already exists
+      const playlistExists = await isPlaylistExists(playlistData?.name);
+      if (playlistExists) {
+        // Check if song already exists in playlist
+        if (isSongInPlaylist(trackId)) {
+          alert("Bài hát đã có trong playlist");
+          return;
+        }
+      } else {
+        // Create new playlist if it doesn't exist
+        const createPlaylistResponse = await axios.post(
+          "http://localhost:3000/user/create_playlist",
+          { name: playlistData?.name },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setPlaylistData(createPlaylistResponse.data.playlist);
+      }
+
+      // Create/get song in database
       let songResponse;
       try {
         songResponse = await axios.post(
@@ -64,7 +124,7 @@ const PlaylistPage = () => {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          },
+          }
         );
 
         // Get the MongoDB _id from the created/existing song
@@ -81,28 +141,27 @@ const PlaylistPage = () => {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          },
+          }
         );
 
         if (response.data.message === "Song added to playlist successfully.") {
-          // Show notification
           setShowNotification(true);
-          setTimeout(() => setShowNotification(false), 2000); // Hide after 2 seconds
+          setTimeout(() => setShowNotification(false), 2000);
 
-          // Fetch updated playlist data including new song
+          // Refresh playlist data
           const updatedPlaylistResponse = await axios.get(
             `http://localhost:3000/user/playlist/${id}`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
               },
-            },
+            }
           );
 
           const { playlist } = updatedPlaylistResponse.data;
           setPlaylistData(playlist);
 
-          // Fetch details for all songs including the new one
+          // Update songs list
           if (playlist.songs && playlist.songs.length > 0) {
             const songsWithDetails = await Promise.all(
               playlist.songs.map(async (songId) => {
@@ -112,19 +171,19 @@ const PlaylistPage = () => {
                     headers: {
                       Authorization: `Bearer ${token}`,
                     },
-                  },
+                  }
                 );
                 return songResponse.data;
-              }),
+              })
             );
             setPlaylistSongs(songsWithDetails);
-
-            // Filter out the added song from search results
-            setSearchResults((prev) => ({
-              ...prev,
-              tracks: prev.tracks.filter((track) => track.id !== trackId),
-            }));
           }
+
+          // Update search results
+          setSearchResults((prev) => ({
+            ...prev,
+            tracks: prev.tracks.filter((track) => track.id !== trackId),
+          }));
         }
       } catch (err) {
         console.error("Error creating/adding song:", err);
@@ -303,7 +362,17 @@ const PlaylistPage = () => {
       }
     };
 
-    fetchPlaylistData();
+    if (id) {
+      fetchPlaylistData();
+      // Reset states when changing playlists
+      setSearchQuery("");
+      setSearchResults({ tracks: [], artists: [], albums: [] });
+      setSelectedArtist(null);
+      setSelectedAlbum(null);
+      setArtistTracks([]);
+      setArtistAlbums([]);
+      setAlbumTracks([]);
+    }
   }, [id]);
 
   // Add calculateTotalDuration helper function
@@ -692,9 +761,9 @@ const PlaylistPage = () => {
         <div className="flex w-full flex-col gap-4 md:flex-row md:gap-6">
           <div className="relative group">
             <img
-              src={playlistData?.thumbnail || assets.plus_icon}
+              src={playlistData?.thumbnail || assets.music_icon}
               alt="Playlist Cover"
-              className="h-40 w-40 rounded-md shadow-2xl md:h-60 md:w-60 object-cover"
+              className="h-30 w-30 rounded-md shadow-2xl md:h-60 md:w-60 object-cover"
             />
             <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-md flex items-center justify-center">
               <label className="cursor-pointer">
@@ -745,9 +814,6 @@ const PlaylistPage = () => {
         <div className="flex items-center gap-8">
           <button className="flex h-14 w-14 items-center justify-center rounded-full bg-[#1ed760] hover:scale-105 hover:bg-[#1fdf64]">
             <img className="h-8 w-8" src={assets.play_icon} alt="Play" />
-          </button>
-          <button className="flex h-8 items-center justify-center rounded-full border-[1px] border-white px-4 opacity-70 hover:opacity-100">
-            Follow
           </button>
         </div>
       </div>

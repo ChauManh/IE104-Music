@@ -8,6 +8,7 @@ import { assets } from "../assets/assets";
 import { createPlaylist, addSongToPlaylist } from "../util/api";
 import { PlayerContext } from "../context/PlayerContext";
 import ColorThief from "colorthief";
+import { refreshPlaylists } from '../Layout/Components/sidebar';
 
 const ArtistPage = () => {
   const { id } = useParams();
@@ -17,13 +18,24 @@ const ArtistPage = () => {
   const [topTracks, setTopTracks] = useState([]);
   const [albums, setAlbums] = useState([]);
   const [likedTracks, setLikedTracks] = useState({});
+  const [showNotification, setShowNotification] = useState(false); 
   const [error, setError] = useState(null);
   const [isPopupVisible, setIsPopupVisible] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState("");
   const [dominantColor, setDominantColor] = useState("#333333");
 
   const togglePopup = () => {
     setIsPopupVisible(!isPopupVisible);
   };
+
+
+  const Notification = ({ message }) => (
+    <div className="fixed bottom-24 left-1/2 z-50 -translate-x-1/2 transform">
+      <div className="rounded-full bg-[#1ed760] px-4 py-2 text-center text-sm font-medium text-black shadow-lg">
+        <span>{message}</span>
+      </div>
+    </div>
+  );
 
   useEffect(() => {
     const fetchArtistData = async () => {
@@ -71,11 +83,131 @@ const ArtistPage = () => {
   };
 
   const handleLikeClick = async (trackId) => {
-    setLikedTracks((prev) => ({
-      ...prev,
-      [trackId]: !prev[trackId],
-    }));
-  };
+    try {
+        const token = localStorage.getItem("access_token");
+        if (!token) {
+            alert("Please login first to like a song");
+            return;
+        }
+
+        // Update UI state first for immediate feedback
+        setLikedTracks((prev) => ({
+            ...prev,
+            [trackId]: !prev[trackId],
+        }));
+
+        // First check if "Bài hát đã thích" playlist exists
+        const playlistsResponse = await axios.get(
+            "http://localhost:3000/user/get_playlists",
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+
+        let likedPlaylist = playlistsResponse.data.playlists.find(
+            (playlist) => playlist.name === "Bài hát đã thích"
+        );
+
+        // If playlist doesn't exist, create it
+        if (!likedPlaylist) {
+            const createResponse = await axios.post(
+                "http://localhost:3000/user/create_playlist",
+                { name: "Bài hát đã thích" },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+            likedPlaylist = createResponse.data.playlist;
+        }
+
+        // Create/get song in database
+        const songResponse = await axios.post(
+            "http://localhost:3000/songs/create",
+            {
+                spotifyId: trackId,
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+
+        // Add song to the playlist
+        await axios.post(
+            "http://localhost:3000/user/playlist/add_song",
+            {
+                playlistID: likedPlaylist._id,
+                songID: songResponse.data.song._id,
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+
+        // Show notification and refresh playlists
+        setNotificationMessage("Đã thêm vào Bài hát đã thích");
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 2000);
+        window.dispatchEvent(new Event('playlistsUpdated'));
+
+    } catch (error) {
+        console.error("Error liking track:", error);
+        setLikedTracks((prev) => ({
+            ...prev,
+            [trackId]: !prev[trackId],
+        }));
+    }
+};
+
+const handleFollowArtist = async () => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      alert("Please login first to follow artist");
+      return;
+    }
+
+    // Check if artist playlist already exists
+    const exists = await isPlaylistExistsById('artist', id);
+    if (exists) {
+      alert("Artist already followed");
+      return;
+    }
+
+    // Create new artist playlist
+    const createPlaylistResponse = await axios.post(
+      "http://localhost:3000/user/create_playlist",
+      { 
+        name: artist.name,
+        thumbnail: artist.images[0]?.url,
+        type: 'artist',
+        artistId: id
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    // Show notification
+    setNotificationMessage(`Đã theo dõi ${artist.name}`);
+    setShowNotification(true);
+    setTimeout(() => setShowNotification(false), 2000);
+    window.dispatchEvent(new Event('playlistsUpdated'));
+
+  } catch (error) {
+    console.error("Error following artist:", error);
+    alert("Failed to follow artist");
+  }
+};
 
 
   
@@ -126,7 +258,9 @@ const ArtistPage = () => {
             />
           </div>
 
-          <button className="flex h-4 cursor-pointer items-center justify-center rounded-3xl border-2 border-solid p-4 opacity-70 transition-all hover:opacity-100">
+          <button 
+            onClick={handleFollowArtist}
+            className="flex h-4 cursor-pointer items-center justify-center rounded-3xl border-2 border-solid p-4 opacity-70 transition-all hover:opacity-100">
             Theo dõi
           </button>
         </div>
@@ -152,12 +286,18 @@ const ArtistPage = () => {
                     <p className="text-slate-200 text-sm opacity-60">{track.artists.map(artist => artist.name).join(', ')}</p> {/* Artists */}
                   </div>
                   <img
-                    className={`w-4 h-4 cursor-pointer opacity-70 hover:opacity-100 transition-colors duration-200 ${likedTracks[track.id] ? 'text-green-500' : 'text-gray-400'}`}
+                    className={`w-4 h-4 cursor-pointer opacity-70 hover:opacity-100 transition-colors duration-200 ${
+                      likedTracks[track.id] ? 'text-green-500' : 'text-gray-400'
+                    }`}
                     src={assets.like_icon}
                     alt="Like"
-                    onClick={() => handleLikeClick(track.id)}
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent track from playing when clicking like
+                      handleLikeClick(track.id);
+                    }}
                   /> {/* Like Icon */}
                   <p className="text-gray-400 text-sm">{formatDuration(track.duration_ms)}</p> {/* Duration */}
+                  
                 </div>
               ))}
           </div>
@@ -206,6 +346,11 @@ const ArtistPage = () => {
       </div>
 
       {isPopupVisible && <PopupAbout onClose={togglePopup} />}
+      {showNotification && (
+        <>
+          <Notification message={notificationMessage} />
+        </>
+      )}
     </div>
   );
 };
