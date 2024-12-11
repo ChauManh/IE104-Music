@@ -6,6 +6,33 @@ import ColorThief from "colorthief";
 import axios from "axios";
 import AlbumItem from "../components/AlbumItem"; // Add this import
 
+// Add this function at the top of your PlaylistPage component
+const searchContent = async (query) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) throw new Error("No access token found");
+
+    const response = await axios.get(`http://localhost:3000/search`, {
+      params: {
+        q: query,
+        type: 'track,artist,album'
+      },
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Error searching:", error);
+    return {
+      tracks: { items: [] },
+      artists: { items: [] },
+      albums: { items: [] }
+    };
+  }
+};
+
 const PlaylistPage = () => {
   const token = localStorage.getItem('access_token');
   const { id } = useParams();
@@ -85,7 +112,60 @@ const PlaylistPage = () => {
     }
   };
 
-  
+  const handleFollowAlbum = async (album) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      alert("Please login first to follow album");
+      return;
+    }
+
+    // Check if album playlist already exists
+    const playlistsResponse = await axios.get(
+      "http://localhost:3000/user/get_playlists",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const exists = playlistsResponse.data.playlists.some(
+      (playlist) => playlist.type === 'album' && playlist.albumId === album.id
+    );
+
+    if (exists) {
+      alert("Album already in your library");
+      return;
+    }
+
+    // Create new album playlist
+    const createPlaylistResponse = await axios.post(
+      "http://localhost:3000/user/create_playlist",
+      { 
+        name: album.name,
+        thumbnail: album.images[0]?.url,
+        type: 'album',
+        albumId: album.id
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    // Show notification
+    setNotificationMessage(`Đã thêm ${album.name} vào thư viện`);
+    setShowNotification(true);
+    setTimeout(() => setShowNotification(false), 2000);
+    window.dispatchEvent(new Event('playlistsUpdated'));
+
+  } catch (error) {
+    console.error("Error following album:", error);
+    alert("Failed to add album to library");
+  }
+};
 
   const handleAddToPlaylist = async (trackId) => {
     try {
@@ -181,13 +261,29 @@ const PlaylistPage = () => {
 
   const handleRemoveSong = async (songId) => {
     try {
-      const response = await removeSongFromPlaylist(id, songId);
-      if (response.message === "Song removed from playlist successfully.") {
+      const token = localStorage.getItem("access_token");
+      if (!token) {
+        throw new Error("No access token found");
+      }
+
+      const response = await axios.delete(
+        `http://localhost:3000/user/playlist/${id}/songs/${songId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.message === "Song removed from playlist successfully.") {
         setPlaylistSongs((prev) => prev.filter((song) => song._id !== songId));
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 2000);
       }
     } catch (error) {
+      console.error("Error removing song:", error);
       alert(
-        error.response?.data?.message || "Không thể xóa bài hát khỏi playlist",
+        error.response?.data?.message || "Không thể xóa bài hát khỏi playlist"
       );
     }
   };
@@ -197,13 +293,27 @@ const PlaylistPage = () => {
     if (file && file.type.startsWith("image/")) {
       setIsThumbnailLoading(true);
       try {
-        const response = await updatePlaylistThumbnail(id, file);
-        if (response.playlist) {
-          setPlaylistData(response.playlist);
-          // ... rest of thumbnail update handling
+        const formData = new FormData();
+        formData.append("thumbnail", file);
+
+        const token = localStorage.getItem("access_token");
+        const response = await axios.put(
+          `http://localhost:3000/user/playlist/${id}/thumbnail`,
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+
+        if (response.data.playlist) {
+          setPlaylistData(response.data.playlist);
         }
       } catch (error) {
-        alert("Không thể cập nhật ảnh bìa. Vui lòng thử lại.");
+        console.error("Error uploading thumbnail:", error);
+        alert("Failed to update playlist thumbnail");
       } finally {
         setIsThumbnailLoading(false);
       }
@@ -211,36 +321,65 @@ const PlaylistPage = () => {
   };
 
   useEffect(() => {
-    const loadPlaylistData = async () => {
+    const fetchPlaylistData = async () => {
+      setIsLoading(true);
       try {
-        const data = await fetchPlaylistData(id);
-        setPlaylistData(data.playlist);
-        setUserData(data.userData);
-
-        // Set playlist songs
-        setPlaylistSongs(data.playlist.songs);
-
-        // Get dominant color from playlist thumbnail
-        if (data.playlist.thumbnail) {
-          const img = new Image();
-          img.crossOrigin = "Anonymous";
-          img.src = data.playlist.thumbnail;
-          img.onload = () => {
-            const colorThief = new ColorThief();
-            const dominantColor = colorThief.getColor(img);
-            setDominantColor(`rgb(${dominantColor.join(",")})`);
-            setSecondaryColor(`rgba(${dominantColor.join(",")}, 0.5)`);
-          };
+        const token = localStorage.getItem("access_token");
+        if (!token) {
+          throw new Error("No access token found");
         }
 
-        setIsLoading(false);
+        const response = await axios.get(
+          `http://localhost:3000/user/playlist/${id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const { playlist } = response.data;
+        setPlaylistData(playlist);
+
+        // Get user data
+        const userData = JSON.parse(localStorage.getItem("user"));
+        setUserData(userData);
+
+        // Fetch song details if playlist has songs
+        if (playlist.songs && playlist.songs.length > 0) {
+          const songsWithDetails = await Promise.all(
+            playlist.songs.map(async (songId) => {
+              const songResponse = await axios.get(
+                `http://localhost:3000/songs/${songId}`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                }
+              );
+              return songResponse.data;
+            })
+          );
+          setPlaylistSongs(songsWithDetails);
+
+          // Update playlist description with stats
+          const totalDuration = calculateTotalDuration(songsWithDetails);
+          const playlistDescription = `${userData?.name} • ${songsWithDetails.length} bài hát, ${totalDuration}`;
+          setPlaylistData(prev => ({
+            ...prev,
+            description: playlistDescription
+          }));
+        }
       } catch (error) {
-        console.error("Error loading playlist:", error);
+        console.error("Error fetching playlist:", error);
+      } finally {
         setIsLoading(false);
       }
     };
 
-    fetchPlaylistData();
+    if (id) {
+      fetchPlaylistData();
+    }
   }, [id]);
 
   // Add calculateTotalDuration helper function
