@@ -5,17 +5,6 @@ import { assets } from "../assets/assets";
 import ColorThief from "colorthief";
 import axios from "axios";
 import AlbumItem from "../components/AlbumItem"; // Add this import
-<<<<<<< HEAD
-import {
-  fetchPlaylistData,
-  addSongToPlaylist,
-  removeSongFromPlaylist,
-  updatePlaylistThumbnail,
-  searchContent,
-  getTrack,
-  getIdSpotifFromSongId,
-} from "../util/api";
-=======
 
 // Add this function at the top of your PlaylistPage component
 const searchContent = async (query) => {
@@ -43,7 +32,6 @@ const searchContent = async (query) => {
     };
   }
 };
->>>>>>> 38e4a7d4e765c215d0df1f6799f60e080c2af068
 
 const PlaylistPage = () => {
   const token = localStorage.getItem('access_token');
@@ -893,77 +881,6 @@ const PlaylistPage = () => {
             <img className="h-8 w-8" src={assets.play_icon} alt="Play" />
           </button>
         </div>
-<<<<<<< HEAD
-  
-        {/* Playlist Songs Section */}
-        <div className="px-8 py-6">
-          {playlistSongs.length > 0 && (
-            <div className="mb-8">
-              {/* Headers */}
-              <div className="hidden grid-cols-[16px_4fr_3fr_2fr_1fr_80px] gap-4 px-4 py-2 text-sm text-[#b3b3b3] md:grid">
-                <span className="flex items-center">#</span>
-                <span className="flex items-center">Tiêu đề</span>
-                <span className="hidden items-center sm:flex">Album</span>
-                <span className="hidden items-center md:flex">Ngày thêm</span>
-                <div className="flex items-center justify-end">
-                  <img
-                    src={assets.clock_icon}
-                    alt="Duration"
-                    className="h-5 w-5"
-                  />
-                </div>
-                <span></span> {/* Empty space for delete button column */}
-              </div>
-  
-              <hr className="my-2 border-t border-[#2a2a2a]" />
-  
-              {/* Song List */}
-              <div className="mt-4 flex flex-col gap-2">
-                {playlistSongs.map((song, index) => (
-                  <div
-                    key={song._id}
-                    className="group grid grid-cols-[16px_1fr_80px] gap-4 rounded-md px-4 py-2 text-sm hover:bg-[#ffffff1a] sm:grid-cols-[16px_4fr_3fr_80px] md:grid-cols-[16px_4fr_3fr_2fr_1fr_80px] cursor-pointer"
-                    onClick={() => handlePlayTrack(song._id)}
-                  >
-                    <span className="flex items-center text-[#b3b3b3]">
-                      {index + 1}
-                    </span>
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={song.image}
-                        alt={song.title}
-                        className="h-10 w-10 rounded"
-                      />
-                      <div className="flex flex-col overflow-hidden">
-                        <span className="max-w-[200px] truncate text-white sm:max-w-[300px] md:max-w-[450px]">
-                          {song.title}
-                        </span>
-                        <span className="truncate text-[#b3b3b3]">
-                          {song.artistName}
-                        </span>
-                      </div>
-                    </div>
-                    <span className="hidden items-center overflow-hidden truncate text-[#b3b3b3] sm:flex">
-                      {song.album || "Unknown Album"}
-                    </span>
-                    <span className="hidden items-center text-[#b3b3b3] md:flex">
-                      {formatDate(song.createdAt)}
-                    </span>
-                    <div className="hidden items-center justify-end text-[#b3b3b3] md:flex">
-                      {formatDuration(song.duration)}
-                    </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemoveSong(song._id);
-                      }}
-                      className="rounded-full border border-white bg-transparent px-4 py-1 text-sm text-white opacity-0 transition-all hover:scale-105 group-hover:opacity-100"
-                    >
-                      Xóa
-                    </button>
-                  </div>
-                ))}
-=======
       </div>
 
       {/* Playlist Songs Section */}
@@ -982,7 +899,6 @@ const PlaylistPage = () => {
                   alt="Duration"
                   className="h-5 w-5"
                 />
->>>>>>> 38e4a7d4e765c215d0df1f6799f60e080c2af068
               </div>
               <span></span> {/* Empty space for delete button column */}
             </div>
