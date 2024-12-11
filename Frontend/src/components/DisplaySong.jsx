@@ -1,6 +1,5 @@
 import React, { useContext, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import Navbar from './Navbar';
 import { PlayerContext } from '../context/PlayerContext'; // Đảm bảo đường dẫn chính xác
 import { getTrack } from '../util/api';
 const DisplaySong = () => {
@@ -32,7 +31,6 @@ const DisplaySong = () => {
   
   return (
     <>
-        <Navbar/>
     </>
   )
 }

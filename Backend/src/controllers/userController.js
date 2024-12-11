@@ -11,14 +11,20 @@ const UserController = {
         try {
             const userID = req.user.id;
             const { name, type, artistId, albumId, thumbnail } = req.body;
+            const { name, description } = req.body;
 
             if (!userID) {
                 return res.status(400).json({ message: 'User ID is required' });
             }
 
+            const playlistCount = await Playlist.countDocuments({ userID });
+
+            const name = `Danh sách phát của tôi #${playlistCount + 1}`;
+
             const newPlaylist = new Playlist({
                 _id: new mongoose.Types.ObjectId(),
-                name,
+                name: name || defaultName,
+                description: description || '',
                 userID,
                 type: type || 'playlist',
                 artistId: type === 'artist' ? artistId : undefined,
@@ -155,7 +161,7 @@ const UserController = {
             const playlists = await Playlist.find({ userID });
     
             if (!playlists.length) {
-                return res.status(404).json({ message: 'No playlists found for this user.' });
+                return res.status(200).json({ message: 'No playlists found for this user.' });
             }
     
             res.status(200).json({ message: 'User playlists fetched successfully.', playlists });
@@ -404,6 +410,40 @@ const UserController = {
             console.error('Error in updatePlaylistThumbnail:', error);
             res.status(500).json({
                 message: 'Error updating thumbnail',
+                error: error.message
+            });
+        }
+    },
+
+    async updatePlaylist(req, res) {
+        try {
+            const playlistId = req.params.id;
+            const userId = req.user.id;
+            const { name, description } = req.body;
+
+            const playlist = await Playlist.findOne({ 
+                _id: playlistId,
+                userID: userId 
+            });
+
+            if (!playlist) {
+                return res.status(404).json({ 
+                    message: 'Playlist not found or unauthorized access' 
+                });
+            }
+
+            if (name) playlist.name = name;
+            if (description !== undefined) playlist.description = description;
+            await playlist.save();
+
+            res.status(200).json({
+                message: 'Playlist updated successfully',
+                playlist
+            });
+        } catch (error) {
+            console.error('Error updating playlist:', error);
+            res.status(500).json({
+                message: 'Error updating playlist',
                 error: error.message
             });
         }

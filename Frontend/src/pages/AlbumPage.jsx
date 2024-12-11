@@ -1,12 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import axios from "axios";
 import { assets } from "../assets/assets";
 import ColorThief from "colorthief";
 import { refreshPlaylists } from '../Layout/Components/sidebar';
 import AlbumItem from "../components/AlbumItem"; // Import AlbumItem component
+import { PlayerContext } from "../context/PlayerContext"; // Import PlayerContext
+import { useQueue } from '../context/QueueContext';
 
 const AlbumPage = () => {
+  const { isVisible, queue, currentTrackIndex, setQueue, moveToTop } = useQueue();
+  const { track, setTrack, playWithUri } = useContext(PlayerContext); // Lấy playWithUri từ context
   const { id } = useParams();
   const { locataion } = useLocation();
   const [artist, setArtist] = useState(null);
@@ -28,6 +32,37 @@ const AlbumPage = () => {
   );
 
 
+  const handleTrackClick = (track) => {
+    setTrack({
+      id: track.id,
+      name: track.name,
+      album: album.name,
+      image: album.images[0]?.url,
+      singer: track.singers.join(", "),
+      duration: track.duration,
+      uri: track.uri, // Nếu có URI bài hát
+    });
+
+    const trackIndex = albumTracks.findIndex((t) => t.id === track.id);
+    setQueue("");
+    // Thêm bài hát được click và các bài hát sau nó vào queue
+    setQueue((prevQueue) => [
+      ...prevQueue, // Các bài hát trước đó (nếu có)
+      ...albumTracks.slice(trackIndex).map((item) => ({
+        id: item.id,
+        name: item.name,
+        album: album.name,
+        image: album.images[0]?.url,
+        singer: item.singers.join(", "),
+        duration: item.duration,
+        uri: item.uri, // URI bài hát từ album
+      })),
+    ]);
+    
+    // Phát bài hát (nếu cần)
+    playWithUri(track.uri);
+  };
+  
   useEffect(() => {
     window.scrollTo(0, 0);
     const fetchAlbumData = async () => {
@@ -78,106 +113,6 @@ const AlbumPage = () => {
 
     fetchAlbumData();
   }, [id, location.pathname]);
-
-  useEffect(() => {
-    const fetchAlbumData = async () => {
-      try {
-        const response = await axios.get(`http://localhost:3000/album/${id}`);
-        console.log("Album data:", response.data); // Debug log
-        setAlbum(response.data);
-
-        const artistResponse = await axios.get(
-          `http://localhost:3000/artist/${response.data.artists[0].id}`
-        );
-        setArtist(artistResponse.data);
-
-        const tracksResponse = await axios.get(
-          `http://localhost:3000/album/${id}/tracks`
-        );
-        setAlbumTracks(tracksResponse.data);
-
-      } catch (error) {
-        console.error("Error fetching album:", error.response || error);
-        setError(error.response?.data?.error || "Error fetching album data");
-      }
-    };
-
-    if (id) {
-      fetchAlbumData();
-    }
-  }, [id]);
-
-  // Add this function to check for existing album playlist
-  const isPlaylistExistsById = async (type, albumId) => {
-    try {
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        throw new Error("No access token found");
-      }
-  
-      const response = await axios.get(
-        "http://localhost:3000/user/get_playlists",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-  
-      // Check specifically for albums with matching albumId
-      return response.data.playlists.some(
-        (playlist) => playlist.type === 'album' && playlist.albumId === albumId
-      );
-    } catch (error) {
-      console.error("Error checking playlist existence:", error);
-      return false;
-    }
-  };
-  
-  // Update handleFollowAlbum function
-  const handleFollowAlbum = async () => {
-    try {
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        alert("Please login first to follow album");
-        return;
-      }
-  
-      // Check if album playlist already exists using albumId
-      const exists = await isPlaylistExistsById('album', id);
-      if (exists) {
-        alert("Album already in your library");
-        return;
-      }
-  
-      // Create new album playlist with albumId
-      const createPlaylistResponse = await axios.post(
-        "http://localhost:3000/user/create_playlist",
-        { 
-          name: album.name,
-          thumbnail: album.images[0]?.url,
-          type: 'album',
-          albumId: id // Store the unique album ID
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-  
-      // Show notification and refresh sidebar
-      setNotificationMessage(`Đã thêm ${album.name} vào thư viện`);
-      setShowNotification(true);
-      setTimeout(() => setShowNotification(false), 2000);
-      window.dispatchEvent(new Event('playlistsUpdated'));
-  
-    } catch (error) {
-      console.error("Error following album:", error);
-      alert("Failed to add album to library");
-    }
-  };
-  
 
   const playWithUri = (trackId) => {
     // Implement playWithUri function
@@ -280,7 +215,7 @@ const AlbumPage = () => {
         {Array.isArray(albumTracks) &&
           albumTracks.map((track, index) => (
             <div
-              onClick={() => playWithUri(track.id)}
+              onClick={() => handleTrackClick(track)}
               key={index}
               className="grid cursor-pointer grid-cols-[auto_1fr_auto] items-center gap-2 rounded-s p-2 text-[#a7a7a7] hover:bg-[#ffffff2b] rounded"
             >

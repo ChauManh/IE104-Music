@@ -42,6 +42,7 @@ const AlbumController = {
         // image: item.images[0].url, // Uncomment if needed
         singers: item.artists.map(artist => artist.name), // Lấy tất cả tên nghệ sĩ
         duration: item.duration_ms,
+        uri: item.uri,
     }));  
     res.status(200).json(albumTracks);
   

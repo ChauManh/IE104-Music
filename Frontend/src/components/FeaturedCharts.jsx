@@ -27,7 +27,7 @@ const FeaturedCharts = () => {
 
   return (
     <div className='mb-6 px-2 pb-2'>
-      <h1 className='my-5 font-bold text-2xl'>Featured Charts</h1>
+      <h1 className='my-5 font-bold text-2xl'>Albums phổ biến</h1>
       {albumsData.length > 0 ? (
         <div className='grid grid-flow-col auto-cols-[200px] gap-2 overflow-x-auto album-scrollbar'>
           {albumsData.slice(0, 10).map((item) => (
@@ -40,6 +40,7 @@ const FeaturedCharts = () => {
             />
           ))}
         </div>
+        
       ) : (
         <p>Loading...</p>
       )}

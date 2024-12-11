@@ -72,7 +72,7 @@ const TopNav = ({ handleLogout }) => {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="What do you want to listen to?"
+              placeholder="Bạn muốn phát nội dung gì?"
               className="h-12 w-96 rounded-full bg-zinc-800 pl-12 text-white hover:bg-zinc-700 focus:outline-none"
             />
           </form>
