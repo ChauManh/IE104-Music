@@ -22,48 +22,29 @@ const storage = multer.diskStorage({
         cb(null, uniqueSuffix + path.extname(file.originalname));
     }
 });
-
-const upload = multer({ 
-    storage: storage,
-    fileFilter: (req, file, cb) => {
-        if (file.mimetype.startsWith('image/')) {
-            cb(null, true);
-        } else {
-            cb(new Error('Not an image! Please upload an image.'), false);
-        }
-    },
-    limits: {
-        fileSize: 5 * 1024 * 1024 // 5MB limit
-    }
-});
+const upload = multer({ storage });
 
 // Playlist routes
-router.post('/create_playlist', auth, UserController.createPlaylist);
-router.get('/get_playlists', UserController.getUserPlaylists);
+router.get('/get_playlists', auth, UserController.getUserPlaylists);
 router.get('/playlist/:id', auth, UserController.getPlaylistById);
-router.post('/playlist/add_song', UserController.addSongToPlaylist);
-router.delete('/playlist/remove_song', UserController.removeSongFromPlaylist);
-router.delete('/delete_playlist/:id', UserController.deletePlaylist);
-router.post(
-  '/playlist/update_thumbnail', 
-  auth, 
-  upload.single('thumbnail'), 
-  UserController.updatePlaylistThumbnail
-);
-router.put('/playlist/:id', auth, UserController.updatePlaylist);
+router.post('/create_playlist', auth, UserController.createPlaylist); // Ensure this route is correct
+router.post('/playlist/add_song', auth, UserController.addSongToPlaylist);
+router.delete('/playlist/:playlistId/songs/:songId', auth, UserController.removeSongFromPlaylist);
+router.delete('/playlist/:id', auth, UserController.deletePlaylist);
+
+// Playlist thumbnail
 router.put('/playlist/:id/thumbnail', auth, upload.single('thumbnail'), UserController.updatePlaylistThumbnail);
 
-// Favorite tracks routes
-router.post('/favorites/add', UserController.addFavoriteTrack);
-router.delete('/favorites/remove', UserController.removeFavoriteTrack);
+// Playlist update
+router.put('/playlist/:id', auth, UserController.updatePlaylist);
 
-// Artist following routes
-router.post('/artists/follow', UserController.followArtist);
-router.delete('/artists/unfollow', UserController.unfollowArtist);
+// Artist following
+router.post('/artists/follow', auth, UserController.followArtist);
+router.delete('/artists/unfollow', auth, UserController.unfollowArtist);
 
-// Album following routes
-router.post('/albums/add', UserController.addFavoriteAlbum);
-router.delete('/albums/remove', UserController.removeFavoriteAlbum);
+// Album following
+router.post('/albums/add', auth, UserController.addFavoriteAlbum);
+router.delete('/albums/remove', auth, UserController.removeFavoriteAlbum);
 
 // User profile routes
 router.put('/change-password', auth, UserController.changePassword);

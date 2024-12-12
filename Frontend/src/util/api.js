@@ -492,6 +492,16 @@ const fetchPlaylistData = async (playlistId) => {
         }
     }
 
+const getSpotifyToken = async () => {
+    try {
+        const response = await axios.get('http://localhost:3000/spotify_auth/token');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching Spotify token:', error);
+        throw error;
+    }
+};
+
 export { 
     createUser, 
     fetchPopularTracks, 
@@ -519,5 +529,6 @@ export {
     updatePlaylistThumbnail,
     searchContent,
     fetchPlaylistData,
-    getIdSpotifFromSongId
+    getIdSpotifFromSongId,
+    getSpotifyToken
 };

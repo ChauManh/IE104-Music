@@ -97,60 +97,77 @@ const UserController = {
 
     async removeSongFromPlaylist(req, res) {
         try {
-            const { playlistID, songID } = req.body;
-            const userId = req.user.id; // Get user ID from auth middleware
-
-            if (!playlistID || !songID) {
-                return res.status(400).json({ message: 'Playlist ID and Song ID are required.' });
-            }
-
-            // Find playlist and verify ownership
+            const { playlistId, songId } = req.params;
+            const userId = req.user.id;
+    
             const playlist = await Playlist.findOne({ 
-                _id: playlistID,
+                _id: playlistId,
                 userID: userId 
             });
-
+    
             if (!playlist) {
-                return res.status(404).json({ message: 'Playlist not found or unauthorized access.' });
+                return res.status(404).json({ 
+                    message: 'Playlist not found or unauthorized access' 
+                });
             }
-
-            // Check if song exists in playlist
-            const songIndex = playlist.songs.indexOf(songID);
-            if (songIndex === -1) {
-                return res.status(400).json({ message: 'Song does not exist in the playlist.' });
-            }
-
-            // Remove song from playlist
-            playlist.songs.splice(songIndex, 1);
+    
+            playlist.songs = playlist.songs.filter(id => id.toString() !== songId);
             await playlist.save();
-
+    
             res.status(200).json({ 
-                message: 'Song removed from playlist successfully.', 
+                message: 'Song removed successfully',
                 playlist 
             });
         } catch (error) {
-            console.error('Error in removeSongFromPlaylist:', error);
-            res.status(500).json({ message: 'Internal server error', error: error.message });
+            console.error('Error removing song:', error);
+            res.status(500).json({ 
+                message: 'Error removing song', 
+                error: error.message 
+            });
         }
     },
 
     async deletePlaylist(req, res) {
         try {
-            const playlistID = req.params.id; 
+            const playlistId = req.params.id;
+            const userId = req.user.id;
     
-            if (!playlistID) {
-                return res.status(400).json({ message: 'Playlist ID is required.' });
+            if (!playlistId) {
+                return res.status(400).json({ message: 'Playlist ID is required' });
             }
     
-            const playlist = await Playlist.findByIdAndDelete(playlistID);
+            // Find playlist and verify ownership
+            const playlist = await Playlist.findOne({ 
+                _id: playlistId,
+                userID: userId 
+            });
     
             if (!playlist) {
-                return res.status(404).json({ message: 'Playlist not found.' });
+                return res.status(404).json({ 
+                    message: 'Playlist not found or unauthorized access' 
+                });
             }
     
-            res.status(200).json({ message: 'Playlist deleted successfully.' });
-        } catch (e) {
-            res.status(500).json({ message: 'Internal server error', error: e.message });
+            // Don't allow deletion of "My liked song" playlist
+            if (playlist.name === "My liked song") {
+                return res.status(403).json({ 
+                    message: 'Cannot delete liked songs playlist' 
+                });
+            }
+    
+            // Delete the playlist
+            await Playlist.findByIdAndDelete(playlistId);
+    
+            res.status(200).json({ 
+                message: 'Playlist deleted successfully' 
+            });
+    
+        } catch (error) {
+            console.error('Error deleting playlist:', error);
+            res.status(500).json({ 
+                message: 'Error deleting playlist', 
+                error: error.message 
+            });
         }
     },
 
@@ -252,22 +269,22 @@ const UserController = {
     // Unfollow artist
     async unfollowArtist(req, res) {
         try {
-            const { artistId } = req.body;
-            const userId = req.user.id;
-
-            const user = await User.findById(userId);
-            if (!user) {
-                return res.status(404).json({ message: 'User not found' });
-            }
-
-            user.followingArtist = user.followingArtist.filter(id => id.toString() !== artistId);
-            await user.save();
-
-            res.status(200).json({ message: 'Artist unfollowed successfully' });
-        } catch (error) {2
-            res.status(500).json({ message: 'Error unfollowing artist', error: error.message });
+          const { artistId } = req.body;
+          const userId = req.user.id;
+      
+          const user = await User.findById(userId);
+          if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+          }
+      
+          user.followingArtist = user.followingArtist.filter(id => id.toString() !== artistId);
+          await user.save();
+      
+          res.status(200).json({ message: 'Artist unfollowed successfully' });
+        } catch (error) {
+          res.status(500).json({ message: 'Error unfollowing artist', error: error.message });
         }
-    },
+      },
 
     // add Like Albums
     async addFavoriteAlbum(req, res) {

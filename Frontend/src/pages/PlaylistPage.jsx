@@ -16,6 +16,27 @@ import {
   getTrack,
 } from "../util/api";
 
+const handleDeletePlaylist = async (e) => {
+  e.stopPropagation();
+    if (window.confirm('Are you sure you want to delete this?')) {
+      try {
+        const token = localStorage.getItem('access_token');
+        if (!token) throw new Error('No access token found');
+          await axios.delete(
+            `http://localhost:3000/user/playlist/${playlist._id}`,
+            {
+              headers: { Authorization: `Bearer ${token}` }
+            }
+          );
+        // Refresh sidebar
+        window.dispatchEvent(new Event('playlistsUpdated'));
+      } catch (error) {
+        console.error('Error deleting:', error);
+        alert('Failed to delete');
+      }
+    }
+  };
+
 const PlaylistPage = () => {
   // const { isVisible, queue, currentTrackIndex, setQueue, moveToTop, setCurrentTrackIndex } = useQueue();
   const { id } = useParams();
@@ -306,10 +327,10 @@ const PlaylistPage = () => {
 
   const handleRemoveSong = async (songId) => {
     try {
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        throw new Error("No access token found");
-      }
+        const token = localStorage.getItem("access_token");
+        if (!token) {
+            throw new Error("No access token found");
+        }
 
       const response = await axios.delete(
         `http://localhost:3000/user/playlist/${id}/songs/${songId}`,
@@ -317,12 +338,10 @@ const PlaylistPage = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        },
+        }
       );
 
-      if (
-        response.data.message === "Song removed from playlist successfully."
-      ) {
+      if (response.data.message === "Song removed from playlist successfully.") {
         setPlaylistSongs((prev) => prev.filter((song) => song._id !== songId));
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 2000);
@@ -330,10 +349,10 @@ const PlaylistPage = () => {
     } catch (error) {
       console.error("Error removing song:", error);
       alert(
-        error.response?.data?.message || "Không thể xóa bài hát khỏi playlist",
+        error.response?.data?.message || "Không thể xóa bài hát khỏi playlist"
       );
     }
-  };
+};
 
   const handleThumbnailUpload = async (e) => {
     const file = e.target.files[0];
@@ -850,7 +869,7 @@ const PlaylistPage = () => {
             <img
               src={playlistData?.thumbnail || assets.plus_icon}
               alt="Playlist Cover"
-              className="h-40 w-40 rounded-md object-cover shadow-2xl md:h-60 md:w-60"
+              className="h-40 w-40 rounded-md shadow-2xl md:h-60 md:w-60 object-cover"
             />
             <div className="absolute inset-0 flex items-center justify-center rounded-md bg-black bg-opacity-50 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
               <label className="cursor-pointer">

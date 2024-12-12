@@ -6,4 +6,5 @@ router.get('/new', AlbumController.getNewReleases);
 router.get('/:id', AlbumController.getAlbum);
 router.get('/:id/tracks', AlbumController.getAlbumTracks);
 
+
 module.exports = router;
