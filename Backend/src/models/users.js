@@ -4,6 +4,10 @@ const userSchema = new mongoose.Schema({
     name: String,
     email: String,
     password: String,
+    avatar: {
+        type: String,
+        default: null
+    },
     role: String,
     playlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Playlist' }],
     likedSongs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Song' }],

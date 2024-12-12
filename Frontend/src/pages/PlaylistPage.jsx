@@ -15,11 +15,11 @@ const searchContent = async (query) => {
     const response = await axios.get(`http://localhost:3000/search`, {
       params: {
         q: query,
-        type: 'track,artist,album'
+        type: "track,artist,album",
       },
       headers: {
-        Authorization: `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     return response.data;
@@ -28,7 +28,7 @@ const searchContent = async (query) => {
     return {
       tracks: { items: [] },
       artists: { items: [] },
-      albums: { items: [] }
+      albums: { items: [] },
     };
   }
 };
@@ -55,11 +55,11 @@ const handleDeletePlaylist = async (e) => {
   };
 
 const PlaylistPage = () => {
-  const token = localStorage.getItem('access_token');
+  const token = localStorage.getItem("access_token");
   const { id } = useParams();
 
   // If this is the liked songs playlist, render the LikedSongsPlaylist component
-  if (id === 'liked') {
+  if (id === "liked") {
     return <LikedSongsPlaylist token={token} />;
   }
 
@@ -91,17 +91,17 @@ const PlaylistPage = () => {
     description: "",
   });
   const [isThumbnailLoading, setIsThumbnailLoading] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState("");
 
   const handlePlayTrack = async (id) => {
     try {
-        const spotifyId = await getIdSpotifFromSongId(id);
-        const response = await getTrack(spotifyId); 
-        setTrack(response); 
-        playWithUri(response.uri); 
+      const spotifyId = await getIdSpotifFromSongId(id);
+      setTrack(response);
+      playWithUri(response.uri);
     } catch (error) {
-        console.error("Error handling play track:", error);
+      console.error("Error handling play track:", error);
     }
-  };  
+  };
 
   // Update the Notification component styling
   const Notification = ({ message }) => (
@@ -131,12 +131,12 @@ const PlaylistPage = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       // Check if a playlist with this name already exists
       return response.data.playlists.some(
-        (playlist) => playlist.name === playlistName
+        (playlist) => playlist.name === playlistName,
       );
     } catch (error) {
       console.error("Error checking playlist existence:", error);
@@ -145,59 +145,59 @@ const PlaylistPage = () => {
   };
 
   const handleFollowAlbum = async (album) => {
-  try {
-    const token = localStorage.getItem("access_token");
-    if (!token) {
-      alert("Please login first to follow album");
-      return;
-    }
-
-    // Check if album playlist already exists
-    const playlistsResponse = await axios.get(
-      "http://localhost:3000/user/get_playlists",
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+    try {
+      const token = localStorage.getItem("access_token");
+      if (!token) {
+        alert("Please login first to follow album");
+        return;
       }
-    );
 
-    const exists = playlistsResponse.data.playlists.some(
-      (playlist) => playlist.type === 'album' && playlist.albumId === album.id
-    );
-
-    if (exists) {
-      alert("Album already in your library");
-      return;
-    }
-
-    // Create new album playlist
-    const createPlaylistResponse = await axios.post(
-      "http://localhost:3000/user/create_playlist",
-      { 
-        name: album.name,
-        thumbnail: album.images[0]?.url,
-        type: 'album',
-        albumId: album.id
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      // Check if album playlist already exists
+      const playlistsResponse = await axios.get(
+        "http://localhost:3000/user/get_playlists",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
+      );
+
+      const exists = playlistsResponse.data.playlists.some(
+        (playlist) =>
+          playlist.type === "album" && playlist.albumId === album.id,
+      );
+
+      if (exists) {
+        alert("Album already in your library");
+        return;
       }
-    );
 
-    // Show notification
-    setNotificationMessage(`Đã thêm ${album.name} vào thư viện`);
-    setShowNotification(true);
-    setTimeout(() => setShowNotification(false), 2000);
-    window.dispatchEvent(new Event('playlistsUpdated'));
+      // Create new album playlist
+      const createPlaylistResponse = await axios.post(
+        "http://localhost:3000/user/create_playlist",
+        {
+          name: album.name,
+          thumbnail: album.images[0]?.url,
+          type: "album",
+          albumId: album.id,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
 
-  } catch (error) {
-    console.error("Error following album:", error);
-    alert("Failed to add album to library");
-  }
-};
+      // Show notification
+      setNotificationMessage(`Đã thêm ${album.name} vào thư viện`);
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 2000);
+      window.dispatchEvent(new Event("playlistsUpdated"));
+    } catch (error) {
+      console.error("Error following album:", error);
+      alert("Failed to add album to library");
+    }
+  };
 
   const handleAddToPlaylist = async (trackId) => {
     try {
@@ -298,130 +298,130 @@ const PlaylistPage = () => {
             throw new Error("No access token found");
         }
 
-        const response = await axios.delete(
-            `http://localhost:3000/user/playlist/${id}/songs/${songId}`,
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            }
-        );
-
-        if (response.data.message === "Song removed successfully") {
-            setPlaylistSongs((prev) => prev.filter((song) => song._id !== songId));
-            setShowNotification(true);
-            setTimeout(() => setShowNotification(false), 2000);
+      const response = await axios.delete(
+        `http://localhost:3000/user/playlist/${id}/songs/${songId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
+      );
+
+      if (response.data.message === "Song removed from playlist successfully.") {
+        setPlaylistSongs((prev) => prev.filter((song) => song._id !== songId));
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 2000);
+      }
     } catch (error) {
-        console.error("Error removing song:", error);
-        alert(
-            error.response?.data?.message || "Không thể xóa bài hát khỏi playlist"
-        );
+      console.error("Error removing song:", error);
+      alert(
+        error.response?.data?.message || "Không thể xóa bài hát khỏi playlist"
+      );
     }
 };
 
   const handleThumbnailUpload = async (e) => {
     const file = e.target.files[0];
     if (file && file.type.startsWith("image/")) {
-        setIsThumbnailLoading(true);
-        try {
-            const formData = new FormData();
-            formData.append("thumbnail", file);
+      setIsThumbnailLoading(true);
+      try {
+        const formData = new FormData();
+        formData.append("thumbnail", file);
 
-            const token = localStorage.getItem("access_token");
-            const response = await axios.put(
-                `http://localhost:3000/user/playlist/${id}/thumbnail`,
-                formData,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        "Content-Type": "multipart/form-data",
-                    },
-                }
-            );
+        const token = localStorage.getItem("access_token");
+        const response = await axios.put(
+          `http://localhost:3000/user/playlist/${id}/thumbnail`,
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "multipart/form-data",
+            },
+          },
+        );
 
-            if (response.data.playlist) {
-                setPlaylistData(response.data.playlist);
-                setShowNotification(true);
-                setNotificationMessage("Đã cập nhật ảnh bìa");
-                setTimeout(() => setShowNotification(false), 2000);
-                window.dispatchEvent(new Event('playlistsUpdated'));
-                return; // Exit early on success
-            }
-        } catch (error) {
-            console.error("Error uploading thumbnail:", error);
-            // Only show error alerts for actual errors
-            if (error.response?.status === 413) {
-                alert("File too large. Please choose a smaller image.");
-            } else if (error.response?.status === 415) {
-                alert("Invalid file type. Please choose an image file.");
-            } else {
-                alert("Failed to update playlist thumbnail. Please try again.");
-            }
-        } finally {
-            setIsThumbnailLoading(false);
+        if (response.data.playlist) {
+          setPlaylistData(response.data.playlist);
+          setShowNotification(true);
+          setNotificationMessage("Đã cập nhật ảnh bìa");
+          setTimeout(() => setShowNotification(false), 2000);
+          window.dispatchEvent(new Event("playlistsUpdated"));
+          return; // Exit early on success
         }
+      } catch (error) {
+        console.error("Error uploading thumbnail:", error);
+        // Only show error alerts for actual errors
+        if (error.response?.status === 413) {
+          alert("File too large. Please choose a smaller image.");
+        } else if (error.response?.status === 415) {
+          alert("Invalid file type. Please choose an image file.");
+        } else {
+          alert("Failed to update playlist thumbnail. Please try again.");
+        }
+      } finally {
+        setIsThumbnailLoading(false);
+      }
     } else if (file) {
-        alert("Please select an image file.");
+      alert("Please select an image file.");
     }
-};
+  };
 
   useEffect(() => {
     const fetchPlaylistData = async () => {
       setIsLoading(true);
       try {
-          const token = localStorage.getItem("access_token");
-          if (!token) {
-              throw new Error("No access token found");
-          }
-  
-          const response = await axios.get(
-              `http://localhost:3000/user/playlist/${id}`,
-              {
+        const token = localStorage.getItem("access_token");
+        if (!token) {
+          throw new Error("No access token found");
+        }
+
+        const response = await axios.get(
+          `http://localhost:3000/user/playlist/${id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        const { playlist } = response.data;
+
+        // Set all playlist data including description
+        setPlaylistData(playlist);
+
+        // Set edit form data with current values
+        setEditFormData({
+          name: playlist.name || "",
+          description: playlist.description || "",
+        });
+
+        // Get user data
+        const userData = JSON.parse(localStorage.getItem("user"));
+        setUserData(userData);
+
+        // Fetch song details if playlist has songs
+        if (playlist.songs && playlist.songs.length > 0) {
+          const songsWithDetails = await Promise.all(
+            playlist.songs.map(async (songId) => {
+              const songResponse = await axios.get(
+                `http://localhost:3000/songs/${songId}`,
+                {
                   headers: {
-                      Authorization: `Bearer ${token}`,
+                    Authorization: `Bearer ${token}`,
                   },
-              }
-          );
-  
-          const { playlist } = response.data;
-          
-          // Set all playlist data including description
-          setPlaylistData(playlist);
-          
-          // Set edit form data with current values
-          setEditFormData({
-              name: playlist.name || "",
-              description: playlist.description || ""
-          });
-  
-          // Get user data
-          const userData = JSON.parse(localStorage.getItem("user"));
-          setUserData(userData);
-  
-          // Fetch song details if playlist has songs
-          if (playlist.songs && playlist.songs.length > 0) {
-              const songsWithDetails = await Promise.all(
-                  playlist.songs.map(async (songId) => {
-                      const songResponse = await axios.get(
-                          `http://localhost:3000/songs/${songId}`,
-                          {
-                              headers: {
-                                  Authorization: `Bearer ${token}`,
-                              },
-                          }
-                      );
-                      return songResponse.data;
-                  })
+                },
               );
-              setPlaylistSongs(songsWithDetails);
-          }
+              return songResponse.data;
+            }),
+          );
+          setPlaylistSongs(songsWithDetails);
+        }
       } catch (error) {
-          console.error("Error fetching playlist:", error);
+        console.error("Error fetching playlist:", error);
       } finally {
-          setIsLoading(false);
+        setIsLoading(false);
       }
-  };
+    };
     if (id) {
       fetchPlaylistData();
     }
@@ -785,33 +785,33 @@ const PlaylistPage = () => {
 
   const handleSaveChanges = async () => {
     try {
-        const token = localStorage.getItem('access_token');
-        const response = await axios.put(
-            `http://localhost:3000/user/playlist/${id}`,
-            {
-                name: editFormData.name,
-                description: editFormData.description // Make sure description is included
-            },
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            }
-        );
+      const token = localStorage.getItem("access_token");
+      const response = await axios.put(
+        `http://localhost:3000/user/playlist/${id}`,
+        {
+          name: editFormData.name,
+          description: editFormData.description, // Make sure description is included
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
 
-        if (response.data.playlist) {
-            // Update local state with new data
-            setPlaylistData(response.data.playlist);
-            setShowEditDialog(false);
-            setShowNotification(true);
-            setTimeout(() => setShowNotification(false), 2000);
-            window.dispatchEvent(new Event('playlistsUpdated'));
-        }
+      if (response.data.playlist) {
+        // Update local state with new data
+        setPlaylistData(response.data.playlist);
+        setShowEditDialog(false);
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 2000);
+        window.dispatchEvent(new Event("playlistsUpdated"));
+      }
     } catch (error) {
-        console.error("Error updating playlist:", error);
-        alert("Không thể cập nhật thông tin playlist");
+      console.error("Error updating playlist:", error);
+      alert("Không thể cập nhật thông tin playlist");
     }
-};
+  };
 
   const handleTitleClick = () => {
     setEditFormData({
@@ -831,25 +831,25 @@ const PlaylistPage = () => {
         }}
       >
         <div className="flex w-full flex-col gap-4 md:flex-row md:gap-6">
-          <div className="relative group">
+          <div className="group relative">
             <img
               src={playlistData?.thumbnail || assets.plus_icon}
               alt="Playlist Cover"
-              className="min-h-60 min-w-60 rounded-md shadow-2xl md:h-56 md:w-56 object-cover"
+              className="h-40 w-40 rounded-md shadow-2xl md:h-60 md:w-60 object-cover"
             />
-            <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-md flex items-center justify-center">
+            <div className="absolute inset-0 flex items-center justify-center rounded-md bg-black bg-opacity-50 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
               <label className="cursor-pointer">
-                <input 
+                <input
                   type="file"
                   accept="image/*"
                   onChange={handleThumbnailUpload}
                   className="hidden"
                 />
-                <div className="text-white text-center">
-                  <img 
-                    src={assets.plus_icon} 
-                    alt="Change thumbnail" 
-                    className="w-8 h-8 mx-auto mb-2"
+                <div className="text-center text-white">
+                  <img
+                    src={assets.plus_icon}
+                    alt="Change thumbnail"
+                    className="mx-auto mb-2 h-8 w-8"
                   />
                   <p className="text-sm">Chọn ảnh</p>
                 </div>
@@ -904,15 +904,78 @@ const PlaylistPage = () => {
           >
             <img className="h-8 w-8" src={assets.play_icon} alt="Play" />
           </button>
-          
-          <button 
-            onClick={handleDeletePlaylist}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-[#282828] hover:scale-105 hover:bg-[#3e3e3e]"
-            title="Xóa playlist"
-          >
-            <img className="h-6 w-6" src={assets.remove_icon} alt="Delete" />
-          </button>
         </div>
+<<<<<<< HEAD
+  
+        {/* Playlist Songs Section */}
+        <div className="px-8 py-6">
+          {playlistSongs.length > 0 && (
+            <div className="mb-8">
+              {/* Headers */}
+              <div className="hidden grid-cols-[16px_4fr_3fr_2fr_1fr_80px] gap-4 px-4 py-2 text-sm text-[#b3b3b3] md:grid">
+                <span className="flex items-center">#</span>
+                <span className="flex items-center">Tiêu đề</span>
+                <span className="hidden items-center sm:flex">Album</span>
+                <span className="hidden items-center md:flex">Ngày thêm</span>
+                <div className="flex items-center justify-end">
+                  <img
+                    src={assets.clock_icon}
+                    alt="Duration"
+                    className="h-5 w-5"
+                  />
+                </div>
+                <span></span> {/* Empty space for delete button column */}
+              </div>
+  
+              <hr className="my-2 border-t border-[#2a2a2a]" />
+  
+              {/* Song List */}
+              <div className="mt-4 flex flex-col gap-2">
+                {playlistSongs.map((song, index) => (
+                  <div
+                    key={song._id}
+                    className="group grid grid-cols-[16px_1fr_80px] gap-4 rounded-md px-4 py-2 text-sm hover:bg-[#ffffff1a] sm:grid-cols-[16px_4fr_3fr_80px] md:grid-cols-[16px_4fr_3fr_2fr_1fr_80px] cursor-pointer"
+                    onClick={() => handlePlayTrack(song._id)}
+                  >
+                    <span className="flex items-center text-[#b3b3b3]">
+                      {index + 1}
+                    </span>
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={song.image}
+                        alt={song.title}
+                        className="h-10 w-10 rounded"
+                      />
+                      <div className="flex flex-col overflow-hidden">
+                        <span className="max-w-[200px] truncate text-white sm:max-w-[300px] md:max-w-[450px]">
+                          {song.title}
+                        </span>
+                        <span className="truncate text-[#b3b3b3]">
+                          {song.artistName}
+                        </span>
+                      </div>
+                    </div>
+                    <span className="hidden items-center overflow-hidden truncate text-[#b3b3b3] sm:flex">
+                      {song.album || "Unknown Album"}
+                    </span>
+                    <span className="hidden items-center text-[#b3b3b3] md:flex">
+                      {formatDate(song.createdAt)}
+                    </span>
+                    <div className="hidden items-center justify-end text-[#b3b3b3] md:flex">
+                      {formatDuration(song.duration)}
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveSong(song._id);
+                      }}
+                      className="rounded-full border border-white bg-transparent px-4 py-1 text-sm text-white opacity-0 transition-all hover:scale-105 group-hover:opacity-100"
+                    >
+                      Xóa
+                    </button>
+                  </div>
+                ))}
+=======
       </div>
 
       {/* Playlist Songs Section */}
@@ -1028,25 +1091,25 @@ const PlaylistPage = () => {
 };
 
 // Move EditPlaylistDialog outside main component to prevent re-rendering
-const EditPlaylistDialog = ({ 
-  playlistData, 
-  editFormData, 
-  setEditFormData, 
-  handleThumbnailUpload, 
-  handleSaveChanges, 
-  setShowEditDialog 
+const EditPlaylistDialog = ({
+  playlistData,
+  editFormData,
+  setEditFormData,
+  handleThumbnailUpload,
+  handleSaveChanges,
+  setShowEditDialog,
 }) => {
   const handleNameChange = (e) => {
-    setEditFormData(prev => ({
+    setEditFormData((prev) => ({
       ...prev,
-      name: e.target.value
+      name: e.target.value,
     }));
   };
 
   const handleDescriptionChange = (e) => {
-    setEditFormData(prev => ({
+    setEditFormData((prev) => ({
       ...prev,
-      description: e.target.value
+      description: e.target.value,
     }));
   };
 
@@ -1096,9 +1159,7 @@ const EditPlaylistDialog = ({
               />
             </div>
             <div className="mb-4">
-              <label className="mb-2 block text-sm text-[#a7a7a7]">
-                Mô tả
-              </label>
+              <label className="mb-2 block text-sm text-[#a7a7a7]">Mô tả</label>
               <textarea
                 value={editFormData.description}
                 onChange={handleDescriptionChange}

@@ -46,4 +46,9 @@ router.delete('/artists/unfollow', auth, UserController.unfollowArtist);
 router.post('/albums/add', auth, UserController.addFavoriteAlbum);
 router.delete('/albums/remove', auth, UserController.removeFavoriteAlbum);
 
+// User profile routes
+router.put('/change-password', auth, UserController.changePassword);
+router.put('/update-profile', auth, UserController.updateProfile);
+router.put('/update-avatar', auth, upload.single('avatar'), UserController.updateAvatar);
+
 module.exports = router;

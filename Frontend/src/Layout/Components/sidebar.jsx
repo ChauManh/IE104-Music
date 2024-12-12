@@ -19,7 +19,7 @@ export const refreshPlaylists = async (setPlaylists) => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
     if (response.data.playlists) {
       setPlaylists(response.data.playlists);
@@ -31,7 +31,7 @@ export const refreshPlaylists = async (setPlaylists) => {
 
 // In sidebar.jsx
 export const refreshApp = () => {
-  window.dispatchEvent(new Event('appStateUpdated'));
+  window.dispatchEvent(new Event("appStateUpdated"));
 };
 
 const Sidebar = () => {
@@ -57,9 +57,9 @@ const Sidebar = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
-      
+
       if (response.data.playlists) {
         setPlaylists(response.data.playlists);
         setIsLoggedIn(true);
@@ -69,19 +69,56 @@ const Sidebar = () => {
     }
   };
 
-  // Effect to fetch playlists when mounted and when token changes
+  // Update useEffect to check login status more reliably
   useEffect(() => {
-    fetchPlaylists();
-  
-    // Listen for playlist updates
-    const handlePlaylistsUpdate = () => {
-      fetchPlaylists();
+    const checkLoginAndFetchPlaylists = async () => {
+      const token = localStorage.getItem("access_token");
+      const user = localStorage.getItem("user");
+
+      console.log("Token:", token); // Debug log
+      console.log("User:", user); // Debug log
+
+      if (token && user) {
+        setIsLoggedIn(true);
+        try {
+          const response = await axios.get(
+            "http://localhost:3000/user/get_playlists",
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          );
+
+          if (response.data.playlists) {
+            setPlaylists(response.data.playlists);
+          }
+        } catch (error) {
+          console.error("Error fetching playlists:", error);
+          // If we get a 401 error, the token is invalid
+          if (error.response?.status === 401) {
+            localStorage.removeItem("access_token");
+            localStorage.removeItem("user");
+            setIsLoggedIn(false);
+          }
+        }
+      } else {
+        setIsLoggedIn(false);
+        setPlaylists([]);
+      }
     };
-  
+
+    checkLoginAndFetchPlaylists();
+
+    const handlePlaylistsUpdate = () => {
+      checkLoginAndFetchPlaylists();
+    };
+
     window.addEventListener('playlistsUpdated', handlePlaylistsUpdate);
-  
+
     return () => {
-      window.removeEventListener('playlistsUpdated', handlePlaylistsUpdate);
+      window.removeEventListener("playlistsUpdated", handlePlaylistsUpdate);
+      window.removeEventListener("storage", checkLoginAndFetchPlaylists);
     };
   }, []);
   
@@ -114,8 +151,10 @@ const Sidebar = () => {
   };
 
   return (
-    <div className={`${isSidebarExpanded ? "min-w-[20%]" : "min-w-[40%]"} mt-16 hidden max-h-full flex-col gap-2 pl-2 pr-2 text-white transition-all duration-300 lg:flex`}>
-      <div className="relative h-[100%] rounded-lg bg-[#121212] overflow-y-auto">
+    <div
+      className={`${isSidebarExpanded ? "min-w-[20%]" : "min-w-[40%]"} mt-16 hidden max-h-full flex-col gap-2 pl-2 pr-2 text-white transition-all duration-300 lg:flex`}
+    >
+      <div className="relative h-[100%] overflow-y-auto rounded-lg bg-[#121212]">
         {/* Sticky Header with Shadow */}
         <div className="sticky top-0 z-10 bg-[#121212] p-4 shadow-[0_4px_8px_rgba(0,0,0,0.3)]">
           <div className="flex items-center justify-between">
@@ -135,7 +174,11 @@ const Sidebar = () => {
                 />
                 <img
                   className="flex w-5 cursor-pointer rounded-full transition-transform duration-300 hover:scale-110"
-                  src={isSidebarExpanded ? assets.arrow_icon : assets.arrow_rotate_icon}
+                  src={
+                    isSidebarExpanded
+                      ? assets.arrow_icon
+                      : assets.arrow_rotate_icon
+                  }
                   alt=""
                   onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
                 />
@@ -160,10 +203,7 @@ const Sidebar = () => {
           ) : (
             <div className="mt-2 flex flex-col gap-2 p-2">
               {playlists.map((playlist) => (
-                <PlaylistItem 
-                  key={playlist._id}
-                  playlist={playlist}
-                />
+                <PlaylistItem key={playlist._id} playlist={playlist} />
               ))}
             </div>
           )
