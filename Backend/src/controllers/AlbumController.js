@@ -6,22 +6,27 @@ const AlbumController = {
   async getNewReleases(req, res) {
     try {
       const token = await getSpotifyToken();
+  
       const response = await axios.get('https://api.spotify.com/v1/browse/new-releases', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
         params: {
-          limit: 10,
+          limit: 20,
         },
       });
-      const newAlbums = response.data.albums.items.map(item => ({
+  
+      const allAlbums = response.data.albums.items.map(item => ({
         name: item.name,
         id: item.id,
         image: item.images[0].url,
         singer: item.artists.map(artist => artist.name),
         date: item.release_date,
-    }));
-    res.status(200).json(newAlbums);
+      }));
+  
+      const randomAlbums = allAlbums.sort(() => Math.random() - 0.5).slice(0, 10);
+  
+      res.status(200).json(randomAlbums);
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch new releases' });
     }

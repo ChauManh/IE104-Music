@@ -10,6 +10,14 @@ const TopNav = () => {
   const dropdownRef = useRef(null);
   const [query, setQuery] = useState("");
   const [dropdownVisible, setDropdownVisible] = useState(false);
+  let userName = "Guest";
+  let userGmail = "";
+  const userString = localStorage.getItem("user"); // Lấy dữ liệu dạng chuỗi
+  const user = JSON.parse(userString); // Chuyển chuỗi thành đối tượng
+  if (user) {
+    userName = user.name;
+    userGmail = user.email;
+  }
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -95,8 +103,8 @@ const TopNav = () => {
         {isDropdownOpen && (
           <div className="absolute right-0 top-12 w-48 rounded-md bg-[#282828] py-1 shadow-lg ring-1 ring-black ring-opacity-5 transition-all">
             <div className="px-4 py-3">
-              <p className="text-sm text-white">Username</p>
-              <p className="truncate text-sm text-gray-400">user@email.com</p>
+              <p className="text-sm text-white">{userName}</p>
+              <p className="truncate text-sm text-gray-400">{userGmail}</p>
             </div>
             <div className="border-t border-gray-700">
               <a

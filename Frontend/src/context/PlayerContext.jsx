@@ -31,6 +31,8 @@ const PlayerContextProvider = ({ children }) => {
   // const next = () => {
   //   const nextTrack = queue[currentTrackIndex];
   //   console.log(nextTrack);
+  //   setTrack(nextTrack);
+  //   playWithUri(nextTrack.uri);
   // }
   // useTokenRefresh((newToken) => {
   //   console.log("Token refreshed and callback triggered:", newToken);
@@ -194,7 +196,6 @@ const PlayerContextProvider = ({ children }) => {
   const changeVolume = (newVolume) => {
     if (player) {
       player.setVolume(newVolume).then(() => {
-        console.log(`Volume set to ${newVolume * 100}%`);
         setVolume(newVolume); // Cập nhật state volume
       });
     } else {
@@ -209,6 +210,51 @@ const PlayerContextProvider = ({ children }) => {
     player.seek(newTime * 1000); 
     setCurrentTime(newTime);
   };
+
+  const setNextTrack = async (trackUri) => {
+    try {
+        const response = await axios.post(
+        `https://api.spotify.com/v1/me/player/queue`,      
+         null,
+        {
+          params: { uri: trackUri },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log("Playback queue set successfully");
+    } catch (error) {
+      console.error("Error setting playback queue:", error);
+    }
+  };
+
+  const getQueueState = async () => {
+    try {
+      const response = await axios.get(
+        `https://api.spotify.com/v1/me/player/queue`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log("Current queue state:", response.data);
+    } catch (error) {
+      console.error("Error fetching queue state:", error.response?.data || error.message);
+    }
+  };
+
+  const setNextTrackAndCheckState = async (trackUri) => {
+    await setNextTrack(trackUri);
+    await getQueueState();
+  };
+
+  const nextTrack = () => {
+    player.nextTrack().then(() => {
+      console.log('Skipped to next track!');
+    });
+  }
 
   const contextValue = {
     track,
@@ -231,6 +277,8 @@ const PlayerContextProvider = ({ children }) => {
     currentTime,
     duration, 
     handleTimeClick,
+    setNextTrackAndCheckState,
+    nextTrack,
     // next,
   };
 

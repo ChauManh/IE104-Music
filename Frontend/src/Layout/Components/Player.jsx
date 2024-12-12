@@ -14,7 +14,7 @@ const Player = () => {
         play, 
         pause, 
         // previous, 
-        next, 
+        nextTrack, 
         repeatStatus, // Lấy trạng thái repeat từ context
         toggleRepeat, // Lấy hàm toggleRepeat từ context
         volume,
@@ -28,7 +28,7 @@ const Player = () => {
 
     const handleNext = () => {
         moveToNext();
-        next();
+        nextTrack();
     };
 
     const handlePrevious = () => {

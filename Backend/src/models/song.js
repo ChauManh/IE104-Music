@@ -8,6 +8,7 @@ const songSchema = new mongoose.Schema({
     album: String,
     image: String,
     spotifyId: String,
+    uri: String,
     createdAt: { type: Date, default: Date.now }
 });
 
