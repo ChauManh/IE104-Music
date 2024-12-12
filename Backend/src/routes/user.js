@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
-const UserController = require('../controllers/UserController');
+const UserController = require('../controllers/userController');
 const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
@@ -64,5 +64,10 @@ router.delete('/artists/unfollow', UserController.unfollowArtist);
 // Album following routes
 router.post('/albums/add', UserController.addFavoriteAlbum);
 router.delete('/albums/remove', UserController.removeFavoriteAlbum);
+
+// User profile routes
+router.put('/change-password', auth, UserController.changePassword);
+router.put('/update-profile', auth, UserController.updateProfile);
+router.put('/update-avatar', auth, upload.single('avatar'), UserController.updateAvatar);
 
 module.exports = router;
