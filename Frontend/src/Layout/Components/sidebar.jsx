@@ -72,19 +72,19 @@ const Sidebar = () => {
   // Effect to fetch playlists when mounted and when token changes
   useEffect(() => {
     fetchPlaylists();
-
+  
     // Listen for playlist updates
     const handlePlaylistsUpdate = () => {
       fetchPlaylists();
     };
-
+  
     window.addEventListener('playlistsUpdated', handlePlaylistsUpdate);
-
+  
     return () => {
       window.removeEventListener('playlistsUpdated', handlePlaylistsUpdate);
     };
   }, []);
-
+  
   const handleCreatePlaylist = async () => {
     if (!isLoggedIn) {
       alert("Please login first to create a playlist");
@@ -172,7 +172,7 @@ const Sidebar = () => {
             <h1>Đăng nhập để tạo và xem playlist</h1>
             <button
               onClick={() => navigate("/signin")}
-              className="mt-4 rounded-full bg-white px-4 py-1.5 text-[15px] text-black"
+              className="mt-2 rounded-full bg-[#1ed760] px-4 py-2 text-normal font-medium text-black shadow-lg hover:bg-[#1fdf64]"
             >
               Đăng nhập
             </button>

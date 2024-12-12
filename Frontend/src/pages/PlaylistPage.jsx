@@ -33,6 +33,27 @@ const searchContent = async (query) => {
   }
 };
 
+const handleDeletePlaylist = async (e) => {
+  e.stopPropagation();
+    if (window.confirm('Are you sure you want to delete this?')) {
+      try {
+        const token = localStorage.getItem('access_token');
+        if (!token) throw new Error('No access token found');
+          await axios.delete(
+            `http://localhost:3000/user/playlist/${playlist._id}`,
+            {
+              headers: { Authorization: `Bearer ${token}` }
+            }
+          );
+        // Refresh sidebar
+        window.dispatchEvent(new Event('playlistsUpdated'));
+      } catch (error) {
+        console.error('Error deleting:', error);
+        alert('Failed to delete');
+      }
+    }
+  };
+
 const PlaylistPage = () => {
   const token = localStorage.getItem('access_token');
   const { id } = useParams();
@@ -272,32 +293,32 @@ const PlaylistPage = () => {
 
   const handleRemoveSong = async (songId) => {
     try {
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        throw new Error("No access token found");
-      }
-
-      const response = await axios.delete(
-        `http://localhost:3000/user/playlist/${id}/songs/${songId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        const token = localStorage.getItem("access_token");
+        if (!token) {
+            throw new Error("No access token found");
         }
-      );
 
-      if (response.data.message === "Song removed from playlist successfully.") {
-        setPlaylistSongs((prev) => prev.filter((song) => song._id !== songId));
-        setShowNotification(true);
-        setTimeout(() => setShowNotification(false), 2000);
-      }
+        const response = await axios.delete(
+            `http://localhost:3000/user/playlist/${id}/songs/${songId}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+
+        if (response.data.message === "Song removed successfully") {
+            setPlaylistSongs((prev) => prev.filter((song) => song._id !== songId));
+            setShowNotification(true);
+            setTimeout(() => setShowNotification(false), 2000);
+        }
     } catch (error) {
-      console.error("Error removing song:", error);
-      alert(
-        error.response?.data?.message || "Không thể xóa bài hát khỏi playlist"
-      );
+        console.error("Error removing song:", error);
+        alert(
+            error.response?.data?.message || "Không thể xóa bài hát khỏi playlist"
+        );
     }
-  };
+};
 
   const handleThumbnailUpload = async (e) => {
     const file = e.target.files[0];
@@ -814,7 +835,7 @@ const PlaylistPage = () => {
             <img
               src={playlistData?.thumbnail || assets.plus_icon}
               alt="Playlist Cover"
-              className="h-40 w-40 rounded-md shadow-2xl md:h-60 md:w-60 object-cover"
+              className="min-h-60 min-w-60 rounded-md shadow-2xl md:h-56 md:w-56 object-cover"
             />
             <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-md flex items-center justify-center">
               <label className="cursor-pointer">
@@ -877,8 +898,19 @@ const PlaylistPage = () => {
         }}
       >
         <div className="flex items-center gap-8">
-          <button className="flex h-14 w-14 items-center justify-center rounded-full bg-[#1ed760] hover:scale-105 hover:bg-[#1fdf64]">
+          <button 
+            className="flex h-14 w-14 items-center justify-center rounded-full bg-[#1ed760] hover:scale-105 hover:bg-[#1fdf64]"
+            title="Phát toàn bộ playlist"
+          >
             <img className="h-8 w-8" src={assets.play_icon} alt="Play" />
+          </button>
+          
+          <button 
+            onClick={handleDeletePlaylist}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-[#282828] hover:scale-105 hover:bg-[#3e3e3e]"
+            title="Xóa playlist"
+          >
+            <img className="h-6 w-6" src={assets.remove_icon} alt="Delete" />
           </button>
         </div>
       </div>
@@ -944,9 +976,9 @@ const PlaylistPage = () => {
                       e.stopPropagation();
                       handleRemoveSong(song._id);
                     }}
-                    className="rounded-full border border-white bg-transparent px-4 py-1 text-sm text-white opacity-0 transition-all hover:scale-105 group-hover:opacity-100"
+                    className="ml-8 p-1 text-xs text-white opacity-0 transition-all hover:scale-105 group-hover:opacity-100"
                   >
-                    Xóa
+                    <img className="h-5 w-5" src={assets.remove_icon} alt="Delete" />
                   </button>
                 </div>
               ))}

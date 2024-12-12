@@ -170,7 +170,7 @@ const handleFollowArtist = async () => {
   try {
     const token = localStorage.getItem("access_token");
     if (!token) {
-      alert("Please login first to follow artist");
+      alert("Please login first to follow/unfollow artist");
       return;
     }
 
@@ -190,38 +190,51 @@ const handleFollowArtist = async () => {
     );
 
     if (exists) {
-      alert("Artist already followed");
-      return;
-    }
+      // Unfollow artist
+      await axios.delete(
+        "http://localhost:3000/user/artists/unfollow",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          data: { artistId: id }
+        }
+      );
 
-    // Create new artist playlist
-    const createPlaylistResponse = await axios.post(
-      "http://localhost:3000/user/create_playlist",
-      { 
-        name: artist.name,
-        thumbnail: artist.images[0]?.url,
-        type: 'artist',
-        artistId: id     // Make sure this matches the artist ID from Spotify
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      // Show notification
+      setNotificationMessage(`Đã bỏ theo dõi ${artist.name}`);
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 2000);
+      window.dispatchEvent(new Event('playlistsUpdated'));
+    } else {
+      // Follow artist
+      const createPlaylistResponse = await axios.post(
+        "http://localhost:3000/user/create_playlist",
+        { 
+          name: artist.name,
+          thumbnail: artist.images[0]?.url,
+          type: 'artist',
+          artistId: id     // Make sure this matches the artist ID from Spotify
         },
-      }
-    );
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-    // Show notification
-    setNotificationMessage(`Đã theo dõi ${artist.name}`);
-    setShowNotification(true);
-    setTimeout(() => setShowNotification(false), 2000);
-    window.dispatchEvent(new Event('playlistsUpdated'));
-
+      // Show notification
+      setNotificationMessage(`Đã theo dõi ${artist.name}`);
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 2000);
+      window.dispatchEvent(new Event('playlistsUpdated'));
+    }
   } catch (error) {
-    console.error("Error following artist:", error);
+    console.error("Error following/unfollowing artist:", error);
     if (error.response) {
       console.log("Error response:", error.response.data);
     }
-    alert("Failed to follow artist");
+    alert("Failed to follow/unfollow artist");
   }
 };
 
