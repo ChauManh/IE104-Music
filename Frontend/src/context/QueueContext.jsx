@@ -1,11 +1,16 @@
-import React, { createContext, useState, useContext } from 'react';
-
+import React, { createContext, useState, useContext, useEffect } from 'react';
+import { PlayerContext } from './PlayerContext';
 const QueueContext = createContext();
 
 export const QueueProvider = ({ children }) => {
   const [isVisible, setIsVisible] = useState(true);
   const [queue, setQueue] = useState([]);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
+  const [track, setTrack, playWithUri] = useState(PlayerContext);
+
+  const upcomingTracks = queue.filter(
+    (item, index) => index > currentTrackIndex && item.id !== track.id
+  );
 
   const toggleQueue = () => {
     setIsVisible(prev => !prev);
@@ -20,23 +25,20 @@ export const QueueProvider = ({ children }) => {
 
   const moveToNext = () => {
     if (currentTrackIndex < queue.length - 1) {
-      const newQueue = [...queue];
-      const currentTrack = newQueue[currentTrackIndex];
-      newQueue.splice(currentTrackIndex, 1);
-      newQueue.push(currentTrack);
-      setQueue(newQueue);
-      setCurrentTrackIndex(currentTrackIndex + 1);
+      setCurrentTrackIndex((prevIndex) => prevIndex + 1);
     }
   };
-
+  // Lắng nghe thay đổi của currentTrackIndex
+  useEffect(() => {
+    console.log("Updated CurrentTrackIndex:", currentTrackIndex);
+    if (queue[currentTrackIndex]) {
+      console.log("Next Track:", queue[currentTrackIndex]);
+    }
+  }, [currentTrackIndex]);
+  
   const moveToPrevious = () => {
     if (currentTrackIndex > 0) {
-      const newQueue = [...queue];
-      const prevTrack = newQueue[currentTrackIndex - 1];
-      newQueue.splice(currentTrackIndex - 1, 1);
-      newQueue.unshift(prevTrack);
-      setQueue(newQueue);
-      setCurrentTrackIndex(currentTrackIndex - 1);
+      setCurrentTrackIndex((prevIndex) => prevIndex - 1);
     }
   };
 
@@ -50,7 +52,8 @@ export const QueueProvider = ({ children }) => {
       setCurrentTrackIndex,
       moveToTop,
       moveToNext,
-      moveToPrevious
+      moveToPrevious,
+      upcomingTracks
     }}>
       {children}
     </QueueContext.Provider>

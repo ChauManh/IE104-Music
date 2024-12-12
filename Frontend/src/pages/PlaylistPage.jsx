@@ -5,33 +5,16 @@ import { assets } from "../assets/assets";
 import ColorThief from "colorthief";
 import axios from "axios";
 import AlbumItem from "../components/AlbumItem"; // Add this import
-
-// Add this function at the top of your PlaylistPage component
-const searchContent = async (query) => {
-  try {
-    const token = localStorage.getItem("access_token");
-    if (!token) throw new Error("No access token found");
-
-    const response = await axios.get(`http://localhost:3000/search`, {
-      params: {
-        q: query,
-        type: "track,artist,album",
-      },
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    return response.data;
-  } catch (error) {
-    console.error("Error searching:", error);
-    return {
-      tracks: { items: [] },
-      artists: { items: [] },
-      albums: { items: [] },
-    };
-  }
-};
+import { QueueProvider, useQueue } from '../context/QueueContext';
+import {
+  fetchPlaylistData,
+  addSongToPlaylist,
+  removeSongFromPlaylist,
+  updatePlaylistThumbnail,
+  searchContent,
+  getIdSpotifFromSongId,
+  getTrack,
+} from "../util/api";
 
 const handleDeletePlaylist = async (e) => {
   e.stopPropagation();
@@ -55,7 +38,7 @@ const handleDeletePlaylist = async (e) => {
   };
 
 const PlaylistPage = () => {
-  const token = localStorage.getItem("access_token");
+  // const { isVisible, queue, currentTrackIndex, setQueue, moveToTop, setCurrentTrackIndex } = useQueue();
   const { id } = useParams();
 
   // If this is the liked songs playlist, render the LikedSongsPlaylist component
@@ -83,6 +66,7 @@ const PlaylistPage = () => {
   const [selectedAlbum, setSelectedAlbum] = useState(null);
   const [albumTracks, setAlbumTracks] = useState([]);
   const [playlistSongs, setPlaylistSongs] = useState([]);
+  const [playlistSongsByIdSpotify, setPlaylistSongsByIdSpotify] = useState([]);
   const [showNotification, setShowNotification] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -102,6 +86,56 @@ const PlaylistPage = () => {
       console.error("Error handling play track:", error);
     }
   };
+
+  // const getPlaylistSongsByIdSpotify = async (playlistSongs) => {
+  //   try {
+  //     // Dùng Promise.all để lấy thông tin của tất cả bài hát trong playlist
+  //     const ids = playlistSongs.map(song => song._id);
+  //     const trackDataPromises = ids.map(async (songId) => {
+  //       const trackData = await getTrackBySongId(songId);
+  //       return trackData; // Trả về thông tin bài hát
+  //     });
+  
+  //     // Chờ tất cả các Promise hoàn thành và lấy kết quả
+  //     const tracks = await Promise.all(trackDataPromises);
+  //     setPlaylistSongsByIdSpotify(tracks); // Lưu kết quả vào state
+  //     console.log("1", tracks);
+  //   } catch (error) {
+  //     console.error('Error fetching tracks:', error);
+  //   }
+  // };
+  const getTrackBySongId = async (SongId) => {
+    const idSpotify = await getIdSpotifFromSongId(SongId);
+    const trackData = await getTrack(idSpotify);
+    return trackData;
+  }
+
+  // const handlePlayAll = async () => {
+  //   getPlaylistSongsByIdSpotify(playlistSongs);
+  //   // console.log("playlistSongs", playlistSongsByIdSpotify);
+  //   const trackData = await getTrackBySongId(playlistSongs[0]._id);
+  //   setTrack(trackData);
+  //   playWithUri(trackData.uri);
+  //   // setTrack()
+  //   // Xóa queue cũ và thêm playlist mới
+  //   setQueue([]);
+  //   // setQueue("queue", queue);
+  
+  //   // if (playlistSongs.length > 0) {
+  //   // }
+  // };
+
+  const handlePlaySong = async (SongId) => {
+    const trackData = await getTrackBySongId(SongId);
+    setTrack(trackData);
+    // setQueue((prevQueue) => {
+    //   const newQueue = [...prevQueue];
+    //   newQueue.splice(0, newQueue.length, selectedTrack, ...newQueue.slice(index + 1));
+    //   return newQueue;
+    // });
+    
+    playWithUri(trackData.uri);
+  }
 
   // Update the Notification component styling
   const Notification = ({ message }) => (
@@ -891,21 +925,24 @@ const PlaylistPage = () => {
       </div>
 
       {/* Controls Section */}
-      <div
-        className="relative px-8 pb-12"
-        style={{
-          background: `linear-gradient(to bottom, ${secondaryColor} 0%, #121212 100%)`,
-        }}
-      >
-        <div className="flex items-center gap-8">
-          <button 
-            className="flex h-14 w-14 items-center justify-center rounded-full bg-[#1ed760] hover:scale-105 hover:bg-[#1fdf64]"
-            title="Phát toàn bộ playlist"
-          >
-            <img className="h-8 w-8" src={assets.play_icon} alt="Play" />
-          </button>
+        <div
+          className="relative px-8 pb-12"
+          style={{
+            background: `linear-gradient(to bottom, ${secondaryColor} 0%, #121212 100%)`,
+          }}
+        >
+          <div className="flex items-center gap-8">
+                <button 
+                  className="flex h-14 w-14 items-center justify-center rounded-full bg-[#1ed760] hover:scale-105 hover:bg-[#1fdf64]"
+                  onClick={() => handlePlayAll()}
+                >
+                  <img className="h-8 w-8" src={assets.play_icon} alt="Play" />
+                </button>
+            <button className="flex h-8 items-center justify-center rounded-full border-[1px] border-white px-4 opacity-70 hover:opacity-100">
+              Follow
+            </button>
+          </div>
         </div>
-<<<<<<< HEAD
   
         {/* Playlist Songs Section */}
         <div className="px-8 py-6">
@@ -934,8 +971,8 @@ const PlaylistPage = () => {
                 {playlistSongs.map((song, index) => (
                   <div
                     key={song._id}
+                    onClick={() => handlePlaySong(song._id)}
                     className="group grid grid-cols-[16px_1fr_80px] gap-4 rounded-md px-4 py-2 text-sm hover:bg-[#ffffff1a] sm:grid-cols-[16px_4fr_3fr_80px] md:grid-cols-[16px_4fr_3fr_2fr_1fr_80px] cursor-pointer"
-                    onClick={() => handlePlayTrack(song._id)}
                   >
                     <span className="flex items-center text-[#b3b3b3]">
                       {index + 1}
@@ -975,79 +1012,9 @@ const PlaylistPage = () => {
                     </button>
                   </div>
                 ))}
-=======
-      </div>
-
-      {/* Playlist Songs Section */}
-      <div className="px-8 py-6">
-        {playlistSongs.length > 0 && (
-          <div className="mb-8">
-            {/* Headers */}
-            <div className="hidden grid-cols-[16px_4fr_3fr_2fr_1fr_80px] gap-4 px-4 py-2 text-sm text-[#b3b3b3] md:grid">
-              <span className="flex items-center">#</span>
-              <span className="flex items-center">Tiêu đề</span>
-              <span className="hidden items-center sm:flex">Album</span>
-              <span className="hidden items-center md:flex">Ngày thêm</span>
-              <div className="flex items-center justify-end">
-                <img
-                  src={assets.clock_icon}
-                  alt="Duration"
-                  className="h-5 w-5"
-                />
               </div>
-              <span></span> {/* Empty space for delete button column */}
             </div>
-
-            <hr className="my-2 border-t border-[#2a2a2a]" />
-
-            {/* Song List */}
-            <div className="mt-4 flex flex-col gap-2">
-              {playlistSongs.map((song, index) => (
-                <div
-                  key={song._id}
-                  className="group grid grid-cols-[16px_1fr_80px] gap-4 rounded-md px-4 py-2 text-sm hover:bg-[#ffffff1a] sm:grid-cols-[16px_4fr_3fr_80px] md:grid-cols-[16px_4fr_3fr_2fr_1fr_80px]"
-                >
-                  <span className="flex items-center text-[#b3b3b3]">
-                    {index + 1}
-                  </span>
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={song.image}
-                      alt={song.title}
-                      className="h-10 w-10 rounded"
-                    />
-                    <div className="flex flex-col overflow-hidden">
-                      <span className="max-w-[200px] truncate text-white sm:max-w-[300px] md:max-w-[450px]">
-                        {song.title}
-                      </span>
-                      <span className="truncate text-[#b3b3b3]">
-                        {song.artistName}
-                      </span>
-                    </div>
-                  </div>
-                  <span className="hidden items-center overflow-hidden truncate text-[#b3b3b3] sm:flex">
-                    {song.album || "Unknown Album"}
-                  </span>
-                  <span className="hidden items-center text-[#b3b3b3] md:flex">
-                    {formatDate(song.createdAt)}
-                  </span>
-                  <div className="hidden items-center justify-end text-[#b3b3b3] md:flex">
-                    {formatDuration(song.duration)}
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRemoveSong(song._id);
-                    }}
-                    className="ml-8 p-1 text-xs text-white opacity-0 transition-all hover:scale-105 group-hover:opacity-100"
-                  >
-                    <img className="h-5 w-5" src={assets.remove_icon} alt="Delete" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+          )}
 
         {/* Search Section */}
         <div className="mt-8">

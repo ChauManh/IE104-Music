@@ -11,6 +11,7 @@ createRoot(document.getElementById("root")).render(
   <PlayerContextProvider>
     <App />
   </PlayerContextProvider>,
+
   // {/* </BrowserRouter> */}
   // </StrictMode>,
 );

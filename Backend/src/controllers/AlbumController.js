@@ -45,7 +45,6 @@ const AlbumController = {
         uri: item.uri,
     }));  
     res.status(200).json(albumTracks);
-  
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch new releases' });
     }
