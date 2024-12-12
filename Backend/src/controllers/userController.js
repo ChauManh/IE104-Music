@@ -5,6 +5,7 @@ const User = require('../models/users');
 const Song = require('../models/song'); // Add this import
 const { uploadImage } = require('../config/cloudinary/cloudinary_config');
 const fs = require('fs');
+const bcrypt = require('bcrypt');
 
 const UserController = {
     async createPlaylist(req, res) {
@@ -452,6 +453,100 @@ const UserController = {
                 message: 'Error updating playlist',
                 error: error.message
             });
+        }
+    },
+
+    async changePassword(req, res) {
+        try {
+            const userId = req.user.id;
+            const { currentPassword, newPassword } = req.body;
+
+            if (!currentPassword || !newPassword) {
+                return res.status(400).json({ 
+                    message: 'Current password and new password are required' 
+                });
+            }
+
+            const user = await User.findById(userId);
+            if (!user) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+
+            // Verify current password
+            const isValidPassword = await bcrypt.compare(currentPassword, user.password);
+            if (!isValidPassword) {
+                return res.status(400).json({ message: 'Current password is incorrect' });
+            }
+
+            // Hash new password
+            const hashedPassword = await bcrypt.hash(newPassword, 10);
+            user.password = hashedPassword;
+            await user.save();
+
+            res.status(200).json({ message: 'Password updated successfully' });
+        } catch (error) {
+            console.error('Error in changePassword:', error);
+            res.status(500).json({ message: 'Error updating password' });
+        }
+    },
+
+    async updateProfile(req, res) {
+        try {
+            const userId = req.user.id;
+            const { name } = req.body;
+
+            if (!name) {
+                return res.status(400).json({ message: 'Name is required' });
+            }
+
+            const user = await User.findById(userId);
+            if (!user) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+
+            user.name = name;
+            await user.save();
+
+            res.status(200).json({
+                message: 'Profile updated successfully',
+                user: {
+                    id: user._id,
+                    name: user.name,
+                    email: user.email,
+                    avatar: user.avatar
+                }
+            });
+        } catch (error) {
+            console.error('Error in updateProfile:', error);
+            res.status(500).json({ message: 'Error updating profile' });
+        }
+    },
+
+    async updateAvatar(req, res) {
+        try {
+            if (!req.file) {
+                return res.status(400).json({ message: 'No file uploaded' });
+            }
+
+            const userId = req.user.id;
+            const user = await User.findById(userId);
+            
+            if (!user) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+
+            // Upload to Cloudinary
+            const result = await uploadImage(req.file.path);
+            user.avatar = result.secure_url;
+            await user.save();
+
+            res.status(200).json({
+                message: 'Avatar updated successfully',
+                avatar: user.avatar
+            });
+        } catch (error) {
+            console.error('Error in updateAvatar:', error);
+            res.status(500).json({ message: 'Error updating avatar' });
         }
     }
 }
