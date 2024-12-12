@@ -35,7 +35,7 @@ const SongController = {
         album: response.data.album.name, // Make sure to save album name
         image: response.data.album.images[0].url,
         spotifyId: response.data.id,
-        createdAt: new Date()
+        createdAt: new Date(),
       });
 
       await song.save();

@@ -67,9 +67,14 @@ const getWebPlayBackSDKToken = async () => {
 
 const getRefreshToken = async (refreshToken) => {
     try {
-        const response = await axios.get("http://localhost:3000/spotify_auth/refresh_token");
-        console.log("refresh token", response.data.token)
-        return response.data.token;
+        const response = await axios.get(
+            `http://localhost:3000/spotify_auth/refresh_token`,
+            {
+                params: { refresh_token: refreshToken }, // Truyền refresh_token qua query
+            }
+        );
+        console.log("refresh token", response.data)
+        return response.data;
     } catch (error) {
         alert(error.message);
     }

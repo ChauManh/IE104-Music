@@ -13,7 +13,7 @@ const Player = () => {
         playStatus, 
         play, 
         pause, 
-        previous, 
+        // previous, 
         next, 
         repeatStatus, // Lấy trạng thái repeat từ context
         toggleRepeat, // Lấy hàm toggleRepeat từ context
@@ -33,7 +33,7 @@ const Player = () => {
 
     const handlePrevious = () => {
         moveToPrevious();
-        previous();
+        // previous();
     };
 
     

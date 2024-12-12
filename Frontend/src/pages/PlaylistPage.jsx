@@ -5,18 +5,22 @@ import { assets } from "../assets/assets";
 import ColorThief from "colorthief";
 import axios from "axios";
 import AlbumItem from "../components/AlbumItem"; // Add this import
+import { QueueProvider, useQueue } from '../context/QueueContext';
 import {
   fetchPlaylistData,
   addSongToPlaylist,
   removeSongFromPlaylist,
   updatePlaylistThumbnail,
   searchContent,
+  getIdSpotifFromSongId,
+  getTrack,
 } from "../util/api";
 
 const PlaylistPage = () => {
+  // const { isVisible, queue, currentTrackIndex, setQueue, moveToTop, setCurrentTrackIndex } = useQueue();
   const { id } = useParams();
   const navigate = useNavigate();
-  const { playWithUri } = useContext(PlayerContext);
+  const { playWithUri, setTrack } = useContext(PlayerContext);
   const [dominantColor, setDominantColor] = useState("#333333");
   const [secondaryColor, setSecondaryColor] = useState("#121212");
   const [playlistData, setPlaylistData] = useState(null);
@@ -35,8 +39,59 @@ const PlaylistPage = () => {
   const [selectedAlbum, setSelectedAlbum] = useState(null);
   const [albumTracks, setAlbumTracks] = useState([]);
   const [playlistSongs, setPlaylistSongs] = useState([]);
+  const [playlistSongsByIdSpotify, setPlaylistSongsByIdSpotify] = useState([]);
   const [showNotification, setShowNotification] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
+
+  // const getPlaylistSongsByIdSpotify = async (playlistSongs) => {
+  //   try {
+  //     // Dùng Promise.all để lấy thông tin của tất cả bài hát trong playlist
+  //     const ids = playlistSongs.map(song => song._id);
+  //     const trackDataPromises = ids.map(async (songId) => {
+  //       const trackData = await getTrackBySongId(songId);
+  //       return trackData; // Trả về thông tin bài hát
+  //     });
+  
+  //     // Chờ tất cả các Promise hoàn thành và lấy kết quả
+  //     const tracks = await Promise.all(trackDataPromises);
+  //     setPlaylistSongsByIdSpotify(tracks); // Lưu kết quả vào state
+  //     console.log("1", tracks);
+  //   } catch (error) {
+  //     console.error('Error fetching tracks:', error);
+  //   }
+  // };
+  const getTrackBySongId = async (SongId) => {
+    const idSpotify = await getIdSpotifFromSongId(SongId);
+    const trackData = await getTrack(idSpotify);
+    return trackData;
+  }
+
+  // const handlePlayAll = async () => {
+  //   getPlaylistSongsByIdSpotify(playlistSongs);
+  //   // console.log("playlistSongs", playlistSongsByIdSpotify);
+  //   const trackData = await getTrackBySongId(playlistSongs[0]._id);
+  //   setTrack(trackData);
+  //   playWithUri(trackData.uri);
+  //   // setTrack()
+  //   // Xóa queue cũ và thêm playlist mới
+  //   setQueue([]);
+  //   // setQueue("queue", queue);
+  
+  //   // if (playlistSongs.length > 0) {
+  //   // }
+  // };
+
+  const handlePlaySong = async (SongId) => {
+    const trackData = await getTrackBySongId(SongId);
+    setTrack(trackData);
+    // setQueue((prevQueue) => {
+    //   const newQueue = [...prevQueue];
+    //   newQueue.splice(0, newQueue.length, selectedTrack, ...newQueue.slice(index + 1));
+    //   return newQueue;
+    // });
+    
+    playWithUri(trackData.uri);
+  }
 
   // Update the Notification component styling
   const Notification = ({ message }) => (
@@ -562,9 +617,12 @@ const PlaylistPage = () => {
           }}
         >
           <div className="flex items-center gap-8">
-            <button className="flex h-14 w-14 items-center justify-center rounded-full bg-[#1ed760] hover:scale-105 hover:bg-[#1fdf64]">
-              <img className="h-8 w-8" src={assets.play_icon} alt="Play" />
-            </button>
+                <button 
+                  className="flex h-14 w-14 items-center justify-center rounded-full bg-[#1ed760] hover:scale-105 hover:bg-[#1fdf64]"
+                  onClick={() => handlePlayAll()}
+                >
+                  <img className="h-8 w-8" src={assets.play_icon} alt="Play" />
+                </button>
             <button className="flex h-8 items-center justify-center rounded-full border-[1px] border-white px-4 opacity-70 hover:opacity-100">
               Follow
             </button>
@@ -598,7 +656,8 @@ const PlaylistPage = () => {
                 {playlistSongs.map((song, index) => (
                   <div
                     key={song._id}
-                    className="group grid grid-cols-[16px_1fr_80px] gap-4 rounded-md px-4 py-2 text-sm hover:bg-[#ffffff1a] sm:grid-cols-[16px_4fr_3fr_80px] md:grid-cols-[16px_4fr_3fr_2fr_1fr_80px]"
+                    onClick={() => handlePlaySong(song._id)}
+                    className="group grid grid-cols-[16px_1fr_80px] gap-4 rounded-md px-4 py-2 text-sm hover:bg-[#ffffff1a] sm:grid-cols-[16px_4fr_3fr_80px] md:grid-cols-[16px_4fr_3fr_2fr_1fr_80px] cursor-pointer"
                   >
                     <span className="flex items-center text-[#b3b3b3]">
                       {index + 1}

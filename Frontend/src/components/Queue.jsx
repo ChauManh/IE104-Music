@@ -3,12 +3,12 @@ import { QueueProvider, useQueue } from '../context/QueueContext';
 import { PlayerContext } from '../context/PlayerContext';
 
 const Queue = () => {
-  const { isVisible, queue, currentTrackIndex, setQueue, moveToTop } = useQueue();
-  const { track, setTrack } = useContext(PlayerContext);
+  const { isVisible, queue, currentTrackIndex, setQueue, moveToTop, upcomingTracks } = useQueue();
+  const { track, setTrack, playWithUri } = useContext(PlayerContext);
 
   const handleTrackClick = (index) => {
     const selectedTrack = queue[index];
- 
+    playWithUri(selectedTrack.uri);
     moveToTop(index);
 
     setTrack(selectedTrack);
@@ -21,9 +21,7 @@ const Queue = () => {
     });
   };
 
-  const upcomingTracks = queue.filter(
-    (item, index) => index > currentTrackIndex && item.id !== track.id
-  );
+
   
   return (
     <div className={`max-h-full min-w-[20%] bg-[#121212] gap-2 flex-col text-white pr-2 pl-2 overflow-y-auto rounded-lg mt-16 shadow-lg ml-2 z-1 transform transition-all duration-300 ease-in-out ${!isVisible ? 'hidden': ''}`}>

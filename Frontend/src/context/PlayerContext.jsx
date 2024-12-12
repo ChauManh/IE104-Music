@@ -1,7 +1,8 @@
 import React, { createContext, useEffect, useState } from "react";
 import axios from "axios";
 import { getWebPlayBackSDKToken } from "../util/api";
-
+import useTokenRefresh from "../services/refresh_webplaybacksdk_token";
+// import { QueueProvider, useQueue } from "./QueueContext";
 export const PlayerContext = createContext();
 
 const PlayerContextProvider = ({ children }) => {
@@ -25,6 +26,21 @@ const PlayerContextProvider = ({ children }) => {
   const [volume, setVolume] = useState(0.2); // Mặc định là 20%
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  // const [queue, currentTrackIndex] = useQueue();
+
+  // const next = () => {
+  //   const nextTrack = queue[currentTrackIndex];
+  //   console.log(nextTrack);
+  // }
+  // useTokenRefresh((newToken) => {
+  //   console.log("Token refreshed and callback triggered:", newToken);
+  //   setToken(newToken); // Cập nhật token vào state
+  //   if (player) {
+  //     player.setOAuthToken((cb) => cb(newToken)); // Cập nhật token cho player
+  //     console.log("Player token đã được cập nhật:", newToken);
+  //   }
+  // });
+  
 
   useEffect(() => {
     const getAccessToken = async () => {
@@ -215,6 +231,7 @@ const PlayerContextProvider = ({ children }) => {
     currentTime,
     duration, 
     handleTimeClick,
+    // next,
   };
 
   // if (!isDeviceReady) {
