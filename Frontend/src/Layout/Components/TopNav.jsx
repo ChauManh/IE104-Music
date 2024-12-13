@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { assets } from "../../assets/assets";
 import { useNavigate, Link } from "react-router-dom";
 import Search from "../../components/Search";
@@ -6,18 +6,32 @@ import axios from "axios";
 
 const TopNav = () => {
   const navigate = useNavigate();
+  const [query, setQuery] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
-  const [query, setQuery] = useState("");
-  const [dropdownVisible, setDropdownVisible] = useState(false);
-  let userName = "Guest";
-  let userGmail = "";
-  const userString = localStorage.getItem("user"); // Lấy dữ liệu dạng chuỗi
-  const user = JSON.parse(userString); // Chuyển chuỗi thành đối tượng
-  if (user) {
-    userName = user.name;
-    userGmail = user.email;
-  }
+  const [userData, setUserData] = useState(null);
+  const [userName, setUserName] = useState('');
+  const [userGmail, setUserGmail] = useState('');
+
+  useEffect(() => {
+    // Get user data from localStorage
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user) {
+      setUserData(user);
+      setUserName(user.name);
+      setUserGmail(user.email);
+    }
+
+    // Handle clicking outside dropdown
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -45,10 +59,6 @@ const TopNav = () => {
     } catch (error) {
       console.error("Error searching:", error);
     }
-  };
-
-  const toggleDropdown = () => {
-    setDropdownVisible(!dropdownVisible);
   };
 
   const handleLogout = () => {
@@ -93,26 +103,37 @@ const TopNav = () => {
       </div>
 
       <div className="relative" ref={dropdownRef}>
-        <div
+        <button 
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          className="flex cursor-pointer items-center rounded-full bg-zinc-800 p-2 transition-transform duration-300 hover:scale-110"
+          className="rounded-full bg-black p-2 hover:bg-[#282828] transition-colors"
         >
-          <img className="w-8 rounded-full" src={assets.avatar} alt="Home" />
-        </div>
+          <img 
+            src={userData?.avatar || assets.avatar} 
+            alt="Profile" 
+            className="h-8 w-8 rounded-full object-cover"
+          />
+        </button>
 
         {isDropdownOpen && (
           <div className="absolute right-0 top-12 w-48 rounded-md bg-[#282828] py-1 shadow-lg ring-1 ring-black ring-opacity-5 transition-all">
-            <div className="px-4 py-3">
-              <p className="text-sm text-white">{userName}</p>
-              <p className="truncate text-sm text-gray-400">{userGmail}</p>
+            <div className="flex items-center gap-3 px-4 py-3">
+              <img 
+                src={userData?.avatar || assets.avatar}
+                alt="Profile"
+                className="h-8 w-8 rounded-full object-cover"
+              />
+              <div>
+                <p className="text-sm text-white">{userName}</p>
+              </div>
             </div>
             <div className="border-t border-gray-700">
-              <a
-                href="#"
+              <Link
+                to="/profile"
                 className="block px-4 py-2 text-sm text-gray-300 hover:bg-[#3E3E3E]"
+                onClick={() => setIsDropdownOpen(false)}
               >
                 Trang cá nhân
-              </a>
+              </Link>
               <a
                 href="#"
                 className="block px-4 py-2 text-sm text-gray-300 hover:bg-[#3E3E3E]"

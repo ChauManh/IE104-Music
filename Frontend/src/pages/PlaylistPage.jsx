@@ -792,7 +792,7 @@ const PlaylistPage = () => {
                         className="group flex cursor-pointer items-center gap-4 rounded-md p-2 hover:bg-[#ffffff1a]"
                       >
                         <img
-                          src={track.album.images[2].url}
+                          src={track.album.images[2]?.url}
                           alt={track.name}
                           className="h-10 w-10 rounded"
                         />
@@ -829,7 +829,7 @@ const PlaylistPage = () => {
                         className="group flex cursor-pointer items-center gap-4 rounded-md p-2 hover:bg-[#ffffff1a]"
                       >
                         <img
-                          src={album.images[2].url}
+                          src={album.images[2]?.url}
                           alt={album.name}
                           className="h-10 w-10 rounded"
                         />

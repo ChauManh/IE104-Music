@@ -48,7 +48,10 @@ router.delete('/albums/remove', auth, UserController.removeFavoriteAlbum);
 
 // User profile routes
 router.put('/change-password', auth, UserController.changePassword);
-router.put('/update-profile', auth, UserController.updateProfile);
-router.put('/update-avatar', auth, upload.single('avatar'), UserController.updateAvatar);
+router.put('/update_profile', auth, UserController.updateProfile);
+router.put('/update_avatar', auth, upload.single('avatar'), UserController.updateAvatar);
+
+// Recent tracks
+router.get('/recent_tracks', auth, UserController.getRecentTracks);
 
 module.exports = router;

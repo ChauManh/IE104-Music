@@ -565,6 +565,32 @@ const UserController = {
             console.error('Error in updateAvatar:', error);
             res.status(500).json({ message: 'Error updating avatar' });
         }
+    },
+
+    async getRecentTracks(req, res) {
+        try {
+            const userId = req.user.id;
+            const user = await User.findById(userId)
+                .populate('listeningHistory')
+                .exec();
+
+            if (!user) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+
+            // Get last 20 tracks
+            const recentTracks = user.listeningHistory.slice(-20).reverse();
+
+            res.status(200).json({
+                message: 'Recent tracks fetched successfully',
+                tracks: recentTracks
+            });
+        } catch (error) {
+            res.status(500).json({ 
+                message: 'Error fetching recent tracks',
+                error: error.message 
+            });
+        }
     }
 }
 module.exports = UserController;

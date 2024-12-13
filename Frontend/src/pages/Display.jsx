@@ -8,6 +8,7 @@ import AlbumPage from "./AlbumPage";
 import PlaylistPage from "./PlaylistPage";
 import { refreshApp } from '../Layout/Components/sidebar';
 import LoginRequiredPopup from '../components/LoginRequiredPopup';
+import ProfilePage from "./ProfilePage";
 
 const Display = () => {
   const displayRef = useRef();
@@ -51,6 +52,7 @@ const Display = () => {
         <Route path="/track/:id" element={<DisplaySong key={refresh} />} />
         <Route path="/search/:query" element={<SearchPage key={refresh} />} />
         <Route path="/artist/:id" element={<ArtistPage key={refresh} />} />
+        <Route path="/profile" element={<ProfilePage key={refresh} />} />
       </Routes>
       {showLoginPopup && (
         <LoginRequiredPopup onClose={handleClosePopup} />
