@@ -60,7 +60,7 @@ const TopNav = () => {
     <div className="fixed left-0 top-0 z-10 flex w-full items-center justify-between bg-black p-2 text-white">
       <div className="cursor-pointer pl-3 flex items-center space-x-2">
         <a href="http://localhost:5173/">
-          <img className="w-10" src={assets.spotify_logo} alt="Logo" />
+          <img className="w-10" src={assets.spotify_logo_white} alt="Logo" />
         </a>
         <img onClick={()=>navigate(-1)} className="w-5 cursor-pointer transition-transform duration-300 hover:scale-110" src={assets.arrow_left} alt="Arrow Left" />
         <img onClick={()=>navigate(1)} className="w-5 cursor-pointer transition-transform duration-300 hover:scale-110" src={assets.arrow_right} alt="Arrow Right" />
@@ -111,13 +111,13 @@ const TopNav = () => {
                 href="#"
                 className="block px-4 py-2 text-sm text-gray-300 hover:bg-[#3E3E3E]"
               >
-                Profile
+                Trang cá nhân
               </a>
               <a
                 href="#"
                 className="block px-4 py-2 text-sm text-gray-300 hover:bg-[#3E3E3E]"
               >
-                Settings
+                Cài đặt
               </a>
             </div>
             <div className="border-t border-gray-700">
@@ -126,7 +126,7 @@ const TopNav = () => {
                 className="block px-4 py-2 text-sm text-gray-300 hover:bg-[#3E3E3E]"
                 onClick={handleLogout}
               >
-                Log out
+                Đăng xuất
               </Link>
             </div>
           </div>

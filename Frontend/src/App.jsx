@@ -3,6 +3,7 @@ import {
   Routes,
   Route,
   Navigate,
+  useLocation,
 } from "react-router-dom";
 import { publicRoute, privateRoute } from "./routes/route";
 import DefaultLayout from "./Layout/DefaultLayout/DefaultLayout";
@@ -14,9 +15,14 @@ function App() {
     return localStorage.getItem("access_token") != null;
   };
 
-  const isAdmin = () => {
-    const user = JSON.parse(localStorage.getItem("user") || "{}");
-    return user.role === 'admin';
+  const RequireAuth = ({ children }) => {
+    const location = useLocation();
+    
+    if (!isAuthenticated()) {
+        return <Navigate to="/signin" state={{ from: location }} replace />;
+    }
+    
+    return children;
   };
 
   return (
@@ -45,35 +51,21 @@ function App() {
               />
             );
           })}
-          {privateRoute.map((route, index) => {
-            const Page = route.component;
-            let Layout = DefaultLayout;
 
-            if (route.Layout) {
-              Layout = route.Layout;
-            } else if (route.Layout === null) {
-              Layout = Fragment;
-            }
-
-            // Add admin route protection
-            if (route.path.startsWith('/admin')) {
-              return (
-                <Route
-                  key={index}
-                  path={route.path}
-                  element={
-                    isAuthenticated() && isAdmin() ? (
-
-                        <Page />
-                    ) : (
-                      <Navigate to="/signin" replace />
-                    )
-                  }
-                />
-              );
-            }
-            // ... rest of the routes
-          })}
+          {/* Protected routes */}
+          {privateRoute.map((route, index) => (
+            <Route
+              key={index}
+              path={route.path}
+              element={
+                <RequireAuth>
+                  <DefaultLayout>
+                    <route.component />
+                  </DefaultLayout>
+                </RequireAuth>
+              }
+            />
+          ))}
           <Route 
             path="/*" 
             element={
