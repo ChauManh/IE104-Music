@@ -31,6 +31,8 @@ const PlayerContextProvider = ({ children }) => {
   // const next = () => {
   //   const nextTrack = queue[currentTrackIndex];
   //   console.log(nextTrack);
+  //   setTrack(nextTrack);
+  //   playWithUri(nextTrack.uri);
   // }
   // useTokenRefresh((newToken) => {
   //   console.log("Token refreshed and callback triggered:", newToken);
@@ -121,6 +123,7 @@ const PlayerContextProvider = ({ children }) => {
       console.log("Resumed!");
     });
     setPlayStatus(true);
+    getQueueState();
   };
 
   const pause = () => {
@@ -128,6 +131,7 @@ const PlayerContextProvider = ({ children }) => {
       console.log("Paused!");
     });
     setPlayStatus(false);
+    getQueueState();
   };
 
   const playWithUri = async (uri) => {
@@ -194,7 +198,6 @@ const PlayerContextProvider = ({ children }) => {
   const changeVolume = (newVolume) => {
     if (player) {
       player.setVolume(newVolume).then(() => {
-        console.log(`Volume set to ${newVolume * 100}%`);
         setVolume(newVolume); // Cập nhật state volume
       });
     } else {
@@ -209,6 +212,51 @@ const PlayerContextProvider = ({ children }) => {
     player.seek(newTime * 1000); 
     setCurrentTime(newTime);
   };
+
+  const setNextTrack = async (trackUri) => {
+    try {
+        const response = await axios.post(
+        `https://api.spotify.com/v1/me/player/queue`,      
+         null,
+        {
+          params: { uri: trackUri },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log(`Track ${trackUri} added to queue successfully`);
+    } catch (error) {
+      console.error("Error setting playback queue:", error);
+    }
+  };
+
+  const getQueueState = () => {
+    player.getCurrentState().then(state => {
+      if (!state) {
+        console.error('User is not playing music through the Web Playback SDK');
+        return;
+      }
+    
+      var current_track = state.track_window.current_track;
+      var next_track = state.track_window.next_tracks;
+    
+      console.log('Currently Playing', current_track);
+      console.log('Playing Next', next_track);
+    });
+  };
+
+  const nextTrack = () => {
+    player.nextTrack().then(() => {
+      console.log('Skipped to next track!');
+    });
+  }
+
+  const previousTrack = () => {
+    player.previousTrack().then(() => {
+      console.log('Skipped to previous track!');
+    });
+  }
 
   const contextValue = {
     track,
@@ -231,6 +279,9 @@ const PlayerContextProvider = ({ children }) => {
     currentTime,
     duration, 
     handleTimeClick,
+    setNextTrack,
+    nextTrack,
+    previousTrack
     // next,
   };
 

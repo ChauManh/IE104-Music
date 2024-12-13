@@ -13,7 +13,9 @@ const userSchema = new mongoose.Schema({
     likedSongs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Song' }],
     followingArtist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Artist' }],
     listeningHistory: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Song' }],
-    likedAlbums: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Album' }]
+    likedAlbums: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Album' }],
+    resetPasswordOtp: String,
+    resetPasswordExpires: Date
 });
 
 // Change model name to 'User' to match references

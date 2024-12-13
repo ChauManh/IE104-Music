@@ -32,6 +32,36 @@ const AlbumPage = () => {
     </div>
   );
 
+  const handlePlayAll = async () => {
+    // console.log("playlistSongs", playlistSongsByIdSpotify);
+    setTrack({
+      id: albumTracks[0].id,
+      name: albumTracks[0].name,
+      album: album.name,
+      image: album.images[0]?.url,
+      singer: albumTracks[0].singers.join(", "),
+      duration: albumTracks[0].duration,
+      uri: albumTracks[0].uri, // Nếu có URI bài hát
+    });
+
+    setQueue("");
+    // Thêm bài hát được click và các bài hát sau nó vào queue
+    setQueue((prevQueue) => [
+      ...prevQueue, // Các bài hát trước đó (nếu có)
+      ...albumTracks.slice(0).map((item) => ({
+        id: item.id,
+        name: item.name,
+        album: album.name,
+        image: album.images[0]?.url,
+        singer: item.singers.join(", "),
+        duration: item.duration,
+        uri: item.uri, // URI bài hát từ album
+      })),
+    ]);
+    
+    // Phát bài hát (nếu cần)
+    playWithUri(track.uri);
+  }
 
   const handleTrackClick = (track) => {
     setTrack({
@@ -239,6 +269,7 @@ const AlbumPage = () => {
               className="h-14 w-14 cursor-pointer rounded-[30px] border-[18px] border-[#3be477] bg-[#3be477] opacity-70 transition-all hover:opacity-100"
               src={assets.play_icon}
               alt=""
+              onClick={() => handlePlayAll()}
             />
           </div>
 
@@ -287,8 +318,6 @@ const AlbumPage = () => {
               </p>
             </div>
           ))}
-
-      
       </div>
 
       {/* More from Artist Section */}

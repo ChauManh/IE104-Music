@@ -27,7 +27,7 @@ const generateRandomString = (length) => {
 
 const AuthController = {
     async getLogin(req, res) {
-        const scope = "streaming user-read-email user-read-private";
+        const scope = "streaming user-read-email user-read-private user-read-playback-state user-modify-playback-state";
         const state = generateRandomString(16); // Tạo state ngẫu nhiên
         const auth_query_parameters = new URLSearchParams({
             response_type: "code",

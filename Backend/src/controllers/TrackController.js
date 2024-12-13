@@ -1,5 +1,6 @@
 const axios = require('axios');
 const { getSpotifyToken } = require('../config/spotify/getTokenSpotify'); // Import hàm lấy token
+const { getNewReleases }= require('./AlbumController')
 
 class TrackController {
   // Lấy thông tin về track theo ID
@@ -28,30 +29,40 @@ class TrackController {
   static async getPopularTracks(req, res) {
     try {
       const token = await getSpotifyToken(); 
-      // console.log("Lấy token", token);
-      // const response = await axios.get('https://api.spotify.com/v1/browse/featured-playlists', {
-      //   headers: {
-      //     Authorization: `Bearer ${token}`,
-      //   },
-      // });
-      // const playlistId = response.data.playlists.items[0].id;
-      const responsePopularTracks = await axios.get(`https://api.spotify.com/v1/albums/10Dwjqs7dJNxn2g1PkvRCw`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        params: {
-          limit: 10,
-        },     
-      });
-      const popularTracks = responsePopularTracks.data.tracks.items.map(item => ({
-        name: item.name,
-        id: item.id,
-        image: responsePopularTracks.data.images[0].url,
-        singer: item.artists[0].name,
-        uri: item.uri,
-        duration: item.duration_ms
-    }));
-      res.status(200).json(popularTracks);
+      const response1 = await axios.get('https://api.spotify.com/v1/browse/new-releases', {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+              params: {
+                limit: 10,
+              },
+            });
+            const newAlbumIds = response1.data.albums.items.map(item => ({id: item.id,}));
+            const randomAlbumIds = newAlbumIds.sort(() => Math.random() - 0.5).slice(0, 5);
+            const randomTrackIds = [];
+            await Promise.all(
+              randomAlbumIds.map(async (album) => {
+                const response2 = await axios.get(`https://api.spotify.com/v1/albums/${album.id}/tracks`, {
+                  headers: { Authorization: `Bearer ${token}` },
+                });
+                const tracks = response2.data.items;
+                const randomTrack = tracks[Math.floor(Math.random() * tracks.length)];
+                randomTrackIds.push(randomTrack.id); // Lưu ID bài hát
+              })
+            );
+            const trackIdsString = randomTrackIds.join(','); // Tạo chuỗi ID
+            const response3 = await axios.get(`https://api.spotify.com/v1/tracks?ids=${trackIdsString}`, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            const popularTracks = response3.data.tracks.map(track => ({
+              name: track.name,
+              id: track.id,
+              image: track.album.images[0]?.url,
+              singer: track.artists[0].name,
+              uri: track.uri,
+              duration: track.duration_ms,
+            }));
+            res.status(200).json(popularTracks);
     }
     catch(e) {
       res.status(500).json({ error: e.message });

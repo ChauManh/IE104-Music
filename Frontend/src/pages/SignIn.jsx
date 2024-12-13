@@ -9,8 +9,6 @@ const SignIn = () => {
     password: "",
   });
 
-  // const res = getWebPlayBackSDKToken();
-
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -25,10 +23,21 @@ const SignIn = () => {
       console.log("Login response:", result);
 
       if (result && result.EC === 0) {
+        // Store user data in localStorage
         localStorage.setItem("access_token", result.access_token);
         localStorage.setItem("user", JSON.stringify(result.user));
-        alert(result.EM);
-        navigate("/");
+
+        // Debug logs
+        console.log("User data:", result.user);
+        console.log("User role:", result.user.role);
+
+        // Check role and navigate
+        if (result.user.role === "admin") {
+          console.log("Navigating to admin dashboard...");
+          window.location.href = "/admin/dashboard"; // Force full page reload
+        } else {
+          navigate("/");
+        }
       } else {
         alert(result.EM || "Login failed");
       }
@@ -39,29 +48,49 @@ const SignIn = () => {
     }
   };
 
+  // Also handle Google sign-in for admin
   const handleGoogleSignIn = async () => {
     try {
-      const result = await signInWithGoogle();
-      if (result && result.EC === 0) {
-        localStorage.setItem("access_token", result.access_token);
-        localStorage.setItem("user", JSON.stringify(result.user));
-        localStorage.removeItem("web_playback_token");
-        alert("Login with Google successful!");
-        window.location.href = "http://localhost:3000/spotify_auth/login";
-        const res = await getWebPlayBackSDKToken(); // Gọi hàm lấy token WebPlayback
-      if (res) {
-        console.log(res);
-        localStorage.setItem("web_playback_token", res.access_token);
-        localStorage.setItem("refresh_token", res.refresh_token);
-        localStorage.setItem("expires_in", res.expires_in);
-        console.log("Web Playback SDK Token:", res.access_token);
-      }
-      }
+        // First handle Google authentication
+        const result = await signInWithGoogle();
+        if (result && result.EC === 0) {
+            // Store authentication data
+            localStorage.setItem("access_token", result.access_token);
+            localStorage.setItem("user", JSON.stringify(result.user));
+            
+            // Clear any existing Spotify tokens
+            localStorage.removeItem("web_playback_token");
+            
+            console.log("Google login successful!");
+
+            // Check if admin user
+            if (result.user.role === "admin") {
+                navigate("/admin/dashboard");
+                return;
+            }
+
+            try {
+                // Redirect to Spotify auth
+                window.location.href = "http://localhost:3000/spotify_auth/login";
+                
+                // Note: The code below won't execute immediately due to redirect
+                const spotifyToken = await getWebPlayBackSDKToken();
+                if (spotifyToken) {
+                    localStorage.setItem("web_playback_token", spotifyToken.access_token);
+                    localStorage.setItem("refresh_token", spotifyToken.refresh_token);
+                    localStorage.setItem("expires_in", spotifyToken.expires_in);
+                    console.log("Web Playback SDK Token:", spotifyToken.access_token);
+                }
+            } catch (spotifyError) {
+                console.error("Spotify auth error:", spotifyError);
+                alert("Error getting Spotify access. Please try again.");
+            }
+        }
     } catch (error) {
-      console.error("Google signin error:", error);
-      alert(error.message);
+        console.error("Google signin error:", error);
+        alert(error.message || "Login failed. Please try again.");
     }
-  };
+};
 
   return (
     <div className="flex min-h-screen w-full flex-col items-center gap-4 bg-black py-8">
@@ -77,10 +106,10 @@ const SignIn = () => {
 
       <section className="h-[33.33%]">
         <h1 className="mb-6 text-center text-3xl font-bold text-white">
-          Log in to Spotify
+          Đăng nhập vào Soundify
         </h1>
         <div className="flex w-[300px] flex-col justify-center gap-4">
-          <button 
+          <button
             onClick={handleGoogleSignIn}
             className="flex w-full items-center rounded-md border border-gray-500 px-4 py-2 text-white transition duration-150 hover:border-green-300"
           >
@@ -89,26 +118,7 @@ const SignIn = () => {
               alt="Google"
               className="mr-10"
             />
-            Continue with Google
-          </button>
-          <button className="flex w-full items-center rounded-md border border-gray-500 px-4 py-2 text-white transition duration-150 hover:border-green-300">
-            <img
-              src="https://accounts.scdn.co/sso/images/new-facebook-icon.eae8e1b6256f7ccf01cf81913254e70b.svg"
-              alt=""
-              className="mr-8"
-            />
-            Continue with Facebook
-          </button>
-          <button className="flex w-full items-center rounded-md border border-gray-500 px-4 py-2 text-white transition duration-150 hover:border-green-300">
-            <img
-              src="https://accounts.scdn.co/sso/images/new-apple-icon.e356139ea90852da2e60f1ff738f3cbb.svg"
-              alt=""
-              className="mr-11"
-            />
-            Continue with Apple
-          </button>
-          <button className="flex items-center justify-center rounded-md border border-gray-500 py-2 text-white transition duration-150 hover:border-green-300">
-            Continue with phone number
+            Đăng nhập bằng Google
           </button>
         </div>
 
@@ -123,23 +133,23 @@ const SignIn = () => {
         <div className="w-[300px] text-white">
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
-              <label>Email or username</label>
+              <label>Tên hoặc email</label>
               <input
                 name="email"
                 className="mt-2 w-full rounded-md border border-gray-500 bg-transparent p-2 transition duration-200 hover:border-green-300 focus:outline-none focus:ring-1 focus:ring-green-300"
                 type="text"
-                placeholder="Email or username"
+                placeholder="Tên hoặc email"
                 required
                 onChange={handleChange}
               />
             </div>
             <div className="mb-6">
-              <label>Password</label>
+              <label>Mật khẩu</label>
               <input
                 name="password"
                 className="mt-2 w-full rounded-md border border-gray-500 bg-transparent p-2 transition duration-200 hover:border-green-300 focus:outline-none focus:ring-1 focus:ring-green-300"
                 type="password"
-                placeholder="Password"
+                placeholder="Mật khẩu"
                 required
                 onChange={handleChange}
               />
@@ -149,20 +159,20 @@ const SignIn = () => {
               type="submit"
               className="mb-4 w-full rounded-full bg-[#32c967] py-3 font-bold text-black hover:scale-105 hover:bg-[#3bef7a]"
             >
-              Log In
+              Đăng nhập
             </button>
           </form>
         </div>
         <div className="text-gray-400">
           <div className="mb-4 flex justify-center">
-            <a href="#" className="mt-1 text-white underline">
-              Forgot password?
-            </a>
+            <Link to="/forgot-password" className="mt-1 text-white underline">
+              Bạn quên mật khẩu ?
+            </Link>
           </div>
           <p>
-            Don't have an account?
+            Không có tài khoản ?
             <Link to="/signup" className="ml-1 text-white underline">
-              Sign up for Spotify
+              Đăng ký tài khoản mới
             </Link>
           </p>
         </div>

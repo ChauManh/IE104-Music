@@ -8,6 +8,7 @@ const authMiddleware = require('../middleware/auth');
 const userRouter = require('./user');
 const artistRouter = require('./artist');
 const songRouter = require('./songs');
+const adminRouter = require('./admin');
 
 function router(app) {
   app.use('/track', trackRouter);
@@ -19,6 +20,7 @@ function router(app) {
   app.use('/user', authMiddleware, userRouter);
   app.use('/artist', artistRouter);
   app.use('/songs', songRouter);
+  app.use('/admin', adminRouter); // Remove authMiddleware since it's handled in admin.js
 }
 
 module.exports = router;

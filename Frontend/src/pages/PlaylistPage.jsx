@@ -45,9 +45,10 @@ const PlaylistPage = () => {
   if (id === "liked") {
     return <LikedSongsPlaylist token={token} />;
   }
+  const { isVisible, queue, currentTrackIndex, setQueue, moveToTop } = useQueue();
 
   const navigate = useNavigate();
-  const { playWithUri, track, setTrack } = useContext(PlayerContext);
+  const { playWithUri, track, setTrack, setNextTrack, getQueueState } = useContext(PlayerContext);
   const [dominantColor, setDominantColor] = useState("#333333");
   const [secondaryColor, setSecondaryColor] = useState("#121212");
   const [playlistData, setPlaylistData] = useState(null);
@@ -66,7 +67,7 @@ const PlaylistPage = () => {
   const [selectedAlbum, setSelectedAlbum] = useState(null);
   const [albumTracks, setAlbumTracks] = useState([]);
   const [playlistSongs, setPlaylistSongs] = useState([]);
-  const [playlistSongsByIdSpotify, setPlaylistSongsByIdSpotify] = useState([]);
+  // const [playlistSongsByIdSpotify, setPlaylistSongsByIdSpotify] = useState([]);
   const [showNotification, setShowNotification] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -77,65 +78,75 @@ const PlaylistPage = () => {
   const [isThumbnailLoading, setIsThumbnailLoading] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState("");
 
-  const handlePlayTrack = async (id) => {
-    try {
-      const spotifyId = await getIdSpotifFromSongId(id);
-      setTrack(response);
-      playWithUri(response.uri);
-    } catch (error) {
-      console.error("Error handling play track:", error);
-    }
-  };
-
-  // const getPlaylistSongsByIdSpotify = async (playlistSongs) => {
-  //   try {
-  //     // Dùng Promise.all để lấy thông tin của tất cả bài hát trong playlist
-  //     const ids = playlistSongs.map(song => song._id);
-  //     const trackDataPromises = ids.map(async (songId) => {
-  //       const trackData = await getTrackBySongId(songId);
-  //       return trackData; // Trả về thông tin bài hát
-  //     });
-  
-  //     // Chờ tất cả các Promise hoàn thành và lấy kết quả
-  //     const tracks = await Promise.all(trackDataPromises);
-  //     setPlaylistSongsByIdSpotify(tracks); // Lưu kết quả vào state
-  //     console.log("1", tracks);
-  //   } catch (error) {
-  //     console.error('Error fetching tracks:', error);
-  //   }
-  // };
   const getTrackBySongId = async (SongId) => {
     const idSpotify = await getIdSpotifFromSongId(SongId);
     const trackData = await getTrack(idSpotify);
     return trackData;
   }
 
-  // const handlePlayAll = async () => {
-  //   getPlaylistSongsByIdSpotify(playlistSongs);
-  //   // console.log("playlistSongs", playlistSongsByIdSpotify);
-  //   const trackData = await getTrackBySongId(playlistSongs[0]._id);
-  //   setTrack(trackData);
-  //   playWithUri(trackData.uri);
-  //   // setTrack()
-  //   // Xóa queue cũ và thêm playlist mới
-  //   setQueue([]);
-  //   // setQueue("queue", queue);
-  
-  //   // if (playlistSongs.length > 0) {
-  //   // }
-  // };
+  const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-  const handlePlaySong = async (SongId) => {
-    const trackData = await getTrackBySongId(SongId);
+  const handlePlayAll = async () => {
+    if (!playlistSongs || playlistSongs.length === 0) {
+      alert("No songs in the playlist");
+      return;
+    }
+    // console.log("playlistSongs", playlistSongsByIdSpotify);
+    const trackData = await getTrackBySongId(playlistSongs[0]._id);
     setTrack(trackData);
-    // setQueue((prevQueue) => {
-    //   const newQueue = [...prevQueue];
-    //   newQueue.splice(0, newQueue.length, selectedTrack, ...newQueue.slice(index + 1));
-    //   return newQueue;
-    // });
-    
     playWithUri(trackData.uri);
-  }
+    // setTrack()
+    // Xóa queue cũ và thêm playlist mới
+    setQueue("");
+    // Thêm bài hát được click và các bài hát sau nó vào queue
+    setQueue((prevQueue) => [
+      ...prevQueue, // Các bài hát trước đó (nếu có)
+      ...playlistSongs.slice(0).map((item) => ({
+        id: item.spotifyId,
+      name: item.title,
+      album: item.album,
+      image: item.image,
+      singer: item.artistName,
+      duration: item.duration_ms,
+      uri: item.uri, // Nếu có URI bài hát
+      })),
+      
+    ]);
+    await delay(500);
+    console.log("playlistSongs", playlistSongs);
+    for (let i = 1; i < playlistSongs.length; i++) {
+      await setNextTrack(playlistSongs[i].uri);
+      await delay(500);
+    }  
+  };
+
+  const handleTrackClick = async (song) => {
+    const trackData = await getTrackBySongId(song._id);
+    console.log(trackData);
+    setTrack(trackData);
+
+    const trackIndex = playlistSongs.findIndex((t) => t.spotifyId === trackData.id);
+    console.log("trackIndex", trackIndex);
+    console.log("playlistSongs", playlistSongs);
+    setQueue("");
+    // Thêm bài hát được click và các bài hát sau nó vào queue
+    setQueue((prevQueue) => [
+      ...prevQueue, // Các bài hát trước đó (nếu có)
+      ...playlistSongs.slice(trackIndex).map((item) => ({
+        id: item.spotifyId,
+      name: item.title,
+      album: item.album,
+      image: item.image,
+      singer: item.artistName,
+      duration: item.duration_ms,
+      uri: item.uri, // Nếu có URI bài hát
+      })),
+    ]);
+    console.log("queue", queue);
+    
+    // Phát bài hát (nếu cần)
+    playWithUri(trackData.uri);
+  };
 
   // Update the Notification component styling
   const Notification = ({ message }) => (
@@ -757,7 +768,7 @@ const PlaylistPage = () => {
                         className="group flex cursor-pointer items-center gap-4 rounded-md p-2 hover:bg-[#ffffff1a]"
                       >
                         <img
-                          src={track.album.images[2].url}
+                          src={track.album.images[2]?.url}
                           alt={track.name}
                           className="h-10 w-10 rounded"
                         />
@@ -794,7 +805,7 @@ const PlaylistPage = () => {
                         className="group flex cursor-pointer items-center gap-4 rounded-md p-2 hover:bg-[#ffffff1a]"
                       >
                         <img
-                          src={album.images[2].url}
+                          src={album.images[2]?.url}
                           alt={album.name}
                           className="h-10 w-10 rounded"
                         />
@@ -973,7 +984,7 @@ const PlaylistPage = () => {
                 {playlistSongs.map((song, index) => (
                   <div
                     key={song._id}
-                    onClick={() => handlePlaySong(song._id)}
+                    onClick={() => handleTrackClick(song)}
                     className="group grid grid-cols-[16px_1fr_80px] gap-4 rounded-md px-4 py-2 text-sm hover:bg-[#ffffff1a] sm:grid-cols-[16px_4fr_3fr_80px] md:grid-cols-[16px_4fr_3fr_2fr_1fr_80px] cursor-pointer"
                   >
                     <span className="flex items-center text-[#b3b3b3]">
