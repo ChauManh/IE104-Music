@@ -2,6 +2,8 @@ const axios = require('axios');
 require('dotenv').config();
 const jwt = require('jsonwebtoken'); // Add this
 const User = require('../models/users'); // Add this
+const nodemailer = require('nodemailer'); // Add this
+const bcrypt = require('bcrypt'); // Add this
 
 const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
@@ -129,6 +131,117 @@ const AuthController = {
         EM: "Internal server error",
         error: error.message
       });
+    }
+  },
+
+  async forgotPassword(req, res) {
+    try {
+      const { email } = req.body;
+      const user = await User.findOne({ email });
+      
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      // Generate OTP
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      // Store OTP and expiry
+      user.resetPasswordOtp = otp;
+      user.resetPasswordExpires = Date.now() + 600000; // 10 minutes
+      await user.save();
+
+      // Send email
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS
+        }
+      });
+
+      await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: 'Password Reset OTP',
+        text: `Your OTP for password reset is: ${otp}`
+      });
+
+      res.status(200).json({ message: 'OTP sent successfully' });
+    } catch (error) {
+      res.status(500).json({ message: 'Error sending OTP' });
+    }
+  },
+
+  async verifyOtp(req, res) {
+    try {
+      const { email, otp } = req.body;
+      const user = await User.findOne({
+        email,
+        resetPasswordOtp: otp,
+        resetPasswordExpires: { $gt: Date.now() }
+      });
+
+      if (!user) {
+        return res.status(400).json({ message: 'Invalid or expired OTP' });
+      }
+
+      res.status(200).json({ message: 'OTP verified successfully' });
+    } catch (error) {
+      res.status(500).json({ message: 'Error verifying OTP' });
+    }
+  },
+
+  async resetPassword(req, res) {
+    try {
+        const { email, otp, newPassword } = req.body;
+        console.log('Reset password attempt:', { email, otp }); // Debug log
+
+        // Validate inputs
+        if (!email || !otp || !newPassword) {
+            return res.status(400).json({ 
+                message: 'Email, OTP and new password are required' 
+            });
+        }
+
+        // Find user with valid OTP
+        const user = await User.findOne({
+            email,
+            resetPasswordOtp: otp,
+            resetPasswordExpires: { $gt: Date.now() }
+        });
+
+        if (!user) {
+            return res.status(400).json({ 
+                message: 'Invalid or expired OTP. Please request a new one.' 
+            });
+        }
+
+        try {
+            // Hash new password
+            const hashedPassword = await bcrypt.hash(newPassword, 10);
+            
+            // Update user password and clear OTP fields
+            user.password = hashedPassword;
+            user.resetPasswordOtp = undefined;
+            user.resetPasswordExpires = undefined;
+            await user.save();
+
+            res.status(200).json({ 
+                message: 'Password reset successfully' 
+            });
+        } catch (error) {
+            console.error('Error updating password:', error);
+            res.status(500).json({ 
+                message: 'Error updating password' 
+            });
+        }
+    } catch (error) {
+        console.error('Reset password error:', error);
+        res.status(500).json({ 
+            message: 'Error resetting password',
+            error: error.message 
+        });
     }
   }
 };

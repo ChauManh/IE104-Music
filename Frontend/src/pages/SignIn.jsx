@@ -19,32 +19,32 @@ const SignIn = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-        const result = await login(formData.email, formData.password);
-        console.log("Login response:", result);
+      const result = await login(formData.email, formData.password);
+      console.log("Login response:", result);
 
-        if (result && result.EC === 0) {
-            // Store user data in localStorage
-            localStorage.setItem("access_token", result.access_token);
-            localStorage.setItem("user", JSON.stringify(result.user));
-            
-            // Debug logs
-            console.log("User data:", result.user);
-            console.log("User role:", result.user.role);
-            
-            // Check role and navigate
-            if (result.user.role === 'admin') {
-                console.log("Navigating to admin dashboard...");
-                window.location.href = "/admin/dashboard"; // Force full page reload
-            } else {
-                navigate("/");
-            }
+      if (result && result.EC === 0) {
+        // Store user data in localStorage
+        localStorage.setItem("access_token", result.access_token);
+        localStorage.setItem("user", JSON.stringify(result.user));
+
+        // Debug logs
+        console.log("User data:", result.user);
+        console.log("User role:", result.user.role);
+
+        // Check role and navigate
+        if (result.user.role === "admin") {
+          console.log("Navigating to admin dashboard...");
+          window.location.href = "/admin/dashboard"; // Force full page reload
         } else {
-            alert(result.EM || "Login failed");
+          navigate("/");
         }
+      } else {
+        alert(result.EM || "Login failed");
+      }
     } catch (error) {
-        console.error("Login error:", error);
-        const errorMessage = error.response?.data?.EM || "Login failed";
-        alert(errorMessage);
+      console.error("Login error:", error);
+      const errorMessage = error.response?.data?.EM || "Login failed";
+      alert(errorMessage);
     }
   };
 
@@ -55,9 +55,9 @@ const SignIn = () => {
       if (result && result.EC === 0) {
         localStorage.setItem("access_token", result.access_token);
         localStorage.setItem("user", JSON.stringify(result.user));
-        
+
         // Check if Google-authenticated user is admin
-        if (result.user.role === 'admin') {
+        if (result.user.role === "admin") {
           navigate("/admin/dashboard");
         } else {
           navigate("/");
@@ -86,7 +86,7 @@ const SignIn = () => {
           Log in to Spotify
         </h1>
         <div className="flex w-[300px] flex-col justify-center gap-4">
-          <button 
+          <button
             onClick={handleGoogleSignIn}
             className="flex w-full items-center rounded-md border border-gray-500 px-4 py-2 text-white transition duration-150 hover:border-green-300"
           >
@@ -161,9 +161,9 @@ const SignIn = () => {
         </div>
         <div className="text-gray-400">
           <div className="mb-4 flex justify-center">
-            <a href="#" className="mt-1 text-white underline">
+            <Link to="/forgot-password" className="mt-1 text-white underline">
               Forgot password?
-            </a>
+            </Link>
           </div>
           <p>
             Don't have an account?
