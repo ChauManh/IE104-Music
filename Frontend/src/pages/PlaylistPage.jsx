@@ -48,7 +48,7 @@ const PlaylistPage = () => {
   const { isVisible, queue, currentTrackIndex, setQueue, moveToTop } = useQueue();
 
   const navigate = useNavigate();
-  const { playWithUri, track, setTrack, setNextTrack, getQueueState } = useContext(PlayerContext);
+  const { playWithUri, track, setTrack, addTracksToQueue } = useContext(PlayerContext);
   const [dominantColor, setDominantColor] = useState("#333333");
   const [secondaryColor, setSecondaryColor] = useState("#121212");
   const [playlistData, setPlaylistData] = useState(null);
@@ -115,36 +115,26 @@ const PlaylistPage = () => {
     await delay(500);
     console.log("playlistSongs", playlistSongs);
     for (let i = 1; i < playlistSongs.length; i++) {
-      await setNextTrack(playlistSongs[i].uri);
+      await addTracksToQueue(playlistSongs);
       await delay(500);
     }  
   };
 
-  const handleTrackClick = async (song) => {
+  const handleTrackClick = async (song, index) => {
     const trackData = await getTrackBySongId(song._id);
-    console.log(trackData);
     setTrack(trackData);
-
-    const trackIndex = playlistSongs.findIndex((t) => t.spotifyId === trackData.id);
-    console.log("trackIndex", trackIndex);
-    console.log("playlistSongs", playlistSongs);
-    setQueue("");
-    // Thêm bài hát được click và các bài hát sau nó vào queue
-    setQueue((prevQueue) => [
-      ...prevQueue, // Các bài hát trước đó (nếu có)
-      ...playlistSongs.slice(trackIndex).map((item) => ({
-        id: item.spotifyId,
+    const newQueue = playlistSongs.slice(index + 1).map((item) => ({
+      id: item.spotifyId,
       name: item.title,
       album: item.album,
       image: item.image,
       singer: item.artistName,
       duration: item.duration_ms,
-      uri: item.uri, // Nếu có URI bài hát
-      })),
-    ]);
-    console.log("queue", queue);
-    
-    // Phát bài hát (nếu cần)
+      uri: item.uri, 
+    }));
+    setQueue(newQueue);    
+    await delay(500); // tránh bị lỗi
+    addTracksToQueue(newQueue);
     playWithUri(trackData.uri);
   };
 
@@ -982,7 +972,7 @@ const PlaylistPage = () => {
                 {playlistSongs.map((song, index) => (
                   <div
                     key={song._id}
-                    onClick={() => handleTrackClick(song)}
+                    onClick={() => handleTrackClick(song, index)}
                     className="group grid grid-cols-[16px_1fr_80px] gap-4 rounded-md px-4 py-2 text-sm hover:bg-[#ffffff1a] sm:grid-cols-[16px_4fr_3fr_80px] md:grid-cols-[16px_4fr_3fr_2fr_1fr_80px] cursor-pointer"
                   >
                     <span className="flex items-center text-[#b3b3b3]">

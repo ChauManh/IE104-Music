@@ -51,23 +51,46 @@ const SignIn = () => {
   // Also handle Google sign-in for admin
   const handleGoogleSignIn = async () => {
     try {
-      const result = await signInWithGoogle();
-      if (result && result.EC === 0) {
-        localStorage.setItem("access_token", result.access_token);
-        localStorage.setItem("user", JSON.stringify(result.user));
+        // First handle Google authentication
+        const result = await signInWithGoogle();
+        if (result && result.EC === 0) {
+            // Store authentication data
+            localStorage.setItem("access_token", result.access_token);
+            localStorage.setItem("user", JSON.stringify(result.user));
+            
+            // Clear any existing Spotify tokens
+            localStorage.removeItem("web_playback_token");
+            
+            console.log("Google login successful!");
 
-        // Check if Google-authenticated user is admin
-        if (result.user.role === "admin") {
-          navigate("/admin/dashboard");
-        } else {
-          navigate("/");
+            // Check if admin user
+            if (result.user.role === "admin") {
+                navigate("/admin/dashboard");
+                return;
+            }
+
+            try {
+                // Redirect to Spotify auth
+                window.location.href = "http://localhost:3000/spotify_auth/login";
+                
+                // Note: The code below won't execute immediately due to redirect
+                const spotifyToken = await getWebPlayBackSDKToken();
+                if (spotifyToken) {
+                    localStorage.setItem("web_playback_token", spotifyToken.access_token);
+                    localStorage.setItem("refresh_token", spotifyToken.refresh_token);
+                    localStorage.setItem("expires_in", spotifyToken.expires_in);
+                    console.log("Web Playback SDK Token:", spotifyToken.access_token);
+                }
+            } catch (spotifyError) {
+                console.error("Spotify auth error:", spotifyError);
+                alert("Error getting Spotify access. Please try again.");
+            }
         }
-      }
     } catch (error) {
-      console.error("Google signin error:", error);
-      alert(error.message);
+        console.error("Google signin error:", error);
+        alert(error.message || "Login failed. Please try again.");
     }
-  };
+};
 
   return (
     <div className="flex min-h-screen w-full flex-col items-center gap-4 bg-black py-8">

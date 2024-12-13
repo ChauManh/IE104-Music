@@ -8,17 +8,9 @@ const Queue = () => {
 
   const handleTrackClick = (index) => {
     const selectedTrack = queue[index];
+    setTrack(selectedTrack);
     playWithUri(selectedTrack.uri);
     moveToTop(index);
-
-    setTrack(selectedTrack);
-
-    // Update queue: Keep the selected track at the top and the rest after it
-    setQueue((prevQueue) => {
-      const newQueue = [...prevQueue];
-      newQueue.splice(0, newQueue.length, selectedTrack, ...newQueue.slice(index + 1));
-      return newQueue;
-    });
   };
 
 
@@ -44,10 +36,10 @@ const Queue = () => {
       {/* Next in Queue */}
       <div>
         <h3 className="text-gray-300 mb-2 pl-4">Tiếp theo</h3>
-        {upcomingTracks.map((item, index) => (
+        {queue.map((item, index) => (
           <div
             key={index}
-            onClick={() => handleTrackClick(currentTrackIndex + index + 1)}
+            onClick={() => handleTrackClick(index)}
             className="flex items-center gap-4 mb-2 pl-2 cursor-pointer hover:bg-[#333] active:bg-[#555] focus:bg-[#444] p-2 rounded-md"
             tabIndex={index}
           >
@@ -58,7 +50,7 @@ const Queue = () => {
             />
             <div>
               <p>{item.name}</p>
-              <p className="text-gray-400 text-sm">{item.name}</p>
+              <p className="text-gray-400 text-sm">{item.singer}</p>
             </div>
           </div>
         ))}

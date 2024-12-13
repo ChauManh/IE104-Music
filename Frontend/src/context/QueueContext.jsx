@@ -6,20 +6,13 @@ export const QueueProvider = ({ children }) => {
   const [isVisible, setIsVisible] = useState(true);
   const [queue, setQueue] = useState([]);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
-  const [track, setTrack, playWithUri] = useState(PlayerContext);
-
-  const upcomingTracks = queue.filter(
-    (item, index) => index > currentTrackIndex && item.id !== track.id
-  );
 
   const toggleQueue = () => {
     setIsVisible(prev => !prev);
   };
 
   const moveToTop = (index) => {
-    const newQueue = [...queue];
-    const selectedTrack = newQueue.splice(index, 1)[0];
-    newQueue.splice(currentTrackIndex + 1, 0, selectedTrack);
+    const newQueue = queue.slice(index + 1);
     setQueue(newQueue);
   };
 
@@ -29,11 +22,6 @@ export const QueueProvider = ({ children }) => {
     }
   };
 
-  // const handleNextSong = () => {
-
-  // }
-
-  // Lắng nghe thay đổi của currentTrackIndex
   useEffect(() => {
     console.log("Updated CurrentTrackIndex:", currentTrackIndex);
     if (queue[currentTrackIndex]) {
@@ -58,7 +46,6 @@ export const QueueProvider = ({ children }) => {
       moveToTop,
       moveToNext,
       moveToPrevious,
-      upcomingTracks
     }}>
       {children}
     </QueueContext.Provider>

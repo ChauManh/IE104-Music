@@ -97,6 +97,9 @@ const PlayerContextProvider = ({ children }) => {
         if (paused && position === 0 && duration > 0) {
           setPlayStatus(false);
           console.log("Track ended");
+          // player.nextTrack().then(() => {
+          //   console.log('Skipped to next track!');
+          // });
         }
         const interval = setInterval(() => {
           player.getCurrentState().then((state) => {
@@ -213,7 +216,9 @@ const PlayerContextProvider = ({ children }) => {
     setCurrentTime(newTime);
   };
 
-  const setNextTrack = async (trackUri) => {
+  const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  const addTrackToQueue = async (trackUri) => {
     try {
         const response = await axios.post(
         `https://api.spotify.com/v1/me/player/queue`,      
@@ -228,6 +233,13 @@ const PlayerContextProvider = ({ children }) => {
       console.log(`Track ${trackUri} added to queue successfully`);
     } catch (error) {
       console.error("Error setting playback queue:", error);
+    }
+  };
+
+  const addTracksToQueue = async (queue) => {
+    for (let i = 0; i < queue.length; i++) {
+      await addTrackToQueue(queue[i].uri); // Gửi request
+      await delay(500); // Thêm delay 500ms giữa các request
     }
   };
 
@@ -279,7 +291,7 @@ const PlayerContextProvider = ({ children }) => {
     currentTime,
     duration, 
     handleTimeClick,
-    setNextTrack,
+    addTracksToQueue,
     nextTrack,
     previousTrack
     // next,

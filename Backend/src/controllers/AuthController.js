@@ -2,7 +2,7 @@ const axios = require('axios');
 require('dotenv').config();
 const jwt = require('jsonwebtoken'); // Add this
 const User = require('../models/users'); // Add this
-const nodemailer = require('nodemailer'); // Add this
+const nodemailer = require('nodemailer');
 const bcrypt = require('bcrypt'); // Add this
 
 const CLIENT_ID = process.env.CLIENT_ID;

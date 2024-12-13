@@ -26,28 +26,8 @@ const Player = () => {
 
     const { setTrack } = useContext(PlayerContext);
     const { toggleQueue, moveToNext, moveToPrevious, moveToTop, setQueue, queue } = useQueue();
-
-    const handleTrackClick = (index) => {
-        const selectedTrack = queue[index];
-        moveToTop(index);
-      
-        setTrack(selectedTrack);
-      
-        setQueue((prevQueue) => {
-          const newQueue = [...prevQueue];
-          newQueue.splice(0, newQueue.length, selectedTrack, ...newQueue.slice(index + 1));
-          return newQueue;
-        });
-      };
       
     const handleNext = () => {
-        setQueue((prevQueue) => {
-          if (prevQueue.length > 1) {
-            handleTrackClick(1); 
-            return prevQueue.slice(1);
-          }
-        return prevQueue;
-        });
         nextTrack();
       };
 
