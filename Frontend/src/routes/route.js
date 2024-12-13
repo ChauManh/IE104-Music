@@ -3,6 +3,7 @@ import SignIn from '../pages/SignIn';
 import SignupForm from '../pages/SignupForm';
 import AdminDashboard from '../pages/AdminDashBoard';
 import ForgotPassword from '../pages/ForgotPassword';
+import ProfilePage from '../pages/ProfilePage';
 
 const publicRoute = [
   { path: '/signin', component: SignIn, Layout: null },
