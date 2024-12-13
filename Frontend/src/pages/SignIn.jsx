@@ -23,10 +23,21 @@ const SignIn = () => {
       console.log("Login response:", result);
 
       if (result && result.EC === 0) {
+        // Store user data in localStorage
         localStorage.setItem("access_token", result.access_token);
         localStorage.setItem("user", JSON.stringify(result.user));
-        alert(result.EM);
-        navigate("/");
+
+        // Debug logs
+        console.log("User data:", result.user);
+        console.log("User role:", result.user.role);
+
+        // Check role and navigate
+        if (result.user.role === "admin") {
+          console.log("Navigating to admin dashboard...");
+          window.location.href = "/admin/dashboard"; // Force full page reload
+        } else {
+          navigate("/");
+        }
       } else {
         alert(result.EM || "Login failed");
       }
@@ -37,22 +48,20 @@ const SignIn = () => {
     }
   };
 
+  // Also handle Google sign-in for admin
   const handleGoogleSignIn = async () => {
     try {
       const result = await signInWithGoogle();
       if (result && result.EC === 0) {
         localStorage.setItem("access_token", result.access_token);
         localStorage.setItem("user", JSON.stringify(result.user));
-        localStorage.removeItem("web_playback_token");
-        alert("Login with Google successful!");
-        window.location.href = "http://localhost:3000/spotify_auth/login";
-        const res = await getWebPlayBackSDKToken(); // Gọi hàm lấy token WebPlayback
-      if (res) {
-        localStorage.setItem("web_playback_token", res.access_token);
-        localStorage.setItem("refresh_token", res.refresh_token);
-        localStorage.setItem("expires_in", res.expires_in);
-        console.log("Web Playback SDK Token:", res.access_token);
-      }
+
+        // Check if Google-authenticated user is admin
+        if (result.user.role === "admin") {
+          navigate("/admin/dashboard");
+        } else {
+          navigate("/");
+        }
       }
     } catch (error) {
       console.error("Google signin error:", error);
@@ -77,7 +86,7 @@ const SignIn = () => {
           Log in to Spotify
         </h1>
         <div className="flex w-[300px] flex-col justify-center gap-4">
-          <button 
+          <button
             onClick={handleGoogleSignIn}
             className="flex w-full items-center rounded-md border border-gray-500 px-4 py-2 text-white transition duration-150 hover:border-green-300"
           >
@@ -152,9 +161,9 @@ const SignIn = () => {
         </div>
         <div className="text-gray-400">
           <div className="mb-4 flex justify-center">
-            <a href="#" className="mt-1 text-white underline">
+            <Link to="/forgot-password" className="mt-1 text-white underline">
               Forgot password?
-            </a>
+            </Link>
           </div>
           <p>
             Don't have an account?
