@@ -97,8 +97,10 @@ const PlaylistPage = () => {
       duration: item.duration_ms,
       uri: item.uri, 
     }));
-    setQueue(newQueue);    
-    addTrackToQueue(newQueue[0].uri); 
+    if (newQueue.length>0) {
+      setQueue(newQueue);    
+      addTrackToQueue(newQueue[0].uri); 
+    }
     playWithUri(trackData.uri);
   };
 
@@ -114,8 +116,10 @@ const PlaylistPage = () => {
       duration: item.duration_ms,
       uri: item.uri, 
     }));
-    setQueue(newQueue);    
-    addTrackToQueue(newQueue[0].uri); 
+    if (newQueue.length>0) {
+      setQueue(newQueue);    
+      addTrackToQueue(newQueue[0].uri); 
+    } 
     playWithUri(trackData.uri);
   };
 

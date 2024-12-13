@@ -37,15 +37,15 @@ const AlbumPage = () => {
       alert("No songs in the playlist");
       return;
     }
-    setTrack({
-      id: albumTracks[0].id,
-      name: albumTracks[0].name,
-      album: album.name,
-      image: album.images[0]?.url,
-      singer: albumTracks[0].singers.join(", "),
-      duration: albumTracks[0].duration,
-      uri: albumTracks[0].uri, // Nếu có URI bài hát
-    });
+      setTrack({
+        id: albumTracks[0].id,
+        name: albumTracks[0].name,
+        album: album.name,
+        image: album.images[0]?.url,
+        singer: albumTracks[0].singers.join(", "),
+        duration: albumTracks[0].duration,
+        uri: albumTracks[0].uri, // Nếu có URI bài hát
+      });
     const newQueue = albumTracks.slice(1).map((item) => ({
         id: item.id,
         name: item.name,
@@ -55,8 +55,10 @@ const AlbumPage = () => {
         duration: item.duration,
         uri: item.uri, 
     }));
-    setQueue(newQueue);    
-    addTrackToQueue(newQueue[0].uri); 
+    if (newQueue.length > 0) {
+      setQueue(newQueue);    
+      addTrackToQueue(newQueue[0].uri); 
+    } 
     playWithUri(albumTracks[0].uri);
   }
 
@@ -79,8 +81,10 @@ const AlbumPage = () => {
         duration: item.duration,
         uri: item.uri, 
     }));
-    setQueue(newQueue);    
-    addTrackToQueue(newQueue[0].uri); 
+    if (newQueue.length > 0) {
+      setQueue(newQueue);    
+      addTrackToQueue(newQueue[0].uri); 
+    }
     playWithUri(track.uri);
   };
   
