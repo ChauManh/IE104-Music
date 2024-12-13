@@ -7,17 +7,17 @@ const AdminDashboard = () => {
     const navigate = useNavigate();
     const [showDropdown, setShowDropdown] = useState(false);
     const dropdownRef = useRef(null);
-    const [users, setUsers] = useState([]);
-    const [playlists, setPlaylists] = useState([]);
-    const [stats, setStats] = useState({});
-    const [activeTab, setActiveTab] = useState('users');
-    const [showUserModal, setShowUserModal] = useState(false);
-    const [selectedUser, setSelectedUser] = useState(null);
+    const [users, setUsers] = useState([]); // Danh sách người dùng
+    const [playlists, setPlaylists] = useState([]); // Danh sách phát
+    const [stats, setStats] = useState({}); // Thống kê
+    const [activeTab, setActiveTab] = useState('users'); // Tab đang hoạt động
+    const [showUserModal, setShowUserModal] = useState(false); // Hiển thị modal người dùng
+    const [selectedUser, setSelectedUser] = useState(null); // Người dùng được chọn
     const [userForm, setUserForm] = useState({
-        name: '',
-        email: '',
-        password: '',
-        role: 'user'
+        name: '', // Tên
+        email: '', // Email
+        password: '', // Mật khẩu 
+        role: 'user' // Vai trò
     });
 
     useEffect(() => {
@@ -148,7 +148,7 @@ const AdminDashboard = () => {
                 </h2>
                 <form onSubmit={handleSubmitUser}>
                     <div className="mb-4">
-                        <label className="mb-2 block text-sm text-[#a7a7a7]">Name</label>
+                        <label className="mb-2 block text-sm text-[#a7a7a7]">Tên</label>
                         <input
                             type="text"
                             value={userForm.name}
@@ -169,7 +169,7 @@ const AdminDashboard = () => {
                     </div>
                     {!selectedUser && (
                         <div className="mb-4">
-                            <label className="mb-2 block text-sm text-[#a7a7a7]">Password</label>
+                            <label className="mb-2 block text-sm text-[#a7a7a7]">Mật khẩu</label>
                             <input
                                 type="password"
                                 value={userForm.password}
@@ -180,7 +180,7 @@ const AdminDashboard = () => {
                         </div>
                     )}
                     <div className="mb-4">
-                        <label className="mb-2 block text-sm text-[#a7a7a7]">Role</label>
+                        <label className="mb-2 block text-sm text-[#a7a7a7]">Vai trò</label>
                         <select
                             value={userForm.role}
                             onChange={(e) => setUserForm({...userForm, role: e.target.value})}
@@ -236,7 +236,7 @@ const AdminDashboard = () => {
                             onClick={handleLogout}
                             className="block w-full px-4 py-2 text-left text-sm text-gray-300 hover:bg-[#3E3E3E]"
                         >
-                            Log out
+                            Đăng xuất
                         </button>
                     </div>
                 )}
@@ -252,7 +252,7 @@ const AdminDashboard = () => {
                         activeTab === 'users' ? 'bg-[#1ed760] text-black' : 'bg-[#282828]'
                     }`}
                 >
-                    Users
+                    Người dùng
                 </button>
                 <button
                     onClick={() => setActiveTab('playlists')}
@@ -260,7 +260,7 @@ const AdminDashboard = () => {
                         activeTab === 'playlists' ? 'bg-[#1ed760] text-black' : 'bg-[#282828]'
                     }`}
                 >
-                    Playlists
+                    Danh sách phát
                 </button>
                 <button
                     onClick={() => setActiveTab('stats')}
@@ -268,7 +268,7 @@ const AdminDashboard = () => {
                         activeTab === 'stats' ? 'bg-[#1ed760] text-black' : 'bg-[#282828]'
                     }`}
                 >
-                    Statistics
+                    Thống kê
                 </button>
             </div>
 
@@ -280,7 +280,7 @@ const AdminDashboard = () => {
                             onClick={() => setShowUserModal(true)}
                             className="rounded-full bg-[#1ed760] px-4 py-2 font-semibold text-black hover:scale-105"
                         >
-                            Add New User
+                            Thêm người dùng mới
                         </button>
                     </div>
                     <div className="rounded-lg bg-[#121212] p-4">
@@ -288,10 +288,10 @@ const AdminDashboard = () => {
                             <table className="w-full border-collapse">
                                 <thead>
                                     <tr className="border-b border-[#282828]">
-                                        <th className="p-4 text-left text-sm font-semibold text-gray-300">Name</th>
+                                        <th className="p-4 text-left text-sm font-semibold text-gray-300">Tên người dùng</th>
                                         <th className="p-4 text-left text-sm font-semibold text-gray-300">Email</th>
-                                        <th className="p-4 text-left text-sm font-semibold text-gray-300">Role</th>
-                                        <th className="p-4 text-left text-sm font-semibold text-gray-300">Actions</th>
+                                        <th className="p-4 text-left text-sm font-semibold text-gray-300">Vai trò</th>
+                                        <th className="p-4 text-left text-sm font-semibold text-gray-300">Hành động</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -315,13 +315,13 @@ const AdminDashboard = () => {
                                                         onClick={() => handleEditUser(user)}
                                                         className="rounded-full bg-[#333] px-3 py-1 text-sm text-white transition-all hover:bg-[#444]"
                                                     >
-                                                        Edit
+                                                        Sửa
                                                     </button>
                                                     <button
                                                         onClick={() => handleDeleteUser(user._id)}
                                                         className="rounded-full bg-red-600 px-3 py-1 text-sm text-white transition-all hover:bg-red-700"
                                                     >
-                                                        Delete
+                                                        Xóa
                                                     </button>
                                                 </div>
                                             </td>
@@ -338,15 +338,15 @@ const AdminDashboard = () => {
             {activeTab === 'stats' && (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                     <div className="rounded-lg bg-[#121212] p-6 transition-transform hover:scale-105">
-                        <h3 className="mb-2 text-lg text-gray-300">Total Users</h3>
+                        <h3 className="mb-2 text-lg text-gray-300">Tổng số người dùng</h3>
                         <p className="text-2xl font-bold text-[#1ed760]">{stats.users}</p>
                     </div>
                     <div className="rounded-lg bg-[#121212] p-6 transition-transform hover:scale-105">
-                        <h3 className="mb-2 text-lg text-gray-300">Total Playlists</h3>
+                        <h3 className="mb-2 text-lg text-gray-300">Tổng số danh sách phát</h3>
                         <p className="text-2xl font-bold text-[#1ed760]">{stats.playlists}</p>
                     </div>
                     <div className="rounded-lg bg-[#121212] p-6 transition-transform hover:scale-105">
-                        <h3 className="mb-2 text-lg text-gray-300">Total Songs</h3>
+                        <h3 className="mb-2 text-lg text-gray-300">Tổng số bài hát</h3>
                         <p className="text-2xl font-bold text-[#1ed760]">{stats.songs}</p>
                     </div>
                 </div>
@@ -359,10 +359,10 @@ const AdminDashboard = () => {
                         <table className="w-full border-collapse">
                             <thead>
                                 <tr className="border-b border-[#282828]">
-                                    <th className="p-4 text-left text-sm font-semibold text-gray-300">Name</th>
-                                    <th className="p-4 text-left text-sm font-semibold text-gray-300">Owner</th>
-                                    <th className="p-4 text-left text-sm font-semibold text-gray-300">Songs</th>
-                                    <th className="p-4 text-left text-sm font-semibold text-gray-300">Created At</th>
+                                    <th className="p-4 text-left text-sm font-semibold text-gray-300">Tên</th>
+                                    <th className="p-4 text-left text-sm font-semibold text-gray-300">Chủ sở hữu</th>
+                                    <th className="p-4 text-left text-sm font-semibold text-gray-300">Số bài hát</th>
+                                    <th className="p-4 text-left text-sm font-semibold text-gray-300">Ngày tạo</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -372,7 +372,7 @@ const AdminDashboard = () => {
                                         <td className="p-4">{playlist.userID?.name}</td>
                                         <td className="p-4">{playlist.songs?.length || 0}</td>
                                         <td className="p-4">
-                                            {new Date(playlist.createdAt).toLocaleDateString()}
+                                            {new Date(playlist.createdAt).toLocaleDateString('vi-VN')}
                                         </td>
                                     </tr>
                                 ))}

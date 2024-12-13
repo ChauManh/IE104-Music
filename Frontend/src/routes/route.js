@@ -9,15 +9,13 @@ const publicRoute = [
   { path: '/signin', component: SignIn, Layout: null },
   { path: '/signup', component: SignupForm, Layout: null },
   { path: '/forgot-password', component: ForgotPassword, Layout: null },
-  { path: '*', component: Display }
-];
-
-const privateRoute = [
   { 
     path: '/admin/dashboard', 
     component: AdminDashboard,
+    Layout: null,
     requireAdmin: true // Add this flag
-  }
+  },
+  { path: '*', component: Display }
 ];
 
-export { publicRoute, privateRoute };
+export { publicRoute };
