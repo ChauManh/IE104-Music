@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { publicRoute, privateRoute } from "./routes/route";
+import { publicRoute } from "./routes/route";
 import DefaultLayout from "./Layout/DefaultLayout/DefaultLayout";
 import { Fragment } from "react";
 
@@ -32,7 +32,7 @@ function App() {
                     })}
 
                     {/* Protected routes */}
-                    {privateRoute.map((route, index) => (
+                    {/* {privateRoute.map((route, index) => (
                         <Route
                             key={index}
                             path={route.path}
@@ -42,7 +42,7 @@ function App() {
                                 </DefaultLayout>
                             }
                         />
-                    ))}
+                    ))} */}
                 </Routes>
             </div>
         </Router>
