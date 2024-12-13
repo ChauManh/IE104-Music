@@ -26,7 +26,13 @@ const createUserService = async (name, email, password) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = new User({ name, email, password: hashedPassword });
+        // Add default role when creating new user
+        const newUser = new User({ 
+            name, 
+            email, 
+            password: hashedPassword,
+            role: 'user' // Set default role
+        });
 
         await newUser.save();
         return {
@@ -44,7 +50,6 @@ const createUserService = async (name, email, password) => {
 
 const loginService = async (emailOrUsername, password) => {
     try {
-        // Check for user by email or username
         const user = await User.findOne({
             $or: [
                 { email: emailOrUsername },
@@ -59,7 +64,6 @@ const loginService = async (emailOrUsername, password) => {
             }
         }
 
-        // Compare password
         const isMatchPassword = await bcrypt.compare(password, user.password);
         if (!isMatchPassword) {
             return {
@@ -68,11 +72,12 @@ const loginService = async (emailOrUsername, password) => {
             }
         }
 
-        // Create access token
+        // Include role in token payload
         const payload = {
             id: user._id,
             email: user.email,
-            name: user.name
+            name: user.name,
+            role: user.role
         }
 
         const access_token = jwt.sign(
@@ -81,21 +86,20 @@ const loginService = async (emailOrUsername, password) => {
             { expiresIn: '24h' }
         );
 
-        // Return successful response
         return {
             EC: 0,
             EM: "Login successful",
             access_token,
             user: {
+                id: user._id,
                 email: user.email,
                 name: user.name,
-                id: user._id
+                role: user.role
             }
         };
-
     } catch (error) {
         console.error("Login service error:", error);
-        throw error; // Let controller handle the error
+        throw error;
     }
 }
 

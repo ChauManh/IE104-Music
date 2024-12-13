@@ -9,8 +9,6 @@ const SignIn = () => {
     password: "",
   });
 
-  // const res = getWebPlayBackSDKToken();
-
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -21,41 +19,49 @@ const SignIn = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const result = await login(formData.email, formData.password);
-      console.log("Login response:", result);
+        const result = await login(formData.email, formData.password);
+        console.log("Login response:", result);
 
-      if (result && result.EC === 0) {
-        localStorage.setItem("access_token", result.access_token);
-        localStorage.setItem("user", JSON.stringify(result.user));
-        alert(result.EM);
-        navigate("/");
-      } else {
-        alert(result.EM || "Login failed");
-      }
+        if (result && result.EC === 0) {
+            // Store user data in localStorage
+            localStorage.setItem("access_token", result.access_token);
+            localStorage.setItem("user", JSON.stringify(result.user));
+            
+            // Debug logs
+            console.log("User data:", result.user);
+            console.log("User role:", result.user.role);
+            
+            // Check role and navigate
+            if (result.user.role === 'admin') {
+                console.log("Navigating to admin dashboard...");
+                window.location.href = "/admin/dashboard"; // Force full page reload
+            } else {
+                navigate("/");
+            }
+        } else {
+            alert(result.EM || "Login failed");
+        }
     } catch (error) {
-      console.error("Login error:", error);
-      const errorMessage = error.response?.data?.EM || "Login failed";
-      alert(errorMessage);
+        console.error("Login error:", error);
+        const errorMessage = error.response?.data?.EM || "Login failed";
+        alert(errorMessage);
     }
   };
 
+  // Also handle Google sign-in for admin
   const handleGoogleSignIn = async () => {
     try {
       const result = await signInWithGoogle();
       if (result && result.EC === 0) {
         localStorage.setItem("access_token", result.access_token);
         localStorage.setItem("user", JSON.stringify(result.user));
-        localStorage.removeItem("web_playback_token");
-        alert("Login with Google successful!");
-        window.location.href = "http://localhost:3000/spotify_auth/login";
-        const res = await getWebPlayBackSDKToken(); // Gọi hàm lấy token WebPlayback
-      if (res) {
-        console.log(res);
-        localStorage.setItem("web_playback_token", res.access_token);
-        localStorage.setItem("refresh_token", res.refresh_token);
-        localStorage.setItem("expires_in", res.expires_in);
-        console.log("Web Playback SDK Token:", res.access_token);
-      }
+        
+        // Check if Google-authenticated user is admin
+        if (result.user.role === 'admin') {
+          navigate("/admin/dashboard");
+        } else {
+          navigate("/");
+        }
       }
     } catch (error) {
       console.error("Google signin error:", error);

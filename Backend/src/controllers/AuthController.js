@@ -91,7 +91,8 @@ const AuthController = {
           email,
           name,
           googleId,
-          password: null // Google auth users don't need password
+          password: null, // Google auth users don't need password
+          role: 'user'  // Set default role for Google auth users
         });
         await user.save();
       } else {

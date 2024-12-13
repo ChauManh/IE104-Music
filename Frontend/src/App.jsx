@@ -14,6 +14,11 @@ function App() {
     return localStorage.getItem("access_token") != null;
   };
 
+  const isAdmin = () => {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    return user.role === 'admin';
+  };
+
   return (
     <Router>
       <div className="App">
@@ -50,21 +55,24 @@ function App() {
               Layout = Fragment;
             }
 
-            return (
-              <Route
-                key={index}
-                path={route.path}
-                element={
-                  isAuthenticated() ? (
-                    <Layout>
-                      <Page />
-                    </Layout>
-                  ) : (
-                    <Navigate to="/" replace />
-                  )
-                }
-              />
-            );
+            // Add admin route protection
+            if (route.path.startsWith('/admin')) {
+              return (
+                <Route
+                  key={index}
+                  path={route.path}
+                  element={
+                    isAuthenticated() && isAdmin() ? (
+
+                        <Page />
+                    ) : (
+                      <Navigate to="/signin" replace />
+                    )
+                  }
+                />
+              );
+            }
+            // ... rest of the routes
           })}
           <Route 
             path="/*" 
