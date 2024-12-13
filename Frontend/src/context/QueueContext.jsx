@@ -28,6 +28,11 @@ export const QueueProvider = ({ children }) => {
       setCurrentTrackIndex((prevIndex) => prevIndex + 1);
     }
   };
+
+  // const handleNextSong = () => {
+
+  // }
+
   // Lắng nghe thay đổi của currentTrackIndex
   useEffect(() => {
     console.log("Updated CurrentTrackIndex:", currentTrackIndex);

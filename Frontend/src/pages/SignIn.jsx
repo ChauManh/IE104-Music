@@ -9,8 +9,6 @@ const SignIn = () => {
     password: "",
   });
 
-  // const res = getWebPlayBackSDKToken();
-
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -50,7 +48,6 @@ const SignIn = () => {
         window.location.href = "http://localhost:3000/spotify_auth/login";
         const res = await getWebPlayBackSDKToken(); // Gọi hàm lấy token WebPlayback
       if (res) {
-        console.log(res);
         localStorage.setItem("web_playback_token", res.access_token);
         localStorage.setItem("refresh_token", res.refresh_token);
         localStorage.setItem("expires_in", res.expires_in);

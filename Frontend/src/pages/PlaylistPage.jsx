@@ -48,7 +48,7 @@ const PlaylistPage = () => {
   const { isVisible, queue, currentTrackIndex, setQueue, moveToTop } = useQueue();
 
   const navigate = useNavigate();
-  const { playWithUri, track, setTrack, setNextTrackAndCheckState } = useContext(PlayerContext);
+  const { playWithUri, track, setTrack, setNextTrack, getQueueState } = useContext(PlayerContext);
   const [dominantColor, setDominantColor] = useState("#333333");
   const [secondaryColor, setSecondaryColor] = useState("#121212");
   const [playlistData, setPlaylistData] = useState(null);
@@ -78,29 +78,13 @@ const PlaylistPage = () => {
   const [isThumbnailLoading, setIsThumbnailLoading] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState("");
 
-  // const getPlaylistSongsByIdSpotify = async (playlistSongs) => {
-  //   try {
-  //     // Dùng Promise.all để lấy thông tin của tất cả bài hát trong playlist
-  //     const ids = playlistSongs.map(song => song._id);
-  //     const trackDataPromises = ids.map(async (songId) => {
-  //       const trackData = await getTrackBySongId(songId);
-  //       return trackData; // Trả về thông tin bài hát
-  //     });
-  
-  //     // Chờ tất cả các Promise hoàn thành và lấy kết quả
-  //     const tracks = await Promise.all(trackDataPromises);
-  //     setPlaylistSongsByIdSpotify(tracks); // Lưu kết quả vào state
-  //     console.log("1", tracks);
-  //   } catch (error) {
-  //     console.error('Error fetching tracks:', error);
-  //   }
-  // };
-  
   const getTrackBySongId = async (SongId) => {
     const idSpotify = await getIdSpotifFromSongId(SongId);
     const trackData = await getTrack(idSpotify);
     return trackData;
   }
+
+  const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
   const handlePlayAll = async () => {
     if (!playlistSongs || playlistSongs.length === 0) {
@@ -128,26 +112,14 @@ const PlaylistPage = () => {
       })),
       
     ]);
+    await delay(500);
     console.log("playlistSongs", playlistSongs);
     for (let i = 1; i < playlistSongs.length; i++) {
-      await setNextTrackAndCheckState(playlistSongs[i].uri);
+      await setNextTrack(playlistSongs[i].uri);
+      await delay(500);
     }  
-    // if (playlistSongs.length > 0) {
-    // }
   };
 
-  // const handlePlaySong = async (SongId) => {
-  //   const trackData = await getTrackBySongId(SongId);
-  //   setTrack(trackData);
-  //   // setQueue((prevQueue) => {
-  //   //   const newQueue = [...prevQueue];
-  //   //   newQueue.splice(0, newQueue.length, selectedTrack, ...newQueue.slice(index + 1));
-  //   //   return newQueue;
-  //   // });
-    
-  //   playWithUri(trackData.uri);
-  //   console.log(playlistSongs);
-  // }
   const handleTrackClick = async (song) => {
     const trackData = await getTrackBySongId(song._id);
     console.log(trackData);

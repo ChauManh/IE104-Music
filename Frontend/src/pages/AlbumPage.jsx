@@ -66,7 +66,7 @@ const AlbumPage = () => {
   const handleTrackClick = (track) => {
     setTrack({
       id: track.id,
-      name: track.artistName,
+      name: track.name,
       album: album.name,
       image: album.images[0]?.url,
       singer: track.singers.join(", "),

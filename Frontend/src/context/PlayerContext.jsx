@@ -123,6 +123,7 @@ const PlayerContextProvider = ({ children }) => {
       console.log("Resumed!");
     });
     setPlayStatus(true);
+    getQueueState();
   };
 
   const pause = () => {
@@ -130,6 +131,7 @@ const PlayerContextProvider = ({ children }) => {
       console.log("Paused!");
     });
     setPlayStatus(false);
+    getQueueState();
   };
 
   const playWithUri = async (uri) => {
@@ -223,36 +225,36 @@ const PlayerContextProvider = ({ children }) => {
           },
         }
       );
-      console.log("Playback queue set successfully");
+      console.log(`Track ${trackUri} added to queue successfully`);
     } catch (error) {
       console.error("Error setting playback queue:", error);
     }
   };
 
-  const getQueueState = async () => {
-    try {
-      const response = await axios.get(
-        `https://api.spotify.com/v1/me/player/queue`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      console.log("Current queue state:", response.data);
-    } catch (error) {
-      console.error("Error fetching queue state:", error.response?.data || error.message);
-    }
-  };
-
-  const setNextTrackAndCheckState = async (trackUri) => {
-    await setNextTrack(trackUri);
-    await getQueueState();
+  const getQueueState = () => {
+    player.getCurrentState().then(state => {
+      if (!state) {
+        console.error('User is not playing music through the Web Playback SDK');
+        return;
+      }
+    
+      var current_track = state.track_window.current_track;
+      var next_track = state.track_window.next_tracks;
+    
+      console.log('Currently Playing', current_track);
+      console.log('Playing Next', next_track);
+    });
   };
 
   const nextTrack = () => {
     player.nextTrack().then(() => {
       console.log('Skipped to next track!');
+    });
+  }
+
+  const previousTrack = () => {
+    player.previousTrack().then(() => {
+      console.log('Skipped to previous track!');
     });
   }
 
@@ -277,8 +279,9 @@ const PlayerContextProvider = ({ children }) => {
     currentTime,
     duration, 
     handleTimeClick,
-    setNextTrackAndCheckState,
+    setNextTrack,
     nextTrack,
+    previousTrack
     // next,
   };
 
