@@ -75,9 +75,6 @@ const Sidebar = () => {
       const token = localStorage.getItem("access_token");
       const user = localStorage.getItem("user");
 
-      console.log("Token:", token); // Debug log
-      console.log("User:", user); // Debug log
-
       if (token && user) {
         setIsLoggedIn(true);
         try {
@@ -87,7 +84,7 @@ const Sidebar = () => {
               headers: {
                 Authorization: `Bearer ${token}`,
               },
-            },
+            }
           );
 
           if (response.data.playlists) {
@@ -95,7 +92,6 @@ const Sidebar = () => {
           }
         } catch (error) {
           console.error("Error fetching playlists:", error);
-          // If we get a 401 error, the token is invalid
           if (error.response?.status === 401) {
             localStorage.removeItem("access_token");
             localStorage.removeItem("user");
@@ -108,20 +104,22 @@ const Sidebar = () => {
       }
     };
 
+    // Initial fetch
     checkLoginAndFetchPlaylists();
 
+    // Add event listeners
     const handlePlaylistsUpdate = () => {
       checkLoginAndFetchPlaylists();
     };
 
-    window.addEventListener('playlistsUpdated', handlePlaylistsUpdate);
+    window.addEventListener("playlistsUpdated", handlePlaylistsUpdate);
 
+    // Cleanup
     return () => {
-      window.removeEventListener("playlistsUpdated", handlePlaylistsUpdate);
-      window.removeEventListener("storage", checkLoginAndFetchPlaylists);
+      window.removeEventListener('playlistsUpdated', handlePlaylistsUpdate);
     };
   }, []);
-  
+
   const handleCreatePlaylist = async () => {
     if (!isLoggedIn) {
       alert("Please login first to create a playlist");
@@ -208,11 +206,15 @@ const Sidebar = () => {
             </div>
           )
         ) : (
-          <div className="m-2 flex flex-col items-start justify-start gap-1 rounded bg-[#242424] p-4 pl-4 font-semibold">
-            <h1>Đăng nhập để tạo và xem playlist</h1>
+          <div className="m-2 flex flex-col items-start justify-start gap-1 rounded bg-[#242424] p-4 pl-4">
+            <h1 className="font-semibold">Đăng nhập để tạo và xem playlist</h1>
+            <p className="mt-1 text-sm font-light text-[#a7a7a7]">
+              Đăng nhập để tạo playlist của riêng bạn và lưu các bản nhạc yêu
+              thích
+            </p>
             <button
               onClick={() => navigate("/signin")}
-              className="mt-2 rounded-full bg-[#1ed760] px-4 py-2 text-normal font-medium text-black shadow-lg hover:bg-[#1fdf64]"
+              className="mt-4 rounded-full bg-white px-6 py-2 text-[14px] font-semibold text-black hover:scale-105"
             >
               Đăng nhập
             </button>

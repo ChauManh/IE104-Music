@@ -1,7 +1,11 @@
-import React from 'react';
-import SongItem from './SongItem3';
-import ArtistItem from './ArtistItem';
-import AlbumItem from './AlbumItem'; // Import the AlbumItem component
+import React, { useState, useEffect } from "react";
+import SongItem from "./SongItem3";
+import ArtistItem from "./ArtistItem";
+import AlbumItem from "./AlbumItem";
+import { useNavigate } from "react-router-dom";
+import { assets } from "../assets/assets";
+import PlaylistPopup from "./PlaylistPopup";
+import axios from "axios";
 
 const Search = ({ results, query, onArtistClick, onAlbumClick }) => {
   const topResult =
@@ -26,7 +30,7 @@ const Search = ({ results, query, onArtistClick, onAlbumClick }) => {
       {/* Artists Section */}
       <section className="mb-8">
         <h2 className="mb-4 text-xl font-bold md:text-2xl">Nghệ sĩ</h2>
-        <div className="grid grid-flow-col auto-cols-[200px] gap-4 overflow-x-auto album-scrollbar">
+        <div className="album-scrollbar grid auto-cols-[200px] grid-flow-col gap-4 overflow-x-auto">
           {results.artists.items.map((artist) => (
             <ArtistItem
               key={artist.id}
@@ -40,8 +44,10 @@ const Search = ({ results, query, onArtistClick, onAlbumClick }) => {
 
       {/* Albums Section */}
       <section className="mb-8">
-        <h2 className="mb-4 text-xl font-bold md:text-2xl">Danh sách đĩa nhạc</h2>
-        <div className="grid grid-flow-col auto-cols-[200px] gap-4 overflow-x-auto album-scrollbar">
+        <h2 className="mb-4 text-xl font-bold md:text-2xl">
+          Danh sách đĩa nhạc
+        </h2>
+        <div className="album-scrollbar grid auto-cols-[200px] grid-flow-col gap-4 overflow-x-auto">
           {results.albums.items.map((album) => (
             <AlbumItem
               key={album.id}
@@ -60,20 +66,32 @@ const Search = ({ results, query, onArtistClick, onAlbumClick }) => {
 
 // Top Result Section remains the same
 const TopResultSection = ({ result }) => {
+  const navigate = useNavigate();
+
   if (!result) return null;
+
+  const handleTrackClick = (trackId) => {
+    if (result.type === "track") {
+      navigate(`/track/${trackId}`);
+    }
+  };
 
   return (
     <section>
-      <h2 className='text-xl font-bold mb-4'>Kết quả hàng đầu</h2>
-      <div className='p-5 bg-[#181818] rounded-lg hover:bg-[#282828] transition-colors'>
-        <img 
+      <h2 className="mb-4 text-xl font-bold">Kết quả hàng đầu</h2>
+      <div
+        onClick={() => handleTrackClick(result.id)}
+        className="cursor-pointer rounded-lg bg-[#181818] p-5 transition-colors hover:bg-[#282828]"
+      >
+        <img
           src={result.album?.images[0].url || result.images?.[0].url}
           alt={result.name}
           className="mb-4 h-24 w-24 rounded-md shadow-lg"
         />
         <p className="mb-2 text-2xl font-bold">{result.name}</p>
         <p className="text-sm text-gray-400">
-          {result.type.charAt(0).toUpperCase()}{result.type.slice(1)} • {result.artists?.[0].name || "Artist"}
+          {result.type.charAt(0).toUpperCase()}
+          {result.type.slice(1)} • {result.artists?.[0].name || "Artist"}
         </p>
       </div>
     </section>
@@ -82,22 +100,232 @@ const TopResultSection = ({ result }) => {
 
 // Songs Section using SongItem
 const SongsSection = ({ tracks }) => {
-  if (!tracks?.length) return null;
+  const [showPlaylistPopup, setShowPlaylistPopup] = useState(false);
+  const [selectedTrackId, setSelectedTrackId] = useState(null);
+  const [userPlaylists, setUserPlaylists] = useState([]);
+  const [showNotification, setShowNotification] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState("");
+  const [likedTracks, setLikedTracks] = useState({});
+
+  // Check which tracks are in playlists when component mounts
+  useEffect(() => {
+    const checkLikedTracks = async () => {
+      try {
+        const token = localStorage.getItem("access_token");
+        if (!token) return;
+
+        const response = await axios.get(
+          "http://localhost:3000/user/get_playlists",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        // Find "Bài hát đã thích" playlist
+        const likedPlaylist = response.data.playlists.find(
+          playlist => playlist.name === "Bài hát đã thích"
+        );
+
+        if (likedPlaylist && likedPlaylist.songs) {
+          // Create a map of track IDs to their liked status
+          const trackMap = {};
+          for (const songId of likedPlaylist.songs) {
+            const songDetails = await axios.get(
+              `http://localhost:3000/songs/${songId}`,
+              {
+                headers: { Authorization: `Bearer ${token}` }
+              }
+            );
+            trackMap[songDetails.data.spotifyId] = true;
+          }
+          setLikedTracks(trackMap);
+        }
+      } catch (error) {
+        console.error("Error checking liked tracks:", error);
+      }
+    };
+
+    checkLikedTracks();
+  }, []);
+
+  // Handle like/unlike
+  const handleLikeClick = async (trackId) => {
+    try {
+      const token = localStorage.getItem("access_token");
+      if (!token) {
+        alert("Please login first");
+        return;
+      }
+
+      // Toggle like status in UI immediately for better UX
+      setLikedTracks(prev => ({
+        ...prev,
+        [trackId]: !prev[trackId]
+      }));
+
+      // Get liked songs playlist
+      const playlistsResponse = await axios.get(
+        "http://localhost:3000/user/get_playlists",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      let likedPlaylist = playlistsResponse.data.playlists.find(
+        playlist => playlist.name === "Bài hát đã thích"
+      );
+
+      if (!likedTracks[trackId]) {
+        // Add to liked songs
+        // Create or get the song first
+        const songResponse = await axios.post(
+          "http://localhost:3000/songs/create",
+          { spotifyId: trackId },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        // If no liked playlist exists, create it
+        if (!likedPlaylist) {
+          const createResponse = await axios.post(
+            "http://localhost:3000/user/create_playlist",
+            { name: "Bài hát đã thích" },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+          likedPlaylist = createResponse.data.playlist;
+        }
+
+        // Add song to playlist
+        await axios.post(
+          "http://localhost:3000/user/playlist/add_song",
+          {
+            playlistID: likedPlaylist._id,
+            songID: songResponse.data.song._id,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        setNotificationMessage("Đã thêm vào Bài hát đã thích");
+      } else {
+        // Remove from liked songs
+        // First get the song details by Spotify ID
+        const songDetails = await axios.get(
+          `http://localhost:3000/songs/by-spotify-id/${trackId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
+
+        if (!songDetails.data || !songDetails.data._id) {
+          throw new Error('Could not find song in database');
+        }
+
+        // Remove the song from the playlist
+        await axios.delete(
+          `http://localhost:3000/user/playlist/${likedPlaylist._id}/songs/${songDetails.data._id}`,
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
+
+        setNotificationMessage("Đã xóa khỏi Bài hát đã thích");
+      }
+
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 2000);
+      window.dispatchEvent(new Event("playlistsUpdated"));
+    } catch (error) {
+      console.error("Error toggling like:", error);
+      // Revert UI state if operation failed
+      setLikedTracks(prev => ({
+        ...prev,
+        [trackId]: !prev[trackId]
+      }));
+      window.dispatchEvent(new Event("playlistsUpdated"));
+    }
+  };
 
   return (
-    <section className='pl-4 '>
-      <h2 className='text-xl font-bold mb-4'>Bài hát</h2>
-      <div className='flex flex-col gap-2'>
-        {tracks.slice(0, 4).map(track => (
-          <SongItem 
+    <section className="pl-4">
+      <h2 className="mb-4 text-xl font-bold">Bài hát</h2>
+      <div className="flex flex-col gap-2">
+        {tracks.slice(0, 4).map((track) => (
+          <div
             key={track.id}
-            id={track.id}
-            name={track.name}
-            image={track.album.images[0].url}
-            singer={track.artists[0].name}
-          />
+            className="group flex items-center justify-between gap-4 rounded-md p-2 hover:bg-[#ffffff1a]"
+          >
+            <div className="flex items-center gap-4">
+              <img
+                src={track.album.images[0].url}
+                alt={track.name}
+                className="h-10 w-10 rounded"
+              />
+              <div className="flex flex-col">
+                <p className="text-white truncate max-w-[200px]">{track.name}</p>
+                <p className="text-sm text-[#a7a7a7]">{track.artists[0].name}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 opacity-0 transition-all hover:scale-105 group-hover:opacity-100">
+              <img
+                className={`h-4 w-4 cursor-pointer opacity-70 transition-colors duration-200 hover:opacity-100`}
+                src={likedTracks[track.id] ? assets.liked_icon : assets.like_icon}
+                alt="Like"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleLikeClick(track.id);
+                }}
+              />
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedTrackId(track.id);
+                  setShowPlaylistPopup(true);
+                  fetchUserPlaylists();
+                }}
+                className="rounded-full bg-transparent px-4 py-1 text-sm text-white opacity-0 transition-all hover:scale-105 group-hover:opacity-100"
+              >
+                <img
+                  className="h-4 w-4 cursor-pointer rounded-[30px] opacity-70 transition-all hover:opacity-100"
+                  src={assets.more_icon}
+                  alt="More options"
+                />
+              </button>
+            </div>
+          </div>
         ))}
       </div>
+
+      <PlaylistPopup
+        isOpen={showPlaylistPopup}
+        onClose={() => setShowPlaylistPopup(false)}
+        trackId={selectedTrackId}
+        playlists={userPlaylists}
+        setShowNotification={setShowNotification}
+        setNotificationMessage={setNotificationMessage}
+      />
+
+      {showNotification && (
+        <div className="fixed bottom-24 left-1/2 z-50 -translate-x-1/2 transform">
+          <div className="rounded-full bg-[#1ed760] px-4 py-2 text-center text-sm font-medium text-black shadow-lg">
+            <span>{notificationMessage}</span>
+          </div>
+        </div>
+      )}
     </section>
   );
 };
@@ -106,21 +334,21 @@ const ArtistsSection = ({ artists, onArtistClick }) => {
   if (!artists?.length) return null;
 
   return (
-    <section className='mb-8'>
-      <h2 className='text-2xl font-bold mb-4'>Artists</h2>
-      <div className='grid grid-cols-5 gap-4'>
-        {artists.map(artist => (
-          <div 
+    <section className="mb-8">
+      <h2 className="mb-4 text-2xl font-bold">Artists</h2>
+      <div className="grid grid-cols-5 gap-4">
+        {artists.map((artist) => (
+          <div
             key={artist.id}
             onClick={() => onArtistClick(artist.id)}
-            className='p-4 bg-[#181818] rounded-lg hover:bg-[#282828] transition-colors cursor-pointer'
+            className="cursor-pointer rounded-lg bg-[#181818] p-4 transition-colors hover:bg-[#282828]"
           >
-            <img 
+            <img
               src={artist.images[0]?.url}
               alt={artist.name}
-              className='w-full aspect-square rounded-full object-cover mb-4'
+              className="mb-4 aspect-square w-full rounded-full object-cover"
             />
-            <p className='font-semibold text-center truncate'>{artist.name}</p>
+            <p className="truncate text-center font-semibold">{artist.name}</p>
           </div>
         ))}
       </div>
@@ -132,22 +360,24 @@ const AlbumsSection = ({ albums, onAlbumClick }) => {
   if (!albums?.length) return null;
 
   return (
-    <section className='mb-8'>
-      <h2 className='text-2xl font-bold mb-4'>Albums</h2>
-      <div className='grid grid-cols-5 gap-4'>
-        {albums.map(album => (
-          <div 
+    <section className="mb-8">
+      <h2 className="mb-4 text-2xl font-bold">Albums</h2>
+      <div className="grid grid-cols-5 gap-4">
+        {albums.map((album) => (
+          <div
             key={album.id}
             onClick={() => onAlbumClick(album.id)}
-            className='p-4 bg-[#181818] rounded-lg hover:bg-[#282828] transition-colors cursor-pointer'
+            className="cursor-pointer rounded-lg bg-[#181818] p-4 transition-colors hover:bg-[#282828]"
           >
-            <img 
+            <img
               src={album.images[0].url}
-              alt={album.name} 
-              className='w-full aspect-square object-cover rounded-md mb-4'
+              alt={album.name}
+              className="mb-4 aspect-square w-full rounded-md object-cover"
             />
-            <p className='font-semibold truncate'>{album.name}</p>
-            <p className='text-gray-400 text-sm truncate'>{album.artists[0].name}</p>
+            <p className="truncate font-semibold">{album.name}</p>
+            <p className="truncate text-sm text-gray-400">
+              {album.artists[0].name}
+            </p>
           </div>
         ))}
       </div>

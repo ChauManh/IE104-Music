@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { assets } from "../../assets/assets";
 import { useNavigate, Link } from "react-router-dom";
 import Search from "../../components/Search";
@@ -6,18 +6,32 @@ import axios from "axios";
 
 const TopNav = () => {
   const navigate = useNavigate();
+  const [query, setQuery] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
-  const [query, setQuery] = useState("");
-  const [dropdownVisible, setDropdownVisible] = useState(false);
-  let userName = "Guest";
-  let userGmail = "";
-  const userString = localStorage.getItem("user"); // Lấy dữ liệu dạng chuỗi
-  const user = JSON.parse(userString); // Chuyển chuỗi thành đối tượng
-  if (user) {
-    userName = user.name;
-    userGmail = user.email;
-  }
+  const [userData, setUserData] = useState(null);
+  const [userName, setUserName] = useState('');
+  const [userGmail, setUserGmail] = useState('');
+
+  useEffect(() => {
+    // Get user data from localStorage
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user) {
+      setUserData(user);
+      setUserName(user.name);
+      setUserGmail(user.email);
+    }
+
+    // Handle clicking outside dropdown
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -47,10 +61,6 @@ const TopNav = () => {
     }
   };
 
-  const toggleDropdown = () => {
-    setDropdownVisible(!dropdownVisible);
-  };
-
   const handleLogout = () => {
     window.location.href = "/signin";
     localStorage.clear();
@@ -60,7 +70,7 @@ const TopNav = () => {
     <div className="fixed left-0 top-0 z-10 flex w-full items-center justify-between bg-black p-2 text-white">
       <div className="cursor-pointer pl-3 flex items-center space-x-2">
         <a href="http://localhost:5173/">
-          <img className="w-10" src={assets.spotify_logo} alt="Logo" />
+          <img className="w-10" src={assets.spotify_logo_white} alt="Logo" />
         </a>
         <img onClick={()=>navigate(-1)} className="w-5 cursor-pointer transition-transform duration-300 hover:scale-110" src={assets.arrow_left} alt="Arrow Left" />
         <img onClick={()=>navigate(1)} className="w-5 cursor-pointer transition-transform duration-300 hover:scale-110" src={assets.arrow_right} alt="Arrow Right" />
@@ -93,31 +103,42 @@ const TopNav = () => {
       </div>
 
       <div className="relative" ref={dropdownRef}>
-        <div
+        <button 
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          className="flex cursor-pointer items-center rounded-full bg-zinc-800 p-2 transition-transform duration-300 hover:scale-110"
+          className="rounded-full bg-black p-2 hover:bg-[#282828] transition-colors"
         >
-          <img className="w-8 rounded-full" src={assets.avatar} alt="Home" />
-        </div>
+          <img 
+            src={userData?.avatar || assets.avatar} 
+            alt="Profile" 
+            className="h-8 w-8 rounded-full object-cover"
+          />
+        </button>
 
         {isDropdownOpen && (
           <div className="absolute right-0 top-12 w-48 rounded-md bg-[#282828] py-1 shadow-lg ring-1 ring-black ring-opacity-5 transition-all">
-            <div className="px-4 py-3">
-              <p className="text-sm text-white">{userName}</p>
-              <p className="truncate text-sm text-gray-400">{userGmail}</p>
+            <div className="flex items-center gap-3 px-4 py-3">
+              <img 
+                src={userData?.avatar || assets.avatar}
+                alt="Profile"
+                className="h-8 w-8 rounded-full object-cover"
+              />
+              <div>
+                <p className="text-sm text-white">{userName}</p>
+              </div>
             </div>
             <div className="border-t border-gray-700">
+              <Link
+                to="/profile"
+                className="block px-4 py-2 text-sm text-gray-300 hover:bg-[#3E3E3E]"
+                onClick={() => setIsDropdownOpen(false)}
+              >
+                Trang cá nhân
+              </Link>
               <a
                 href="#"
                 className="block px-4 py-2 text-sm text-gray-300 hover:bg-[#3E3E3E]"
               >
-                Profile
-              </a>
-              <a
-                href="#"
-                className="block px-4 py-2 text-sm text-gray-300 hover:bg-[#3E3E3E]"
-              >
-                Settings
+                Cài đặt
               </a>
             </div>
             <div className="border-t border-gray-700">
@@ -126,7 +147,7 @@ const TopNav = () => {
                 className="block px-4 py-2 text-sm text-gray-300 hover:bg-[#3E3E3E]"
                 onClick={handleLogout}
               >
-                Log out
+                Đăng xuất
               </Link>
             </div>
           </div>

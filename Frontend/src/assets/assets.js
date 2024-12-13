@@ -51,6 +51,8 @@ import arrow_rotate_icon from './arrow_rotate.png'
 import verified_icon from './verified.png'
 import music_icon from './music.png'
 import remove_icon from './remove.png'
+import more_icon from './more.png'
+import liked_icon from './liked.png'
 
 export const assets = {
     bell_icon,
@@ -87,6 +89,8 @@ export const assets = {
     arrow_rotate_icon,
     music_icon,
     remove_icon,
+    more_icon,
+    liked_icon,
 }
 
 export const albumsData = [

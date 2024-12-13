@@ -106,7 +106,7 @@ const SignIn = () => {
 
       <section className="h-[33.33%]">
         <h1 className="mb-6 text-center text-3xl font-bold text-white">
-          Log in to Spotify
+          Đăng nhập vào Soundify
         </h1>
         <div className="flex w-[300px] flex-col justify-center gap-4">
           <button
@@ -118,26 +118,7 @@ const SignIn = () => {
               alt="Google"
               className="mr-10"
             />
-            Continue with Google
-          </button>
-          <button className="flex w-full items-center rounded-md border border-gray-500 px-4 py-2 text-white transition duration-150 hover:border-green-300">
-            <img
-              src="https://accounts.scdn.co/sso/images/new-facebook-icon.eae8e1b6256f7ccf01cf81913254e70b.svg"
-              alt=""
-              className="mr-8"
-            />
-            Continue with Facebook
-          </button>
-          <button className="flex w-full items-center rounded-md border border-gray-500 px-4 py-2 text-white transition duration-150 hover:border-green-300">
-            <img
-              src="https://accounts.scdn.co/sso/images/new-apple-icon.e356139ea90852da2e60f1ff738f3cbb.svg"
-              alt=""
-              className="mr-11"
-            />
-            Continue with Apple
-          </button>
-          <button className="flex items-center justify-center rounded-md border border-gray-500 py-2 text-white transition duration-150 hover:border-green-300">
-            Continue with phone number
+            Đăng nhập bằng Google
           </button>
         </div>
 
@@ -152,23 +133,23 @@ const SignIn = () => {
         <div className="w-[300px] text-white">
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
-              <label>Email or username</label>
+              <label>Tên hoặc email</label>
               <input
                 name="email"
                 className="mt-2 w-full rounded-md border border-gray-500 bg-transparent p-2 transition duration-200 hover:border-green-300 focus:outline-none focus:ring-1 focus:ring-green-300"
                 type="text"
-                placeholder="Email or username"
+                placeholder="Tên hoặc email"
                 required
                 onChange={handleChange}
               />
             </div>
             <div className="mb-6">
-              <label>Password</label>
+              <label>Mật khẩu</label>
               <input
                 name="password"
                 className="mt-2 w-full rounded-md border border-gray-500 bg-transparent p-2 transition duration-200 hover:border-green-300 focus:outline-none focus:ring-1 focus:ring-green-300"
                 type="password"
-                placeholder="Password"
+                placeholder="Mật khẩu"
                 required
                 onChange={handleChange}
               />
@@ -178,20 +159,20 @@ const SignIn = () => {
               type="submit"
               className="mb-4 w-full rounded-full bg-[#32c967] py-3 font-bold text-black hover:scale-105 hover:bg-[#3bef7a]"
             >
-              Log In
+              Đăng nhập
             </button>
           </form>
         </div>
         <div className="text-gray-400">
           <div className="mb-4 flex justify-center">
             <Link to="/forgot-password" className="mt-1 text-white underline">
-              Forgot password?
+              Bạn quên mật khẩu ?
             </Link>
           </div>
           <p>
-            Don't have an account?
+            Không có tài khoản ?
             <Link to="/signup" className="ml-1 text-white underline">
-              Sign up for Spotify
+              Đăng ký tài khoản mới
             </Link>
           </p>
         </div>

@@ -8,7 +8,8 @@ import { assets } from "../assets/assets";
 import { createPlaylist, addSongToPlaylist } from "../util/api";
 import { PlayerContext } from "../context/PlayerContext";
 import ColorThief from "colorthief";
-import { refreshPlaylists } from '../Layout/Components/sidebar';
+import { refreshPlaylists } from "../Layout/Components/sidebar";
+import PlaylistPopup from "../components/PlaylistPopup";
 
 const ArtistPage = () => {
   const { id } = useParams();
@@ -18,16 +19,38 @@ const ArtistPage = () => {
   const [topTracks, setTopTracks] = useState([]);
   const [albums, setAlbums] = useState([]);
   const [likedTracks, setLikedTracks] = useState({});
-  const [showNotification, setShowNotification] = useState(false); 
+  const [showNotification, setShowNotification] = useState(false);
   const [error, setError] = useState(null);
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState("");
   const [dominantColor, setDominantColor] = useState("#333333");
+  const [showPlaylistPopup, setShowPlaylistPopup] = useState(false);
+  const [selectedTrackId, setSelectedTrackId] = useState(null);
+  const [userPlaylists, setUserPlaylists] = useState([]);
+  const [isFollowed, setIsFollowed] = useState(false);
 
   const togglePopup = () => {
     setIsPopupVisible(!isPopupVisible);
   };
 
+  const fetchUserPlaylists = async () => {
+    try {
+      const token = localStorage.getItem("access_token");
+      const response = await axios.get(
+        "http://localhost:3000/user/get_playlists",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      setUserPlaylists(
+        response.data.playlists.filter((p) => p.type === "playlist"),
+      );
+    } catch (error) {
+      console.error("Error fetching playlists:", error);
+    }
+  };
 
   const Notification = ({ message }) => (
     <div className="fixed bottom-24 left-1/2 z-50 -translate-x-1/2 transform">
@@ -76,6 +99,79 @@ const ArtistPage = () => {
     fetchArtistData();
   }, [id]);
 
+  useEffect(() => {
+    const checkIfFollowed = async () => {
+      try {
+        const token = localStorage.getItem("access_token");
+        if (!token) return;
+
+        const playlistsResponse = await axios.get(
+          "http://localhost:3000/user/get_playlists",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        const exists = playlistsResponse.data.playlists.some(
+          (playlist) => playlist.type === "artist" && playlist.artistId === id,
+        );
+
+        setIsFollowed(exists);
+      } catch (error) {
+        console.error("Error checking artist follow status:", error);
+      }
+    };
+
+    checkIfFollowed();
+  }, [id]);
+
+  // Add this useEffect to check liked songs when component mounts
+  useEffect(() => {
+    const checkLikedTracks = async () => {
+      try {
+        const token = localStorage.getItem("access_token");
+        if (!token) return;
+
+        const response = await axios.get(
+          "http://localhost:3000/user/get_playlists",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        // Find "Bài hát đã thích" playlist
+        const likedPlaylist = response.data.playlists.find(
+          (playlist) => playlist.name === "Bài hát đã thích",
+        );
+
+        if (likedPlaylist && likedPlaylist.songs) {
+          // Create a map of track IDs to their liked status
+          const trackMap = {};
+          for (const songId of likedPlaylist.songs) {
+            const songDetails = await axios.get(
+              `http://localhost:3000/songs/${songId}`,
+              {
+                headers: { Authorization: `Bearer ${token}` },
+              },
+            );
+            if (songDetails.data.spotifyId) {
+              trackMap[songDetails.data.spotifyId] = true;
+            }
+          }
+          setLikedTracks(trackMap);
+        }
+      } catch (error) {
+        console.error("Error checking liked tracks:", error);
+      }
+    };
+
+    checkLikedTracks();
+  }, []);
+
   const formatDuration = (ms) => {
     const minutes = Math.floor(ms / 60000);
     const seconds = Math.floor((ms % 60000) / 1000);
@@ -84,162 +180,201 @@ const ArtistPage = () => {
 
   const handleLikeClick = async (trackId) => {
     try {
-        const token = localStorage.getItem("access_token");
-        if (!token) {
-            alert("Please login first to like a song");
-            return;
-        }
-
-        // Update UI state first for immediate feedback
-        setLikedTracks((prev) => ({
-            ...prev,
-            [trackId]: !prev[trackId],
-        }));
-
-        // First check if "Bài hát đã thích" playlist exists
-        const playlistsResponse = await axios.get(
-            "http://localhost:3000/user/get_playlists",
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            }
-        );
-
-        let likedPlaylist = playlistsResponse.data.playlists.find(
-            (playlist) => playlist.name === "Bài hát đã thích"
-        );
-
-        // If playlist doesn't exist, create it
-        if (!likedPlaylist) {
-            const createResponse = await axios.post(
-                "http://localhost:3000/user/create_playlist",
-                { name: "Bài hát đã thích" },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
-            likedPlaylist = createResponse.data.playlist;
-        }
-
-        // Create/get song in database
-        const songResponse = await axios.post(
-            "http://localhost:3000/songs/create",
-            {
-                spotifyId: trackId,
-            },
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            }
-        );
-
-        // Add song to the playlist
-        await axios.post(
-            "http://localhost:3000/user/playlist/add_song",
-            {
-                playlistID: likedPlaylist._id,
-                songID: songResponse.data.song._id,
-            },
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            }
-        );
-
-        // Show notification and refresh playlists
-        setNotificationMessage("Đã thêm vào Bài hát đã thích");
-        setShowNotification(true);
-        setTimeout(() => setShowNotification(false), 2000);
-        window.dispatchEvent(new Event('playlistsUpdated'));
-
-    } catch (error) {
-        console.error("Error liking track:", error);
-        setLikedTracks((prev) => ({
-            ...prev,
-            [trackId]: !prev[trackId],
-        }));
-    }
-};
-
-const handleFollowArtist = async () => {
-  try {
-    const token = localStorage.getItem("access_token");
-    if (!token) {
-      alert("Please login first to follow/unfollow artist");
-      return;
-    }
-
-    // Get existing playlists
-    const playlistsResponse = await axios.get(
-      "http://localhost:3000/user/get_playlists",
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const token = localStorage.getItem("access_token");
+      if (!token) {
+        alert("Please login first");
+        return;
       }
-    );
 
-    // Check if artist playlist already exists
-    const exists = playlistsResponse.data.playlists.some(
-      playlist => playlist.type === 'artist' && playlist.artistId === id
-    );
+      // Toggle like status in UI immediately for better UX
+      setLikedTracks((prev) => ({
+        ...prev,
+        [trackId]: !prev[trackId],
+      }));
 
-    if (exists) {
-      // Unfollow artist
-      await axios.delete(
-        "http://localhost:3000/user/artists/unfollow",
+      // Get liked songs playlist
+      const playlistsResponse = await axios.get(
+        "http://localhost:3000/user/get_playlists",
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-          data: { artistId: id }
-        }
-      );
-
-      // Show notification
-      setNotificationMessage(`Đã bỏ theo dõi ${artist.name}`);
-      setShowNotification(true);
-      setTimeout(() => setShowNotification(false), 2000);
-      window.dispatchEvent(new Event('playlistsUpdated'));
-    } else {
-      // Follow artist
-      const createPlaylistResponse = await axios.post(
-        "http://localhost:3000/user/create_playlist",
-        { 
-          name: artist.name,
-          thumbnail: artist.images[0]?.url,
-          type: 'artist',
-          artistId: id     // Make sure this matches the artist ID from Spotify
         },
+      );
+
+      let likedPlaylist = playlistsResponse.data.playlists.find(
+        (playlist) => playlist.name === "Bài hát đã thích",
+      );
+
+      if (!likedTracks[trackId]) {
+        // Add to liked songs
+        const songResponse = await axios.post(
+          "http://localhost:3000/songs/create",
+          { spotifyId: trackId },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        // If no liked playlist exists, create it
+        if (!likedPlaylist) {
+          const createResponse = await axios.post(
+            "http://localhost:3000/user/create_playlist",
+            { name: "Bài hát đã thích" },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          );
+          likedPlaylist = createResponse.data.playlist;
+        }
+
+        // Add song to playlist
+        await axios.post(
+          "http://localhost:3000/user/playlist/add_song",
+          {
+            playlistID: likedPlaylist._id,
+            songID: songResponse.data.song._id,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        setNotificationMessage("Đã thêm vào Bài hát đã thích");
+      } else {
+        // Remove from liked songs
+        // Get song details by Spotify ID first
+        const songDetails = await axios.get(
+          `http://localhost:3000/songs/by-spotify-id/${trackId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
+
+        if (!songDetails.data || !songDetails.data._id) {
+          throw new Error("Could not find song in database");
+        }
+
+        // Remove song from liked songs playlist
+        await axios.delete(
+          `http://localhost:3000/user/playlist/${likedPlaylist._id}/songs/${songDetails.data._id}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
+
+        setNotificationMessage("Đã xóa khỏi Bài hát đã thích");
+      }
+
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 2000);
+      window.dispatchEvent(new Event("playlistsUpdated"));
+    } catch (error) {
+      console.error("Error toggling like:", error);
+      // Revert UI state if operation failed
+      setLikedTracks((prev) => ({
+        ...prev,
+        [trackId]: !prev[trackId],
+      }));
+    }
+  };
+
+  const handleFollowArtist = async () => {
+    try {
+      const token = localStorage.getItem("access_token");
+      if (!token) {
+        alert("Please login first to follow/unfollow artist");
+        return;
+      }
+
+      // Get existing playlists before toggling UI state
+      const playlistsResponse = await axios.get(
+        "http://localhost:3000/user/get_playlists",
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
-      // Show notification
-      setNotificationMessage(`Đã theo dõi ${artist.name}`);
+      const existingPlaylist = playlistsResponse.data.playlists.find(
+        (playlist) => playlist.type === "artist" && playlist.artistId === id,
+      );
+
+      if (existingPlaylist) {
+        try {
+          // Unfollow artist
+          await Promise.all([
+            // Delete the playlist
+            axios.delete(
+              `http://localhost:3000/user/playlist/${existingPlaylist._id}`,
+              {
+                headers: { Authorization: `Bearer ${token}` },
+              },
+            ),
+            // Unfollow the artist
+            axios.delete("http://localhost:3000/user/artists/unfollow", {
+              headers: { Authorization: `Bearer ${token}` },
+              data: { artistId: id },
+            }),
+          ]);
+
+          // Update UI state after successful unfollow
+          setIsFollowed(false);
+          setNotificationMessage(`Đã bỏ theo dõi ${artist.name}`);
+        } catch (error) {
+          console.error("Error unfollowing:", error);
+          throw error; // Propagate error to main catch block
+        }
+      } else {
+        try {
+          // Follow artist
+          await axios.post(
+            "http://localhost:3000/user/create_playlist",
+            {
+              name: artist.name,
+              thumbnail: artist.images[0]?.url,
+              type: "artist",
+              artistId: id,
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          );
+
+          // Update UI state after successful follow
+          setIsFollowed(true);
+          setNotificationMessage(`Đã theo dõi ${artist.name}`);
+        } catch (error) {
+          console.error("Error following:", error);
+          throw error; // Propagate error to main catch block
+        }
+      }
+
+      // Show notification and refresh sidebar
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 2000);
-      window.dispatchEvent(new Event('playlistsUpdated'));
-    }
-  } catch (error) {
-    console.error("Error following/unfollowing artist:", error);
-    if (error.response) {
-      console.log("Error response:", error.response.data);
-    }
-    alert("Failed to follow/unfollow artist");
-  }
-};
 
+      // Force refresh of playlists in sidebar
+      await refreshPlaylists(); // If you have this function
+      window.dispatchEvent(new Event("playlistsUpdated"));
+    } catch (error) {
+      console.error("Error following/unfollowing artist:", error);
+      // Revert UI state
+      setIsFollowed((prev) => !prev);
+      // alert("Failed to follow/unfollow artist. Please try again.");
+      window.dispatchEvent(new Event("playlistsUpdated"));
+    }
+  };
 
-  
   if (error) return <div>{error}</div>;
   if (!artist) return <div></div>;
 
@@ -258,7 +393,7 @@ const handleFollowArtist = async () => {
         <div className="z-10">
           <div className="flex items-center">
             <img
-              className="w-7 h-7 opacity-100 mr-2"
+              className="mr-2 h-7 w-7 opacity-100"
               src={assets.verified_icon}
               alt=""
             />
@@ -287,10 +422,13 @@ const handleFollowArtist = async () => {
             />
           </div>
 
-          <button 
+          <button
             onClick={handleFollowArtist}
-            className="flex h-4 cursor-pointer items-center justify-center rounded-3xl border-2 border-solid p-4 opacity-70 transition-all hover:opacity-100">
-            Theo dõi
+            className={`flex h-4 cursor-pointer items-center justify-center rounded-3xl border-2 border-solid p-4 opacity-70 transition-all hover:opacity-100 ${
+              isFollowed ? "border-[#1ed760] bg-[#1ed760] text-black" : ""
+            }`}
+          >
+            {isFollowed ? "Đã theo dõi" : "Theo dõi"}
           </button>
         </div>
 
@@ -302,31 +440,59 @@ const handleFollowArtist = async () => {
               topTracks.map((track, index) => (
                 <div
                   key={track.id}
-                  className="grid grid-cols-[0.1fr_auto_1fr_0.05fr_0.1fr] gap-4 items-center pr-4 py-2 hover:bg-[#ffffff26] transition-colors duration-200 rounded"
+                  className="group grid grid-cols-[0.1fr_auto_2fr_0.1fr_auto_auto] items-center gap-4 rounded py-2 pr-4 transition-colors duration-200 hover:bg-[#ffffff26]"
                 >
-                  <p className="text-gray-400 w-full text-right">{index + 1}</p> {/* Index */}
+                  <p className="w-full text-right text-gray-400">{index + 1}</p>{" "}
+                  {/* Index */}
                   <img
-                    className="w-12 h-12 rounded"
+                    className="h-12 w-12 rounded"
                     src={track.album.images[0]?.url}
                     alt={track.name}
-                  /> {/* Image */}
+                  />{" "}
+                  {/* Image */}
                   <div className="overflow-hidden">
-                    <p className="font-medium truncate">{track.name}</p> {/* Track Name */}
-                    <p className="text-slate-200 text-sm opacity-60">{track.artists.map(artist => artist.name).join(', ')}</p> {/* Artists */}
+                    <p className="truncate font-medium">{track.name}</p>{" "}
+                    {/* Track Name */}
+                    <p className="text-sm text-slate-200 opacity-60">
+                      {track.artists.map((artist) => artist.name).join(", ")}
+                    </p>{" "}
+                    {/* Artists */}
                   </div>
-                  <img
-                    className={`w-4 h-4 cursor-pointer opacity-70 hover:opacity-100 transition-colors duration-200 ${
-                      likedTracks[track.id] ? 'text-green-500' : 'text-gray-400'
-                    }`}
-                    src={assets.like_icon}
-                    alt="Like"
+                  <div className="opacity-0 transition-all hover:scale-105 group-hover:opacity-100">
+                    <img
+                      className="h-4 w-4 cursor-pointer opacity-70 transition-colors duration-200 hover:opacity-100"
+                      src={
+                        likedTracks[track.id]
+                          ? assets.liked_icon
+                          : assets.like_icon
+                      }
+                      alt="Like"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleLikeClick(track.id);
+                      }}
+                    />{" "}
+                  </div>
+                  {/* Like Icon */}
+                  <p className="text-sm text-gray-400">
+                    {formatDuration(track.duration_ms)}
+                  </p>{" "}
+                  {/* Duration */}
+                  <button
                     onClick={(e) => {
-                      e.stopPropagation(); // Prevent track from playing when clicking like
-                      handleLikeClick(track.id);
+                      e.stopPropagation();
+                      setSelectedTrackId(track.id);
+                      setShowPlaylistPopup(true);
+                      fetchUserPlaylists();
                     }}
-                  /> {/* Like Icon */}
-                  <p className="text-gray-400 text-sm">{formatDuration(track.duration_ms)}</p> {/* Duration */}
-                  
+                    className="rounded-full bg-transparent py-1 pl-1 pr-4 text-sm text-white opacity-0 transition-all hover:scale-105 group-hover:opacity-100"
+                  >
+                    <img
+                      className="h-4 w-4 cursor-pointer rounded-[30px] opacity-70 transition-all hover:opacity-100"
+                      src={assets.more_icon}
+                      alt=""
+                    />
+                  </button>
                 </div>
               ))}
           </div>
@@ -335,7 +501,7 @@ const handleFollowArtist = async () => {
         {/* Albums Section */}
         <section className="relative z-10 mb-8">
           <h2 className="mb-4 text-xl font-bold">Danh sách đĩa nhạc</h2>
-          <div className="grid grid-flow-col auto-cols-[200px] gap-4 overflow-x-auto album-scrollbar">
+          <div className="album-scrollbar grid auto-cols-[200px] grid-flow-col gap-4 overflow-x-auto">
             {Array.isArray(albums) &&
               albums.map((album) => (
                 <AlbumItem
@@ -353,7 +519,10 @@ const handleFollowArtist = async () => {
         {/* About Section */}
         <section className="relative z-10 mb-8">
           <h2 className="mb-4 text-xl font-bold">Giới thiệu</h2>
-          <div className="relative h-[60vh] cursor-pointer" onClick={togglePopup}>
+          <div
+            className="relative h-[60vh] cursor-pointer"
+            onClick={togglePopup}
+          >
             <div
               className="absolute inset-0 z-0"
               style={{
@@ -380,6 +549,14 @@ const handleFollowArtist = async () => {
           <Notification message={notificationMessage} />
         </>
       )}
+      <PlaylistPopup
+        isOpen={showPlaylistPopup}
+        onClose={() => setShowPlaylistPopup(false)}
+        trackId={selectedTrackId}
+        playlists={userPlaylists}
+        setShowNotification={setShowNotification}
+        setNotificationMessage={setNotificationMessage}
+      />
     </div>
   );
 };
