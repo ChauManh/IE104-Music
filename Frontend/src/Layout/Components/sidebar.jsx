@@ -75,9 +75,6 @@ const Sidebar = () => {
       const token = localStorage.getItem("access_token");
       const user = localStorage.getItem("user");
 
-      console.log("Token:", token); // Debug log
-      console.log("User:", user); // Debug log
-
       if (token && user) {
         setIsLoggedIn(true);
         try {
@@ -87,7 +84,7 @@ const Sidebar = () => {
               headers: {
                 Authorization: `Bearer ${token}`,
               },
-            },
+            }
           );
 
           if (response.data.playlists) {
@@ -95,7 +92,6 @@ const Sidebar = () => {
           }
         } catch (error) {
           console.error("Error fetching playlists:", error);
-          // If we get a 401 error, the token is invalid
           if (error.response?.status === 401) {
             localStorage.removeItem("access_token");
             localStorage.removeItem("user");
@@ -108,17 +104,19 @@ const Sidebar = () => {
       }
     };
 
+    // Initial fetch
     checkLoginAndFetchPlaylists();
 
+    // Add event listeners
     const handlePlaylistsUpdate = () => {
       checkLoginAndFetchPlaylists();
     };
 
     window.addEventListener('playlistsUpdated', handlePlaylistsUpdate);
 
+    // Cleanup
     return () => {
-      window.removeEventListener("playlistsUpdated", handlePlaylistsUpdate);
-      window.removeEventListener("storage", checkLoginAndFetchPlaylists);
+      window.removeEventListener('playlistsUpdated', handlePlaylistsUpdate);
     };
   }, []);
   

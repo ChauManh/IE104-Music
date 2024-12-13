@@ -327,12 +327,13 @@ const PlaylistPage = () => {
 
   const handleRemoveSong = async (songId) => {
     try {
-        const token = localStorage.getItem("access_token");
-        if (!token) {
-            throw new Error("No access token found");
-        }
-
-      const response = await axios.delete(
+      const token = localStorage.getItem("access_token");
+      if (!token) {
+        throw new Error("No access token found");
+      }
+  
+      // Delete song from playlist using the correct API endpoint
+      await axios.delete(
         `http://localhost:3000/user/playlist/${id}/songs/${songId}`,
         {
           headers: {
@@ -340,19 +341,22 @@ const PlaylistPage = () => {
           },
         }
       );
-
-      if (response.data.message === "Song removed from playlist successfully.") {
-        setPlaylistSongs((prev) => prev.filter((song) => song._id !== songId));
-        setShowNotification(true);
-        setTimeout(() => setShowNotification(false), 2000);
-      }
+  
+      // Update UI by removing the song from the local state
+      setPlaylistSongs((prev) => prev.filter((song) => song._id !== songId));
+      
+      // Show success notification
+      setNotificationMessage("Đã xóa bài hát khỏi playlist");
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 2000);
+  
+      // Refresh playlists in sidebar
+      window.dispatchEvent(new Event("playlistsUpdated"));
     } catch (error) {
       console.error("Error removing song:", error);
-      alert(
-        error.response?.data?.message || "Không thể xóa bài hát khỏi playlist"
-      );
+      alert("Không thể xóa bài hát khỏi playlist");
     }
-};
+  };
 
   const handleThumbnailUpload = async (e) => {
     const file = e.target.files[0];
@@ -853,6 +857,7 @@ const PlaylistPage = () => {
       description: playlistData?.description || "",
     });
     setShowEditDialog(true);
+    window.dispatchEvent(new Event("playlistsUpdated"));
   };
 
   return (
@@ -936,11 +941,8 @@ const PlaylistPage = () => {
                   className="flex h-14 w-14 items-center justify-center rounded-full bg-[#1ed760] hover:scale-105 hover:bg-[#1fdf64]"
                   onClick={() => handlePlayAll()}
                 >
-                  <img className="h-8 w-8" src={assets.play_icon} alt="Play" />
+                  <img className="h-5 w-5" src={assets.play_icon} alt="Play" />
                 </button>
-            <button className="flex h-8 items-center justify-center rounded-full border-[1px] border-white px-4 opacity-70 hover:opacity-100">
-              Follow
-            </button>
           </div>
         </div>
   
@@ -984,7 +986,7 @@ const PlaylistPage = () => {
                         className="h-10 w-10 rounded"
                       />
                       <div className="flex flex-col overflow-hidden">
-                        <span className="max-w-[200px] truncate text-white sm:max-w-[300px] md:max-w-[450px]">
+                        <span className="max-w-[200px] truncate text-white sm:max-w-[300px] md:max-w-[180px]">
                           {song.title}
                         </span>
                         <span className="truncate text-[#b3b3b3]">
@@ -992,7 +994,7 @@ const PlaylistPage = () => {
                         </span>
                       </div>
                     </div>
-                    <span className="hidden items-center overflow-hidden truncate text-[#b3b3b3] sm:flex">
+                    <span className=" items-center overflow-hidden truncate text-[#b3b3b3] sm:flex md:max-w-[160px]">
                       {song.album || "Unknown Album"}
                     </span>
                     <span className="hidden items-center text-[#b3b3b3] md:flex">
@@ -1006,7 +1008,7 @@ const PlaylistPage = () => {
                         e.stopPropagation();
                         handleRemoveSong(song._id);
                       }}
-                      className="rounded-full border border-white bg-transparent px-4 py-1 text-sm text-white opacity-0 transition-all hover:scale-105 group-hover:opacity-100"
+                      className="rounded-full border border-white bg-transparent px-2 py-1 text-sm text-white opacity-0 transition-all hover:scale-105 group-hover:opacity-100"
                     >
                       Xóa
                     </button>
@@ -1041,7 +1043,7 @@ const PlaylistPage = () => {
         </div>
       </div>
       {showNotification && (
-        <Notification message={`Đã thêm vào ${playlistData?.name}`} />
+        <Notification message={notificationMessage} />
       )}
       {showEditDialog && (
         <EditPlaylistDialog

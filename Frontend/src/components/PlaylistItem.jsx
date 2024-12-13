@@ -18,28 +18,47 @@ const PlaylistItem = ({ playlist }) => {
 
   const handleDelete = async (e) => {
     e.stopPropagation();
-    if (window.confirm('Are you sure you want to delete this?')) {
+    {
       try {
         const token = localStorage.getItem('access_token');
         if (!token) throw new Error('No access token found');
 
         if (playlist.type === 'artist') {
-          await axios.delete(
-            `http://localhost:3000/user/artists/unfollow`,
-            {
-              headers: { Authorization: `Bearer ${token}` },
-              data: { artistId: playlist.artistId }
-            }
-          );
+          // Delete artist playlist and unfollow artist
+          await Promise.all([
+            axios.delete(
+              `http://localhost:3000/user/playlist/${playlist._id}`,
+              {
+                headers: { Authorization: `Bearer ${token}` }
+              }
+            ),
+            axios.delete(
+              `http://localhost:3000/user/artists/unfollow`,
+              {
+                headers: { Authorization: `Bearer ${token}` },
+                data: { artistId: playlist.artistId }
+              }
+            )
+          ]);
         } else if (playlist.type === 'album') {
-          await axios.delete(
-            `http://localhost:3000/user/albums/remove`,
-            {
-              headers: { Authorization: `Bearer ${token}` },
-              data: { albumId: playlist.albumId }
-            }
-          );
+          // Delete album playlist and remove from library
+          await Promise.all([
+            axios.delete(
+              `http://localhost:3000/user/playlist/${playlist._id}`,
+              {
+                headers: { Authorization: `Bearer ${token}` }
+              }
+            ),
+            axios.delete(
+              `http://localhost:3000/user/albums/remove`,
+              {
+                headers: { Authorization: `Bearer ${token}` },
+                data: { albumId: playlist.albumId }
+              }
+            )
+          ]);
         } else {
+          // Regular playlist deletion
           await axios.delete(
             `http://localhost:3000/user/playlist/${playlist._id}`,
             {
@@ -52,7 +71,7 @@ const PlaylistItem = ({ playlist }) => {
         window.dispatchEvent(new Event('playlistsUpdated'));
       } catch (error) {
         console.error('Error deleting:', error);
-        alert('Failed to delete');
+        window.dispatchEvent(new Event("playlistsUpdated"));
       }
     }
   };

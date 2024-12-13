@@ -29,7 +29,7 @@ const BiggestHits = () => {
     <div className='mb-6 px-2 pb-2'>
       <h1 className='my-5 font-bold text-2xl'>Được đề xuất cho hôm nay</h1>
       <div className='grid grid-flow-col auto-cols-[200px] gap-2 overflow-x-auto album-scrollbar'>
-        {tracksData.length > 0 ? (
+        {tracksData?.length > 0 ? (
           tracksData.slice(0, 10).map((item, index) => (
             <SongItem2  
             key={index} 
