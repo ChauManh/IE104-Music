@@ -26,23 +26,6 @@ const PlayerContextProvider = ({ children }) => {
   const [volume, setVolume] = useState(0.2); // Mặc định là 20%
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  // const [queue, currentTrackIndex] = useQueue();
-
-  // const next = () => {
-  //   const nextTrack = queue[currentTrackIndex];
-  //   console.log(nextTrack);
-  //   setTrack(nextTrack);
-  //   playWithUri(nextTrack.uri);
-  // }
-  // useTokenRefresh((newToken) => {
-  //   console.log("Token refreshed and callback triggered:", newToken);
-  //   setToken(newToken); // Cập nhật token vào state
-  //   if (player) {
-  //     player.setOAuthToken((cb) => cb(newToken)); // Cập nhật token cho player
-  //     console.log("Player token đã được cập nhật:", newToken);
-  //   }
-  // });
-  
 
   useEffect(() => {
     const getAccessToken = async () => {
@@ -126,7 +109,6 @@ const PlayerContextProvider = ({ children }) => {
       console.log("Resumed!");
     });
     setPlayStatus(true);
-    getQueueState();
   };
 
   const pause = () => {
@@ -134,7 +116,6 @@ const PlayerContextProvider = ({ children }) => {
       console.log("Paused!");
     });
     setPlayStatus(false);
-    getQueueState();
   };
 
   const playWithUri = async (uri) => {
@@ -216,58 +197,32 @@ const PlayerContextProvider = ({ children }) => {
     setCurrentTime(newTime);
   };
 
-  const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
   const addTrackToQueue = async (trackUri) => {
     try {
         const response = await axios.post(
         `https://api.spotify.com/v1/me/player/queue`,      
          null,
         {
-          params: { uri: trackUri },
+          params: { 
+            uri: trackUri,
+            device_id: deviceId, // Sử dụng deviceId hiện tại
+          },  
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-      console.log(`Track ${trackUri} added to queue successfully`);
     } catch (error) {
       console.error("Error setting playback queue:", error);
     }
   };
 
-  const addTracksToQueue = async (queue) => {
-    for (let i = 0; i < queue.length; i++) {
-      await addTrackToQueue(queue[i].uri); // Gửi request
-      await delay(500); // Thêm delay 500ms giữa các request
-    }
-  };
-
-  const getQueueState = () => {
-    player.getCurrentState().then(state => {
-      if (!state) {
-        console.error('User is not playing music through the Web Playback SDK');
-        return;
-      }
-    
-      var current_track = state.track_window.current_track;
-      var next_track = state.track_window.next_tracks;
-    
-      console.log('Currently Playing', current_track);
-      console.log('Playing Next', next_track);
-    });
-  };
-
-  const nextTrack = () => {
-    player.nextTrack().then(() => {
-      console.log('Skipped to next track!');
-    });
+  const nextTrack = (trackUri) => {
+    playWithUri(trackUri);
   }
 
-  const previousTrack = () => {
-    player.previousTrack().then(() => {
-      console.log('Skipped to previous track!');
-    });
+  const previousTrack = (trackUri) => {
+    playWithUri(trackUri);
   }
 
   const contextValue = {
@@ -291,10 +246,9 @@ const PlayerContextProvider = ({ children }) => {
     currentTime,
     duration, 
     handleTimeClick,
-    addTracksToQueue,
+    addTrackToQueue,
     nextTrack,
     previousTrack
-    // next,
   };
 
   // if (!isDeviceReady) {

@@ -38,17 +38,15 @@ const handleDeletePlaylist = async (e) => {
   };
 
 const PlaylistPage = () => {
-  // const { isVisible, queue, currentTrackIndex, setQueue, moveToTop, setCurrentTrackIndex } = useQueue();
   const { id } = useParams();
 
   // If this is the liked songs playlist, render the LikedSongsPlaylist component
   if (id === "liked") {
     return <LikedSongsPlaylist token={token} />;
   }
-  const { isVisible, queue, currentTrackIndex, setQueue, moveToTop } = useQueue();
-
+  const { setQueue } = useQueue();
   const navigate = useNavigate();
-  const { playWithUri, track, setTrack, addTracksToQueue } = useContext(PlayerContext);
+  const { playWithUri, setTrack, addTrackToQueue } = useContext(PlayerContext);
   const [dominantColor, setDominantColor] = useState("#333333");
   const [secondaryColor, setSecondaryColor] = useState("#121212");
   const [playlistData, setPlaylistData] = useState(null);
@@ -67,7 +65,6 @@ const PlaylistPage = () => {
   const [selectedAlbum, setSelectedAlbum] = useState(null);
   const [albumTracks, setAlbumTracks] = useState([]);
   const [playlistSongs, setPlaylistSongs] = useState([]);
-  // const [playlistSongsByIdSpotify, setPlaylistSongsByIdSpotify] = useState([]);
   const [showNotification, setShowNotification] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -84,40 +81,25 @@ const PlaylistPage = () => {
     return trackData;
   }
 
-  const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
   const handlePlayAll = async () => {
     if (!playlistSongs || playlistSongs.length === 0) {
       alert("No songs in the playlist");
       return;
     }
-    // console.log("playlistSongs", playlistSongsByIdSpotify);
     const trackData = await getTrackBySongId(playlistSongs[0]._id);
     setTrack(trackData);
-    playWithUri(trackData.uri);
-    // setTrack()
-    // Xóa queue cũ và thêm playlist mới
-    setQueue("");
-    // Thêm bài hát được click và các bài hát sau nó vào queue
-    setQueue((prevQueue) => [
-      ...prevQueue, // Các bài hát trước đó (nếu có)
-      ...playlistSongs.slice(0).map((item) => ({
-        id: item.spotifyId,
+    const newQueue = playlistSongs.slice(1).map((item) => ({
+      id: item.spotifyId,
       name: item.title,
       album: item.album,
       image: item.image,
       singer: item.artistName,
       duration: item.duration_ms,
-      uri: item.uri, // Nếu có URI bài hát
-      })),
-      
-    ]);
-    await delay(500);
-    console.log("playlistSongs", playlistSongs);
-    for (let i = 1; i < playlistSongs.length; i++) {
-      await addTracksToQueue(playlistSongs);
-      await delay(500);
-    }  
+      uri: item.uri, 
+    }));
+    setQueue(newQueue);    
+    addTrackToQueue(newQueue[0].uri); 
+    playWithUri(trackData.uri);
   };
 
   const handleTrackClick = async (song, index) => {
@@ -133,8 +115,7 @@ const PlaylistPage = () => {
       uri: item.uri, 
     }));
     setQueue(newQueue);    
-    await delay(500); // tránh bị lỗi
-    addTracksToQueue(newQueue);
+    addTrackToQueue(newQueue[0].uri); 
     playWithUri(trackData.uri);
   };
 

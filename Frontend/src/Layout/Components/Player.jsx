@@ -10,30 +10,43 @@ const formatTime = (minutes, seconds) => {
 const Player = () => {
     const { 
         track, 
+        setTrack,
         playStatus, 
         play, 
         pause, 
         previousTrack, 
         nextTrack, 
-        repeatStatus, // Lấy trạng thái repeat từ context
-        toggleRepeat, // Lấy hàm toggleRepeat từ context
+        repeatStatus,
+        toggleRepeat, 
         volume,
         changeVolume,
         currentTime,
         duration, 
         handleTimeClick,
+        addTrackToQueue
     } = useContext(PlayerContext);
 
-    const { setTrack } = useContext(PlayerContext);
-    const { toggleQueue, moveToNext, moveToPrevious, moveToTop, setQueue, queue } = useQueue();
+    const { toggleQueue, moveToNext, moveToPrevious, queue, previousTracks, setPreviousTracks } = useQueue();
       
-    const handleNext = () => {
-        nextTrack();
-      };
+    const handleNext = async () => {
+        if (queue.length === 0) return;
+        setPreviousTracks((prev) => [...prev, track]);
+        console.log("list", previousTracks)
+        const trackData = queue[0];
+        setTrack(trackData);
+        nextTrack(trackData.uri);
+        await moveToNext();
+        addTrackToQueue(queue[0].uri); 
+    };
 
     const handlePrevious = () => {
+        if (previousTracks.length === 0) return;
+        const trackData = previousTracks[previousTracks.length - 1];
+        setPreviousTracks(previousTracks.slice(0, -1));
+        setTrack(trackData);
         moveToPrevious();
-        previousTrack();
+        previousTrack(trackData.uri);
+        addTrackToQueue(queue[0].uri); 
     };
 
     

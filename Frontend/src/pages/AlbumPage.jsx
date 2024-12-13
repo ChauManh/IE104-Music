@@ -10,8 +10,8 @@ import { useQueue } from '../context/QueueContext';
 
 
 const AlbumPage = () => {
-  const { isVisible, queue, currentTrackIndex, setQueue, moveToTop } = useQueue();
-  const { track, setTrack, playWithUri } = useContext(PlayerContext); // Lấy playWithUri từ context
+  const { setQueue } = useQueue();
+  const { playWithUri, setTrack, addTrackToQueue } = useContext(PlayerContext);
   const { id } = useParams();
   const location = useLocation();
   const [artist, setArtist] = useState(null);
@@ -33,7 +33,10 @@ const AlbumPage = () => {
   );
 
   const handlePlayAll = async () => {
-    // console.log("playlistSongs", playlistSongsByIdSpotify);
+    if (!albumTracks || albumTracks.length === 0) {
+      alert("No songs in the playlist");
+      return;
+    }
     setTrack({
       id: albumTracks[0].id,
       name: albumTracks[0].name,
@@ -43,27 +46,21 @@ const AlbumPage = () => {
       duration: albumTracks[0].duration,
       uri: albumTracks[0].uri, // Nếu có URI bài hát
     });
-
-    setQueue("");
-    // Thêm bài hát được click và các bài hát sau nó vào queue
-    setQueue((prevQueue) => [
-      ...prevQueue, // Các bài hát trước đó (nếu có)
-      ...albumTracks.slice(0).map((item) => ({
+    const newQueue = albumTracks.slice(1).map((item) => ({
         id: item.id,
         name: item.name,
         album: album.name,
         image: album.images[0]?.url,
         singer: item.singers.join(", "),
         duration: item.duration,
-        uri: item.uri, // URI bài hát từ album
-      })),
-    ]);
-    
-    // Phát bài hát (nếu cần)
-    playWithUri(track.uri);
+        uri: item.uri, 
+    }));
+    setQueue(newQueue);    
+    addTrackToQueue(newQueue[0].uri); 
+    playWithUri(albumTracks[0].uri);
   }
 
-  const handleTrackClick = (track) => {
+  const handleTrackClick = (track, index) => {
     setTrack({
       id: track.id,
       name: track.name,
@@ -73,24 +70,17 @@ const AlbumPage = () => {
       duration: track.duration,
       uri: track.uri, // Nếu có URI bài hát
     });
-
-    const trackIndex = albumTracks.findIndex((t) => t.id === track.id);
-    setQueue("");
-    // Thêm bài hát được click và các bài hát sau nó vào queue
-    setQueue((prevQueue) => [
-      ...prevQueue, // Các bài hát trước đó (nếu có)
-      ...albumTracks.slice(trackIndex).map((item) => ({
+    const newQueue = albumTracks.slice(index + 1).map((item) => ({
         id: item.id,
         name: item.name,
         album: album.name,
         image: album.images[0]?.url,
         singer: item.singers.join(", "),
         duration: item.duration,
-        uri: item.uri, // URI bài hát từ album
-      })),
-    ]);
-    
-    // Phát bài hát (nếu cần)
+        uri: item.uri, 
+    }));
+    setQueue(newQueue);    
+    addTrackToQueue(newQueue[0].uri); 
     playWithUri(track.uri);
   };
   
@@ -298,7 +288,7 @@ const AlbumPage = () => {
         {Array.isArray(albumTracks) &&
           albumTracks.map((track, index) => (
             <div
-              onClick={() => handleTrackClick(track)}
+              onClick={() => handleTrackClick(track, index)}
               key={index}
               className="grid cursor-pointer grid-cols-[auto_1fr_auto] items-center gap-2 rounded-s p-2 text-[#a7a7a7] hover:bg-[#ffffff2b] rounded"
             >

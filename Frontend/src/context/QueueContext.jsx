@@ -1,11 +1,10 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { PlayerContext } from './PlayerContext';
 const QueueContext = createContext();
 
 export const QueueProvider = ({ children }) => {
   const [isVisible, setIsVisible] = useState(true);
   const [queue, setQueue] = useState([]);
-  const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
+  const [previousTracks, setPreviousTracks] = useState([]);
 
   const toggleQueue = () => {
     setIsVisible(prev => !prev);
@@ -17,23 +16,13 @@ export const QueueProvider = ({ children }) => {
   };
 
   const moveToNext = () => {
-    if (currentTrackIndex < queue.length - 1) {
-      setCurrentTrackIndex((prevIndex) => prevIndex + 1);
-    }
+    if (queue.length > 0) {
+      const newQueue = queue.slice(1);
+      setQueue(newQueue);
+    } else return;
   };
-
-  useEffect(() => {
-    console.log("Updated CurrentTrackIndex:", currentTrackIndex);
-    if (queue[currentTrackIndex]) {
-      console.log("Next Track:", queue[currentTrackIndex]);
-    }
-  }, [currentTrackIndex]);
   
-  const moveToPrevious = () => {
-    if (currentTrackIndex > 0) {
-      setCurrentTrackIndex((prevIndex) => prevIndex - 1);
-    }
-  };
+  const moveToPrevious = () => {};
 
   return (
     <QueueContext.Provider value={{ 
@@ -41,11 +30,11 @@ export const QueueProvider = ({ children }) => {
       queue, 
       setQueue, 
       toggleQueue, 
-      currentTrackIndex,
-      setCurrentTrackIndex,
       moveToTop,
       moveToNext,
       moveToPrevious,
+      previousTracks,
+      setPreviousTracks
     }}>
       {children}
     </QueueContext.Provider>
