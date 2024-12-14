@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
-import SongItem from "./SongItem3";
 import ArtistItem from "./ArtistItem";
 import AlbumItem from "./AlbumItem";
-import { useNavigate } from "react-router-dom";
 import { assets } from "../assets/assets";
 import PlaylistPopup from "./PlaylistPopup";
 import axios from "axios";
@@ -67,21 +65,27 @@ const Search = ({ results, query, onArtistClick, onAlbumClick }) => {
 
 // Top Result Section remains the same
 const TopResultSection = ({ result }) => {
-  const navigate = useNavigate();
+  const { setTrack, playWithUri } = useContext(PlayerContext);
 
   if (!result) return null;
 
-  const handleTrackClick = (trackId) => {
-    if (result.type === "track") {
-      navigate(`/track/${trackId}`);
-    }
+  const handleTrackClick = (track) => {
+    setTrack({
+      id: track.id,
+      name: track.name,
+      image: track.album.images[0]?.url,
+      singer: track.artists[0].name,
+      duration: track.duration_ms,
+      uri: track.uri,
+    });
+    playWithUri(track.uri);
   };
 
   return (
     <section>
       <h2 className="mb-4 text-xl font-bold">Kết quả hàng đầu</h2>
       <div
-        onClick={() => handleTrackClick(result.id)}
+        onClick={() => handleTrackClick(result)}
         className="cursor-pointer rounded-lg bg-[#181818] p-5 transition-colors hover:bg-[#282828]"
       >
         <img
@@ -154,7 +158,14 @@ const SongsSection = ({ tracks }) => {
 
   const handleTrackClick = (track) => {
     console.log(track)
-    setTrack(track);
+    setTrack({
+      id: track.id,
+      name: track.name,
+      image: track.album.images[0]?.url,
+      singer: track.artists[0].name,
+      duration: track.duration_ms,
+      uri: track.uri,
+    });
     playWithUri(track.uri);
   }
 
@@ -270,7 +281,7 @@ const SongsSection = ({ tracks }) => {
       <div className="flex flex-col gap-2">
         {tracks.slice(0, 4).map((track) => (
           <div
-            // onClick={handleTrackClick(track)}
+          onClick={() => handleTrackClick(track)}
             key={track.id}
             className="group flex items-center justify-between gap-4 rounded-md p-2 hover:bg-[#ffffff1a] cursor-pointer"
           >
