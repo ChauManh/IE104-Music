@@ -77,8 +77,8 @@ const PlaylistItem = ({ playlist }) => {
   };
 
   return (
-    <div className="group flex justify-between items-center p-2 hover:bg-[#ffffff1a] rounded cursor-pointer">
-      <div className="flex items-center gap-3" onClick={handleClick}>
+    <div className="group flex justify-between items-center p-2 hover:bg-[#ffffff1a] rounded cursor-pointer" onClick={handleClick}>
+      <div className="flex items-center gap-2" >
         <div className="relative h-10 w-10 bg-white opacity-90 rounded-3xl">
           <img
             src={playlist.thumbnail || assets.music_icon}
@@ -86,8 +86,8 @@ const PlaylistItem = ({ playlist }) => {
             className="h-full w-full rounded-3xl object-cover"
           />
         </div>
-        <div className="flex flex-col">
-          <p className="font-medium text-white truncate max-w-48">{playlist.name}</p>
+        <div className="flex flex-col" >
+          <p className="font-medium text-white truncate md:max-w-[185px]">{playlist.name}</p>
           <p className="text-sm text-[#b3b3b3]">
             {playlist.type === 'artist' ? 'Nghệ sĩ' : 
              playlist.type === 'album' ? 'Album' : 

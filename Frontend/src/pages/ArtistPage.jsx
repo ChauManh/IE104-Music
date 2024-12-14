@@ -133,30 +133,28 @@ const ArtistPage = () => {
       try {
         const token = localStorage.getItem("access_token");
         if (!token) return;
-
+  
         const response = await axios.get(
           "http://localhost:3000/user/get_playlists",
           {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          },
+          }
         );
-
-        // Find "Bài hát đã thích" playlist
+  
         const likedPlaylist = response.data.playlists.find(
-          (playlist) => playlist.name === "Bài hát đã thích",
+          playlist => playlist.name === "Bài hát đã thích"
         );
-
+  
         if (likedPlaylist && likedPlaylist.songs) {
-          // Create a map of track IDs to their liked status
           const trackMap = {};
           for (const songId of likedPlaylist.songs) {
             const songDetails = await axios.get(
               `http://localhost:3000/songs/${songId}`,
               {
-                headers: { Authorization: `Bearer ${token}` },
-              },
+                headers: { Authorization: `Bearer ${token}` }
+              }
             );
             if (songDetails.data.spotifyId) {
               trackMap[songDetails.data.spotifyId] = true;
@@ -168,7 +166,7 @@ const ArtistPage = () => {
         console.error("Error checking liked tracks:", error);
       }
     };
-
+  
     checkLikedTracks();
   }, []);
 
@@ -185,13 +183,13 @@ const ArtistPage = () => {
         alert("Please login first");
         return;
       }
-
-      // Toggle like status in UI immediately for better UX
-      setLikedTracks((prev) => ({
+  
+      // Toggle like status in UI immediately
+      setLikedTracks(prev => ({
         ...prev,
-        [trackId]: !prev[trackId],
+        [trackId]: !prev[trackId]
       }));
-
+  
       // Get liked songs playlist
       const playlistsResponse = await axios.get(
         "http://localhost:3000/user/get_playlists",
@@ -199,13 +197,13 @@ const ArtistPage = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        },
+        }
       );
-
+  
       let likedPlaylist = playlistsResponse.data.playlists.find(
-        (playlist) => playlist.name === "Bài hát đã thích",
+        playlist => playlist.name === "Bài hát đã thích"
       );
-
+  
       if (!likedTracks[trackId]) {
         // Add to liked songs
         const songResponse = await axios.post(
@@ -215,10 +213,10 @@ const ArtistPage = () => {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          },
+          }
         );
-
-        // If no liked playlist exists, create it
+  
+        // Create liked playlist if it doesn't exist
         if (!likedPlaylist) {
           const createResponse = await axios.post(
             "http://localhost:3000/user/create_playlist",
@@ -227,11 +225,11 @@ const ArtistPage = () => {
               headers: {
                 Authorization: `Bearer ${token}`,
               },
-            },
+            }
           );
           likedPlaylist = createResponse.data.playlist;
         }
-
+  
         // Add song to playlist
         await axios.post(
           "http://localhost:3000/user/playlist/add_song",
@@ -243,44 +241,44 @@ const ArtistPage = () => {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          },
+          }
         );
-
+  
         setNotificationMessage("Đã thêm vào Bài hát đã thích");
       } else {
         // Remove from liked songs
-        // Get song details by Spotify ID first
+        // Get song by Spotify ID
         const songDetails = await axios.get(
           `http://localhost:3000/songs/by-spotify-id/${trackId}`,
           {
-            headers: { Authorization: `Bearer ${token}` },
-          },
+            headers: { Authorization: `Bearer ${token}` }
+          }
         );
-
+  
         if (!songDetails.data || !songDetails.data._id) {
-          throw new Error("Could not find song in database");
+          throw new Error('Could not find song in database');
         }
-
-        // Remove song from liked songs playlist
+  
+        // Use the same endpoint as PlaylistPage for removing songs
         await axios.delete(
           `http://localhost:3000/user/playlist/${likedPlaylist._id}/songs/${songDetails.data._id}`,
           {
-            headers: { Authorization: `Bearer ${token}` },
-          },
+            headers: { Authorization: `Bearer ${token}` }
+          }
         );
-
+  
         setNotificationMessage("Đã xóa khỏi Bài hát đã thích");
       }
-
+  
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 2000);
       window.dispatchEvent(new Event("playlistsUpdated"));
     } catch (error) {
       console.error("Error toggling like:", error);
       // Revert UI state if operation failed
-      setLikedTracks((prev) => ({
+      setLikedTracks(prev => ({
         ...prev,
-        [trackId]: !prev[trackId],
+        [trackId]: !prev[trackId]
       }));
     }
   };
