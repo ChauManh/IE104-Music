@@ -11,6 +11,9 @@ const SignupForm = () => {
     password: "",
     verifyPassword: "",
   });
+  const [showNotification, setShowNotification] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState('');
+  const [isError, setIsError] = useState(false);
 
   const onUpdateField = (e) => {
     const nextFormState = {
@@ -20,22 +23,70 @@ const SignupForm = () => {
     setForm(nextFormState);
   };
 
+  const validateForm = () => {
+    if (!form.email || !form.username || !form.password || !form.verifyPassword) {
+        setIsError(true);
+        setNotificationMessage("Vui lòng điền đầy đủ thông tin");
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 2000);
+        return false;
+    }
+
+    if (form.password.length < 6) {
+        setIsError(true);
+        setNotificationMessage("Mật khẩu phải có ít nhất 6 ký tự");
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 2000);
+        return false;
+    }
+
+    return true;
+};
+
   const handleSignUp = async (e) => {
     e.preventDefault();
-    // validate;
+    
+    if (!validateForm()) return;
+    
     if (form.password !== form.verifyPassword) {
-      alert("Passwords do not match");
-      return;
+        setIsError(true);
+        setNotificationMessage("Mật khẩu không khớp");
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 2000);
+        return;
     }
 
     try {
-      const res = await createUser(form.username, form.email, form.password);
-      alert(res.data.EM);
-      navigate('/'); // Navigate to home after successful signup
+        const res = await createUser(form.username, form.email, form.password);
+        
+        if (res.data.EC === 0) {
+            setIsError(false);
+            setNotificationMessage("Đăng ký thành công");
+            setShowNotification(true);
+            setTimeout(() => {
+                setShowNotification(false);
+                navigate('/signin');
+            }, 2000);
+        } else if (res.data.EC === 2) {
+            setIsError(true);
+            setNotificationMessage("Email đã được sử dụng");
+            setShowNotification(true);
+            setTimeout(() => setShowNotification(false), 2000);
+        } else if (res.data.EC === 3) {
+            setIsError(true);
+            setNotificationMessage("Tên tài khoản đã tồn tại");
+            setShowNotification(true);
+            setTimeout(() => setShowNotification(false), 2000);
+        }
     } catch (err) {
-      console.log(err);
-      alert(err.response?.data?.message);
-      return;
+        setIsError(true);
+        setNotificationMessage(
+            err.response?.data?.EM || 
+            err.response?.data?.message || 
+            "Đăng ký thất bại"
+        );
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 2000);
     }
   };
 
@@ -45,13 +96,30 @@ const SignupForm = () => {
       if (result && result.EC === 0) {
         localStorage.setItem("access_token", result.access_token);
         localStorage.setItem("user", JSON.stringify(result.user));
-        navigate("/");
+        setIsError(false);
+        setNotificationMessage("Đăng ký thành công");
+        setShowNotification(true);
+        setTimeout(() => {
+          setShowNotification(false);
+          navigate("/");
+        }, 2000);
       }
     } catch (error) {
       console.error("Google signup error:", error);
-      alert(error.message);
+      setIsError(true);
+      setNotificationMessage(error.message || "Đăng ký bằng Google thất bại");
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 2000);
     }
   };
+
+  const Notification = ({ message, isError }) => (
+    <div className="fixed bottom-24 left-1/2 z-50 -translate-x-1/2 transform">
+      <div className={`rounded-full ${isError ? 'bg-red-500' : 'bg-[#1ed760]'} px-4 py-2 text-center text-sm font-medium text-white shadow-lg`}>
+        <span>{message}</span>
+      </div>
+    </div>
+  );
 
   return (
     <div className="flex min-h-screen w-full flex-col items-center gap-4 bg-black py-8">
@@ -154,6 +222,10 @@ const SignupForm = () => {
           </p>
         </div>
       </section>
+
+      {showNotification && (
+        <Notification message={notificationMessage} isError={isError} />
+      )}
     </div>
   );
 };
