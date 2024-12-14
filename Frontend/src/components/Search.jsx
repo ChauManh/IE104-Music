@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import SongItem from "./SongItem3";
 import ArtistItem from "./ArtistItem";
 import AlbumItem from "./AlbumItem";
@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { assets } from "../assets/assets";
 import PlaylistPopup from "./PlaylistPopup";
 import axios from "axios";
+import { PlayerContext } from "../context/PlayerContext";
 
 const Search = ({ results, query, onArtistClick, onAlbumClick }) => {
   const topResult =
@@ -100,6 +101,7 @@ const TopResultSection = ({ result }) => {
 
 // Songs Section using SongItem
 const SongsSection = ({ tracks }) => {
+  const { playWithUri, setTrack } = useContext(PlayerContext);
   const [showPlaylistPopup, setShowPlaylistPopup] = useState(false);
   const [selectedTrackId, setSelectedTrackId] = useState(null);
   const [userPlaylists, setUserPlaylists] = useState([]);
@@ -149,6 +151,12 @@ const SongsSection = ({ tracks }) => {
 
     checkLikedTracks();
   }, []);
+
+  const handleTrackClick = (track) => {
+    console.log(track)
+    setTrack(track);
+    playWithUri(track.uri);
+  }
 
   // Handle like/unlike
   const handleLikeClick = async (trackId) => {
@@ -266,8 +274,9 @@ const SongsSection = ({ tracks }) => {
       <div className="flex flex-col gap-2">
         {tracks.slice(0, 4).map((track) => (
           <div
+            onClick={handleTrackClick(track)}
             key={track.id}
-            className="group flex items-center justify-between gap-4 rounded-md p-2 hover:bg-[#ffffff1a]"
+            className="group flex items-center justify-between gap-4 rounded-md p-2 hover:bg-[#ffffff1a] cursor-pointer"
           >
             <div className="flex items-center gap-4">
               <img

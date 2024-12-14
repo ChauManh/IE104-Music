@@ -7,13 +7,7 @@ import axios from "axios";
 import { useQueue } from "../context/QueueContext";
 import { getTrack } from "../util/trackApi";
 import { searchContent } from "../util/searchApi";
-import {
-  fetchPlaylistData,
-  addSongToPlaylist,
-  removeSongFromPlaylist,
-  updatePlaylistThumbnail,
-  getIdSpotifFromSongId,
-} from "../util/api";
+import { getIdSpotifFromSongId } from "../util/songApi";
 
 const handleDeletePlaylist = async (e) => {
   e.stopPropagation();
