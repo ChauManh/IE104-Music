@@ -22,12 +22,24 @@ const ProfilePage = () => {
     try {
       setIsLoading(true);
       const token = localStorage.getItem("access_token");
+      
+      // Update name first if changed
+      if (editForm.name !== userData?.name) {
+        await axios.put(
+          "http://localhost:3000/user/update_profile",
+          { name: editForm.name },
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
+      }
 
+      // Update avatar if new file selected
       if (editForm.avatar) {
         const formData = new FormData();
         formData.append("avatar", editForm.avatar);
 
-        const avatarResponse = await axios.put(
+        await axios.put(
           "http://localhost:3000/user/update_avatar",
           formData,
           {
@@ -35,41 +47,49 @@ const ProfilePage = () => {
               Authorization: `Bearer ${token}`,
               "Content-Type": "multipart/form-data",
             },
-          },
-        );
-
-        if (avatarResponse.data.success) {
-          // Update both local state and localStorage with complete user object
-          const updatedUser = avatarResponse.data.user;
-          setUserData(updatedUser); // This triggers a re-render
-          localStorage.setItem("user", JSON.stringify(updatedUser));
-
-          // Extract new color from updated avatar
-          if (updatedUser.avatar) {
-            extractColor(updatedUser.avatar);
           }
-
-          // Dispatch custom event for avatar update
-          window.dispatchEvent(new Event("avatarUpdated"));
-
-          // Fetch fresh user data to ensure everything is in sync
-          const userResponse = await axios.get(
-            "http://localhost:3000/user/profile",
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            },
-          );
-
-          setUserData(userResponse.data.user);
-        }
+        );
       }
 
+      // Fetch updated user data
+      const userResponse = await axios.get(
+        "http://localhost:3000/user/profile",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      // Update local state and storage
+      const updatedUser = userResponse.data.user;
+      setUserData(updatedUser);
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+
+      // Update color if avatar changed
+      if (updatedUser.avatar) {
+        extractColor(updatedUser.avatar);
+      }
+
+      // Trigger avatar update in other components
+      window.dispatchEvent(new Event("avatarUpdated"));
+      
+      // Show success notification
+      setNotificationMessage("Đã cập nhật thông tin thành công");
+      setShowNotification(true);
+      
+      // Close dialog FIRST before showing notification
       setShowEditDialog(false);
+      
+      setTimeout(() => setShowNotification(false), 2000);
+
     } catch (error) {
       console.error("Error updating profile:", error);
-      alert("Failed to update profile");
+      setNotificationMessage("Không thể cập nhật thông tin");
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 2000);
     } finally {
       setIsLoading(false);
+      // Ensure dialog closes even if there's an error
+      setShowEditDialog(false);
     }
   };
 
