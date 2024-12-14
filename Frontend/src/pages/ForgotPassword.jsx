@@ -10,6 +10,8 @@ const ForgotPassword = () => {
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
+    const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+    const [countdown, setCountdown] = useState(3);
 
     // Handle email input and send OTP
     const handleEmailSubmit = async (e) => {
@@ -47,7 +49,7 @@ const ForgotPassword = () => {
             });
             setStep(3);
         } catch (error) {
-            setError(error.response?.data?.message || 'Invalid OTP');
+            setError('Mã OTP không hợp lệ');
         }
     };
 
@@ -55,28 +57,25 @@ const ForgotPassword = () => {
     const handleResetPassword = async (e) => {
         e.preventDefault();
         try {
-            // Clear previous errors
-            setError('');
-
             // Validate passwords
             if (newPassword !== confirmPassword) {
-                setError('Passwords do not match');
+                setError('Mật khẩu không khớp');
                 return;
             }
 
             if (newPassword.length < 6) {
-                setError('Password must be at least 6 characters long');
+                setError('Mật khẩu phải chứa ít nhất 6 ký tự');
                 return;
             }
 
             const otpString = otp.join('');
             if (otpString.length !== 6) {
-                setError('Invalid OTP');
+                setError('Mã OTP không hợp lệ');
                 return;
             }
 
             // Show loading state
-            setError('Processing...');
+            setError('Đang đặt lại mật khẩu...');
 
             const response = await axios.post('http://localhost:3000/auth/reset-password', {
                 email,
@@ -85,8 +84,22 @@ const ForgotPassword = () => {
             });
 
             if (response.data.message) {
-                alert('Password reset successfully');
-                navigate('/signin');
+                setShowSuccessPopup(true);
+                setError('');
+                
+                // Start countdown
+                let timeLeft = 3;
+                setCountdown(timeLeft);
+                
+                const timer = setInterval(() => {
+                    timeLeft -= 1;
+                    setCountdown(timeLeft);
+                    
+                    if (timeLeft === 0) {
+                        clearInterval(timer);
+                        navigate('/signin');
+                    }
+                }, 1000);
             }
         } catch (error) {
             console.error('Reset password error:', error);
@@ -108,7 +121,7 @@ const ForgotPassword = () => {
             </header>
 
             <div className="w-[400px] rounded-lg bg-[#282828] p-8">
-                <h2 className="mb-6 text-2xl font-bold text-white">Reset Password</h2>
+                <h2 className="mb-6 text-2xl font-bold text-white">Đặt lại mật khẩu</h2>
 
                 {error && (
                     <div className="mb-4 rounded bg-red-500 p-2 text-white">
@@ -120,7 +133,7 @@ const ForgotPassword = () => {
                     <form onSubmit={handleEmailSubmit}>
                         <div className="mb-4">
                             <label className="mb-2 block text-sm text-white">
-                                Enter your email address
+                                Nhập địa chỉ Email
                             </label>
                             <input
                                 type="email"
@@ -134,7 +147,7 @@ const ForgotPassword = () => {
                             type="submit"
                             className="w-full rounded-full bg-[#1ed760] px-4 py-2 font-semibold text-black hover:scale-105"
                         >
-                            Send OTP
+                            Gửi mã OTP
                         </button>
                     </form>
                 )}
@@ -143,7 +156,7 @@ const ForgotPassword = () => {
                     <form onSubmit={handleOtpSubmit}>
                         <div className="mb-4">
                             <label className="mb-2 block text-sm text-white">
-                                Enter 6-digit OTP sent to your email
+                                Nhập mã OTP được gửi đến địa chỉ Email của bạn
                             </label>
                             <div className="flex gap-2">
                                 {otp.map((digit, index) => (
@@ -164,7 +177,7 @@ const ForgotPassword = () => {
                             type="submit"
                             className="w-full rounded-full bg-[#1ed760] px-4 py-2 font-semibold text-black hover:scale-105"
                         >
-                            Verify OTP
+                            Xác nhận
                         </button>
                     </form>
                 )}
@@ -173,7 +186,7 @@ const ForgotPassword = () => {
                     <form onSubmit={handleResetPassword}>
                         <div className="mb-4">
                             <label className="mb-2 block text-sm text-white">
-                                New Password
+                                Mật khẩu mới
                             </label>
                             <input
                                 type="password"
@@ -185,7 +198,7 @@ const ForgotPassword = () => {
                         </div>
                         <div className="mb-4">
                             <label className="mb-2 block text-sm text-white">
-                                Confirm Password
+                                Xác nhận mật khẩu mới
                             </label>
                             <input
                                 type="password"
@@ -199,11 +212,25 @@ const ForgotPassword = () => {
                             type="submit"
                             className="w-full rounded-full bg-[#1ed760] px-4 py-2 font-semibold text-black hover:scale-105"
                         >
-                            Reset Password
+                            Đặt lại mật khẩu
                         </button>
                     </form>
                 )}
             </div>
+
+            {showSuccessPopup && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                    <div className="fixed inset-0 bg-black opacity-50"></div>
+                    <div className="relative z-50 rounded-lg bg-[#282828] p-6 text-center">
+                        <h3 className="mb-4 text-xl font-bold text-white">
+                            Đặt lại mật khẩu thành công!
+                        </h3>
+                        <p className="text-gray-300">
+                            Bạn sẽ được chuyển hướng đến trang đăng nhập sau {countdown} giây...
+                        </p>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
