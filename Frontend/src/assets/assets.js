@@ -53,6 +53,7 @@ import music_icon from './music.png'
 import remove_icon from './remove.png'
 import more_icon from './more.png'
 import liked_icon from './liked.png'
+import soundtify from './soundtify_logo.png'
 
 export const assets = {
     bell_icon,
@@ -91,6 +92,7 @@ export const assets = {
     remove_icon,
     more_icon,
     liked_icon,
+    soundtify
 }
 
 export const albumsData = [

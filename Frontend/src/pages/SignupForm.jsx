@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { assets } from "../assets/assets";
 import { createUser, signInWithGoogle } from "../util/authApi";
+import axios from "axios";
 
 const SignupForm = () => {
   const navigate = useNavigate();
@@ -60,13 +61,49 @@ const SignupForm = () => {
         const res = await createUser(form.username, form.email, form.password);
         
         if (res.data.EC === 0) {
-            setIsError(false);
-            setNotificationMessage("Đăng ký thành công");
-            setShowNotification(true);
-            setTimeout(() => {
-                setShowNotification(false);
-                navigate('/signin');
-            }, 2000);
+            // Login immediately after signup to get access token
+            const loginResponse = await axios.post('http://localhost:3000/auth/login', {
+                email: form.email,
+                password: form.password
+            });
+
+            if (loginResponse.data.EC === 0) {
+                const token = loginResponse.data.access_token;
+                localStorage.setItem('access_token', token);
+                localStorage.setItem('user', JSON.stringify(loginResponse.data.user));
+
+                try {
+                    // Create liked songs playlist immediately after signup
+                    await axios.post(
+                        "http://localhost:3000/user/create_playlist",
+                        { 
+                            name: "Bài hát đã thích",
+                            type: "playlist",
+                            description: "Những bài hát bạn yêu thích" 
+                        },
+                        {
+                            headers: {
+                                Authorization: `Bearer ${token}`
+                            }
+                        }
+                    );
+
+                    // Show success notification
+                    setIsError(false);
+                    setNotificationMessage("Đăng ký thành công");
+                    setShowNotification(true);
+                    
+                    // Trigger sidebar refresh
+                    window.dispatchEvent(new Event("playlistsUpdated"));
+                    
+                    setTimeout(() => {
+                        setShowNotification(false);
+                        navigate('/signin');
+                    }, 2000);
+                } catch (error) {
+                    console.error("Error creating liked songs playlist:", error);
+                }
+            }
         } else if (res.data.EC === 2) {
             setIsError(true);
             setNotificationMessage("Email đã được sử dụng");
@@ -125,7 +162,7 @@ const SignupForm = () => {
     <div className="flex min-h-screen w-full flex-col items-center gap-4 bg-black py-8">
       <header>
         <img
-          src={assets.spotify_logo_white}
+          src={assets.soundtify}
           alt="spotify"
           className="h-[50px] w-[50px]"
         />

@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { login, signInWithGoogle, getWebPlayBackSDKToken } from "../util/authApi";
+import { assets } from "../assets/assets";
+import axios from "axios";
 
 const SignIn = () => {
   const navigate = useNavigate();
@@ -19,34 +21,55 @@ const SignIn = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const result = await login(formData.email, formData.password);
-      console.log("Login response:", result);
+        const result = await login(formData.email, formData.password);
 
-      if (result && result.EC === 0) {
-        // Store user data in localStorage
-        localStorage.setItem("access_token", result.access_token);
-        localStorage.setItem("user", JSON.stringify(result.user));
+        if (result && result.EC === 0) {
+            localStorage.setItem("access_token", result.access_token);
+            localStorage.setItem("user", JSON.stringify(result.user));
 
-        // Debug logs
-        console.log("User data:", result.user);
-        console.log("User role:", result.user.role);
+            // Check if "Bài hát đã thích" playlist exists
+            const token = result.access_token;
+            const playlistsResponse = await axios.get(
+                "http://localhost:3000/user/get_playlists",
+                {
+                    headers: { Authorization: `Bearer ${token}` }
+                }
+            );
 
-        // Check role and navigate
-        if (result.user.role === "admin") {
-          console.log("Navigating to admin dashboard...");
-          window.location.href = "/admin/dashboard"; // Force full page reload
-        } else {
-          navigate("/");
+            const likedPlaylist = playlistsResponse.data.playlists.find(
+                playlist => playlist.name === "Bài hát đã thích"
+            );
+
+            // Create if doesn't exist
+            if (!likedPlaylist) {
+                await axios.post(
+                    "http://localhost:3000/user/create_playlist",
+                    { 
+                        name: "Bài hát đã thích",
+                        type: "playlist",
+                        description: "Những bài hát bạn yêu thích" 
+                    },
+                    {
+                        headers: { Authorization: `Bearer ${token}` }
+                    }
+                );
+            }
+
+            // Refresh sidebar
+            window.dispatchEvent(new Event("playlistsUpdated"));
+
+            // Navigate based on role
+            if (result.user.role === "admin") {
+                window.location.href = "/admin/dashboard";
+            } else {
+                navigate("/");
+            }
         }
-      } else {
-        alert(result.EM || "Login failed");
-      }
     } catch (error) {
-      console.error("Login error:", error);
-      const errorMessage = error.response?.data?.EM || "Login failed";
-      alert(errorMessage);
+        console.error("Login error:", error);
+        alert(error.response?.data?.EM || "Login failed");
     }
-  };
+};
 
   // Also handle Google sign-in for admin
   const handleGoogleSignIn = async () => {
@@ -96,7 +119,7 @@ const SignIn = () => {
     <div className="flex min-h-screen w-full flex-col items-center gap-4 bg-black py-8">
       <header>
         <img
-          src="https://storage.googleapis.com/pr-newsroom-wp/1/2023/05/Spotify_Primary_Logo_RGB_White.png"
+          src={assets.soundtify}
           alt="spotify"
           className="h-[50px] w-[50px]"
         />

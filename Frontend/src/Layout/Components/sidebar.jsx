@@ -22,7 +22,13 @@ export const refreshPlaylists = async (setPlaylists) => {
       },
     );
     if (response.data.playlists) {
-      setPlaylists(response.data.playlists);
+      // Sort playlists to show "Bài hát đã thích" first
+      const sortedPlaylists = response.data.playlists.sort((a, b) => {
+        if (a.name === "Bài hát đã thích") return -1;
+        if (b.name === "Bài hát đã thích") return 1;
+        return 0;
+      });
+      setPlaylists(sortedPlaylists);
     }
   } catch (error) {
     console.error("Error fetching playlists:", error);
@@ -61,7 +67,13 @@ const Sidebar = () => {
       );
 
       if (response.data.playlists) {
-        setPlaylists(response.data.playlists);
+        // Sort playlists to show "Bài hát đã thích" first
+        const sortedPlaylists = response.data.playlists.sort((a, b) => {
+          if (a.name === "Bài hát đã thích") return -1;
+          if (b.name === "Bài hát đã thích") return 1;
+          return 0;
+        });
+        setPlaylists(sortedPlaylists);
         setIsLoggedIn(true);
       }
     } catch (error) {
@@ -88,7 +100,13 @@ const Sidebar = () => {
           );
 
           if (response.data.playlists) {
-            setPlaylists(response.data.playlists);
+            // Sort playlists to show "Bài hát đã thích" first
+            const sortedPlaylists = response.data.playlists.sort((a, b) => {
+              if (a.name === "Bài hát đã thích") return -1;
+              if (b.name === "Bài hát đã thích") return 1;
+              return 0;
+            });
+            setPlaylists(sortedPlaylists);
           }
         } catch (error) {
           console.error("Error fetching playlists:", error);
