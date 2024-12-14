@@ -1,84 +1,4 @@
 import axios from 'axios';
-import { GoogleAuthProvider, signInWithPopup  } from "firebase/auth";
-import { auth } from '../config/firebase';
-
-const createUser = async (name, email, password) => {
-    try {
-        const result = await axios.post("http://localhost:3000/auth/signup", {
-            name: name,
-            email: email,
-            password: password,
-            role: "user"
-        });
-        return result;
-    } catch (error) {
-        alert(error);
-        return null;
-    }
-};
-
-const getTrack = async (id) => {
-    try {
-        const response = await axios.get(`http://localhost:3000/track/${id}`);
-        return response.data;
-    } catch (error) {
-        alert(error.message);
-    }
-};
-
-const fetchPopularTracks = async () => {
-    try {
-        const response = await axios.get(`http://localhost:3000/track/popular`);
-        return response.data;
-    } catch (error) {
-        alert(error.message);
-    }
-};
-
-const fetchNewAlbums = async () => {
-    try {
-        const response = await axios.get(`http://localhost:3000/album/new`);
-        return response.data;
-    } catch (error) {
-        alert(error.message);
-    }
-};
-
-const fetchAlbum = async (id) => {
-    try {
-        const response = await axios.get(`http://localhost:3000/album/${id}`);
-        return response.data;
-    } catch (error) {
-        alert(error.message);
-    }
-}
-
-const getWebPlayBackSDKToken = async () => {
-    try {
-        // const response = await axios.get("http://localhost:3000/spotify_auth/login");
-        // console.log("token", response)
-        const res = await axios.get("http://localhost:3000/spotify_auth/token");
-        console.log("res", res)
-        return res.data;
-    } catch (error) {
-        alert(error.message);
-    }
-};
-
-const getRefreshToken = async (refreshToken) => {
-    try {
-        const response = await axios.get(
-            `http://localhost:3000/spotify_auth/refresh_token`,
-            {
-                params: { refresh_token: refreshToken }, // Truyền refresh_token qua query
-            }
-        );
-        console.log("token", response.data)
-        return response.data;
-    } catch (error) {
-        alert(error.message);
-    }
-};
 
 const login = async (email, password) => {
     try {
@@ -503,13 +423,6 @@ const getSpotifyToken = async () => {
 };
 
 export { 
-    // createUser, 
-    // fetchPopularTracks, 
-    fetchNewAlbums, 
-    fetchAlbum, 
-    // getTrack, 
-    getWebPlayBackSDKToken, 
-    getRefreshToken, 
     login, 
     createPlaylist, 
     addSongToPlaylist,
