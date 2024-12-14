@@ -77,6 +77,28 @@ const SongController = {
     }
   },
 
+  // Get single song by Spotify ID
+  async getSongBySpotifyId(req, res) {
+    try {
+      const { spotifyId } = req.params;
+      const song = await Song.findOne({ spotifyId });
+
+      if (!song) {
+        return res.status(404).json({ 
+          message: 'Song not found' 
+        });
+      }
+
+      res.status(200).json(song);
+    } catch (error) {
+      console.error('Error in getSongBySpotifyId:', error);
+      res.status(500).json({
+        message: 'Error fetching song',
+        error: error.message
+      });
+    }
+  },
+
   // Get all songs from a playlist
   async getPlaylistSongs(req, res) {
     try {

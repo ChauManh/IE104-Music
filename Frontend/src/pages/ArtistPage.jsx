@@ -306,33 +306,36 @@ const ArtistPage = () => {
 
         setNotificationMessage("Đã thêm vào Bài hát đã thích");
       } else {
-        // Remove from liked songs
-        // Get song details by Spotify ID first
-        const songDetails = await axios.get(
+        // Unlike logic - Find and remove song
+        if (!likedPlaylist) {
+          throw new Error("Liked songs playlist not found");
+        }
+
+        // Get song details by Spotify ID
+        const songDetailsResponse = await axios.get(
           `http://localhost:3000/songs/by-spotify-id/${trackId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           },
         );
 
-        if (!songDetails.data || !songDetails.data._id) {
-          throw new Error("Could not find song in database");
+        if (!songDetailsResponse.data?._id) {
+          throw new Error("Song not found in database");
         }
 
-        // Remove song from liked songs playlist
+        // Remove song from playlist using proper endpoint
         await axios.delete(
-          `http://localhost:3000/user/playlist/${likedPlaylist._id}/songs/${songDetails.data._id}`,
+          `http://localhost:3000/user/playlist/${likedPlaylist._id}/songs/${songDetailsResponse.data._id}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           },
         );
 
         setNotificationMessage("Đã xóa khỏi Bài hát đã thích");
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 2000);
+        window.dispatchEvent(new Event("playlistsUpdated"));
       }
-
-      setShowNotification(true);
-      setTimeout(() => setShowNotification(false), 2000);
-      window.dispatchEvent(new Event("playlistsUpdated"));
     } catch (error) {
       console.error("Error toggling like:", error);
       // Revert UI state if operation failed
@@ -340,6 +343,9 @@ const ArtistPage = () => {
         ...prev,
         [trackId]: !prev[trackId],
       }));
+      setShowNotification(true);
+      setNotificationMessage("Không thể xóa bài hát khỏi danh sách yêu thích");
+      setTimeout(() => setShowNotification(false), 2000);
     }
   };
 
