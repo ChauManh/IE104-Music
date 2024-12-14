@@ -140,10 +140,10 @@ const Sidebar = () => {
         localStorage.removeItem("access_token");
         setIsLoggedIn(false);
         setPlaylists([]);
-        alert("Please login again to create playlist");
+        
         navigate("/signin");
       } else {
-        alert("Failed to create playlist. Please try again.");
+        alert("Error creating playlist");
       }
     }
   };

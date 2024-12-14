@@ -11,7 +11,7 @@ const SongItem = ({ name, image, singer, id, duration, index }) => {
     try {
       navigate(`/track/${id}`);
     } catch (error) {
-      alert('Error navigating to track:', error.message);
+      console.error('Error navigating to track:', error);
     }
   };
 

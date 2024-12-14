@@ -23,13 +23,13 @@ const SongItem2 = ({ name, image, singer, id }) => {
           playWithUri(data.uri); 
         } catch (error) {
           console.error('Error fetching track:', error);
-          alert('Error fetching track:', error.message);
+          
         }
       };
   
       await fetchTrackData();
     } catch (error) {
-      alert('Error navigating to track:', error.message);
+      console.error('Error navigating to track:', error);
     }
   };
 

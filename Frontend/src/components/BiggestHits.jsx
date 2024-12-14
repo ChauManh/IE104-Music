@@ -19,7 +19,7 @@ const BiggestHits = () => {
           localStorage.setItem('tracksData', JSON.stringify(data));
         // }
       } catch (error) {
-        alert(`Error fetching data: ${error.message}`);
+        console.error('Error loading tracks data:', error);
       }
     };
     loadTracksData();

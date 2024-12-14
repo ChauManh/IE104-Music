@@ -128,7 +128,10 @@ const PlaylistPage = () => {
 
   const handlePlayAll = async () => {
     if (!playlistSongs || playlistSongs.length === 0) {
-      alert("No songs in the playlist");
+      setShowNotification(true);
+      setNotificationMessage("Không có bài hát nào có sẵn trong playlist");
+      setTimeout(() => setShowNotification(false), 2000);
+      window.dispatchEvent(new Event("playlistsUpdated"));
       return;
     }
     const trackData = await getTrackBySongId(playlistSongs[0]._id);
@@ -213,7 +216,6 @@ const PlaylistPage = () => {
     try {
       const token = localStorage.getItem("access_token");
       if (!token) {
-        alert("Please login first to follow album");
         return;
       }
 
@@ -233,7 +235,10 @@ const PlaylistPage = () => {
       );
 
       if (exists) {
-        alert("Album already in your library");
+        setNotificationMessage(`Album đã có sẵn trong thư viện`);
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 2000);
+        window.dispatchEvent(new Event("playlistsUpdated"));
         return;
       }
 
@@ -260,7 +265,7 @@ const PlaylistPage = () => {
       window.dispatchEvent(new Event("playlistsUpdated"));
     } catch (error) {
       console.error("Error following album:", error);
-      alert("Failed to add album to library");
+      
     }
   };
 
@@ -270,23 +275,23 @@ const PlaylistPage = () => {
   //     try {
   //       const token = localStorage.getItem("access_token");
   //       if (!token) throw new Error("No access token found");
-        
+
   //       await axios.delete(
   //         `http://localhost:3000/user/playlist/${playlist._id}`,
   //         {
   //           headers: { Authorization: `Bearer ${token}` },
   //         }
   //       );
-  
+
   //       // Show notification for successful deletion
   //       setNotificationMessage("Đã xóa playlist thành công");
   //       setShowNotification(true);
   //       setTimeout(() => setShowNotification(false), 2000);
-        
+
   //       // Refresh sidebar and navigate
   //       window.dispatchEvent(new Event("playlistsUpdated"));
   //       navigate('/');
-  
+
   //     } catch (error) {
   //       console.error("Error deleting:", error);
   //       // Show error notification
@@ -296,85 +301,84 @@ const PlaylistPage = () => {
   //     }
   //   }
   // };
-  
 
   const handleAddToPlaylist = useCallback(
-  async (trackId, e) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-
-    try {
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        throw new Error("No access token found");
+    async (trackId, e) => {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
       }
 
-      setIsLoading(true); // Add loading state
+      try {
+        const token = localStorage.getItem("access_token");
+        if (!token) {
+          throw new Error("No access token found");
+        }
 
-      // Create/get song in database
-      const songResponse = await axios.post(
-        "http://localhost:3000/songs/create",
-        { spotifyId: trackId },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
+        setIsLoading(true); // Add loading state
+
+        // Create/get song in database
+        const songResponse = await axios.post(
+          "http://localhost:3000/songs/create",
+          { spotifyId: trackId },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           },
-        }
-      );
-
-      const songId = songResponse.data.song._id;
-
-      // Add song to playlist
-      await axios.post(
-        "http://localhost:3000/user/playlist/add_song",
-        {
-          playlistID: id,
-          songID: songId,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      // Update UI
-      setShowNotification(true);
-      setNotificationMessage("Đã thêm vào playlist");
-      
-      // Fetch updated playlist data
-      const updatedPlaylistResponse = await axios.get(
-        `http://localhost:3000/user/playlist/${id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      if (updatedPlaylistResponse.data.playlist.songs) {
-        const songsWithDetails = await Promise.all(
-          updatedPlaylistResponse.data.playlist.songs.map(async (songId) => {
-            const songResponse = await axios.get(
-              `http://localhost:3000/songs/${songId}`,
-              {
-                headers: { Authorization: `Bearer ${token}` },
-              }
-            );
-            return songResponse.data;
-          })
         );
-        setPlaylistSongs(songsWithDetails);
+
+        const songId = songResponse.data.song._id;
+
+        // Add song to playlist
+        await axios.post(
+          "http://localhost:3000/user/playlist/add_song",
+          {
+            playlistID: id,
+            songID: songId,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        // Update UI
+        setShowNotification(true);
+        setNotificationMessage("Đã thêm vào playlist");
+
+        // Fetch updated playlist data
+        const updatedPlaylistResponse = await axios.get(
+          `http://localhost:3000/user/playlist/${id}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
+
+        if (updatedPlaylistResponse.data.playlist.songs) {
+          const songsWithDetails = await Promise.all(
+            updatedPlaylistResponse.data.playlist.songs.map(async (songId) => {
+              const songResponse = await axios.get(
+                `http://localhost:3000/songs/${songId}`,
+                {
+                  headers: { Authorization: `Bearer ${token}` },
+                },
+              );
+              return songResponse.data;
+            }),
+          );
+          setPlaylistSongs(songsWithDetails);
+        }
+      } catch (error) {
+        console.error("Error adding song to playlist:", error);
+      } finally {
+        setIsLoading(false);
+        setTimeout(() => setShowNotification(false), 2000);
       }
-    } catch (error) {
-      console.error("Error adding song to playlist:", error);
-    } finally {
-      setIsLoading(false);
-      setTimeout(() => setShowNotification(false), 2000);
-    }
-  },
-  [id]
-);
+    },
+    [id],
+  );
 
   const handleRemoveSong = async (songId) => {
     try {
@@ -402,7 +406,10 @@ const PlaylistPage = () => {
       window.dispatchEvent(new Event("playlistsUpdated"));
     } catch (error) {
       console.error("Error removing song:", error);
-      alert("Không thể xóa bài hát khỏi playlist");
+      setNotificationMessage(`Không thể xóa bài hát khỏi playlist`);
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 2000);
+      window.dispatchEvent(new Event("playlistsUpdated"));
     }
   };
 
@@ -702,11 +709,11 @@ const PlaylistPage = () => {
                           </p>
                         </div>
                         <button
-  onClick={(e) => handleAddToPlaylist(track.id, e)}
-  className="invisible rounded-full border border-white bg-transparent px-4 py-1 text-sm group-hover:visible"
->
-  Thêm
-</button>
+                          onClick={(e) => handleAddToPlaylist(track.id, e)}
+                          className="invisible rounded-full border border-white bg-transparent px-4 py-1 text-sm group-hover:visible"
+                        >
+                          Thêm
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -740,11 +747,11 @@ const PlaylistPage = () => {
                               </p>
                             </div>
                             <button
-  onClick={(e) => handleAddToPlaylist(track.id, e)}
-  className="invisible rounded-full border border-white bg-transparent px-4 py-1 text-sm group-hover:visible"
->
-  Thêm
-</button>
+                              onClick={(e) => handleAddToPlaylist(track.id, e)}
+                              className="invisible rounded-full border border-white bg-transparent px-4 py-1 text-sm group-hover:visible"
+                            >
+                              Thêm
+                            </button>
                           </div>
                         ))}
                       </div>
@@ -832,11 +839,11 @@ const PlaylistPage = () => {
                           </p>
                         </div>
                         <button
-  onClick={(e) => handleAddToPlaylist(track.id, e)}
-  className="invisible rounded-full border border-white bg-transparent px-4 py-1 text-sm group-hover:visible"
->
-  Thêm
-</button>
+                          onClick={(e) => handleAddToPlaylist(track.id, e)}
+                          className="invisible rounded-full border border-white bg-transparent px-4 py-1 text-sm group-hover:visible"
+                        >
+                          Thêm
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -908,7 +915,10 @@ const PlaylistPage = () => {
       }
     } catch (error) {
       console.error("Error updating playlist:", error);
-      alert("Không thể cập nhật thông tin playlist");
+      setShowNotification(true);
+      setNotificationMessage("Không thể cập nhật thông tin playlist");
+      setTimeout(() => setShowNotification(false), 2000);
+      window.dispatchEvent(new Event("playlistsUpdated"));
     }
   };
 
@@ -1104,12 +1114,12 @@ const PlaylistPage = () => {
         </div>
       </div>
       {showNotification && (
-  <div className="fixed bottom-24 left-1/2 z-50 -translate-x-1/2 transform">
-    <div className="rounded-full bg-[#1ed760] px-4 py-2 text-center text-sm font-medium text-black shadow-lg">
-      <span>{notificationMessage}</span>
-    </div>
-  </div>
-)}
+        <div className="fixed bottom-24 left-1/2 z-50 -translate-x-1/2 transform">
+          <div className="rounded-full bg-[#1ed760] px-4 py-2 text-center text-sm font-medium text-black shadow-lg">
+            <span>{notificationMessage}</span>
+          </div>
+        </div>
+      )}
       {showEditDialog && (
         <EditPlaylistDialog
           playlistData={playlistData}
