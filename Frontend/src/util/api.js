@@ -73,7 +73,7 @@ const getRefreshToken = async (refreshToken) => {
                 params: { refresh_token: refreshToken }, // Truyền refresh_token qua query
             }
         );
-        console.log("refresh token", response.data)
+        console.log("token", response.data)
         return response.data;
     } catch (error) {
         alert(error.message);
@@ -503,11 +503,11 @@ const getSpotifyToken = async () => {
 };
 
 export { 
-    createUser, 
-    fetchPopularTracks, 
+    // createUser, 
+    // fetchPopularTracks, 
     fetchNewAlbums, 
     fetchAlbum, 
-    getTrack, 
+    // getTrack, 
     getWebPlayBackSDKToken, 
     getRefreshToken, 
     login, 

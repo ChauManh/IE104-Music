@@ -17,6 +17,7 @@ const ProfilePage = () => {
         avatar: null
     });
     const [isLoading, setIsLoading] = useState(false);
+    const [followedArtists, setFollowedArtists] = useState([]);
 
     const handleUpdateProfile = async () => {
         try {
@@ -125,7 +126,12 @@ const ProfilePage = () => {
                         headers: { Authorization: `Bearer ${token}` }
                     }
                 );
-                setPlaylists(playlistsResponse.data.playlists);
+    
+                // Filter to only show playlists with type 'playlist'
+                const userPlaylists = playlistsResponse.data.playlists.filter(
+                    playlist => playlist.type === 'playlist'
+                );
+                setPlaylists(userPlaylists);
 
                 // Fetch recent tracks
                 const recentTracksResponse = await axios.get(
@@ -139,6 +145,53 @@ const ProfilePage = () => {
                     setRecentTracks(recentTracksResponse.data.tracks);
                 }
 
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+            }
+        };
+
+        fetchUserData();
+    }, []);
+
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                const token = localStorage.getItem('access_token');
+                if (!token) return;
+
+                // Fetch user's playlists
+                const playlistsResponse = await axios.get(
+                    'http://localhost:3000/user/get_playlists',
+                    {
+                        headers: { Authorization: `Bearer ${token}` }
+                    }
+                );
+
+                // Filter artist type playlists
+                const artistPlaylists = playlistsResponse.data.playlists.filter(
+                    playlist => playlist.type === 'artist'
+                );
+
+                // Get artist details for each followed artist
+                const artistDetails = await Promise.all(
+                    artistPlaylists.map(async (playlist) => {
+                        try {
+                            const response = await axios.get(
+                                `http://localhost:3000/artist/${playlist.artistId}`,
+                                {
+                                    headers: { Authorization: `Bearer ${token}` }
+                                }
+                            );
+                            return response.data;
+                        } catch (error) {
+                            console.error(`Error fetching artist ${playlist.artistId}:`, error);
+                            return null;
+                        }
+                    })
+                );
+
+                // Filter out any failed requests and set state
+                setFollowedArtists(artistDetails.filter(artist => artist !== null));
             } catch (error) {
                 console.error('Error fetching user data:', error);
             }
@@ -241,7 +294,7 @@ const ProfilePage = () => {
                     </div>
                 </section>
 
-                {/* Recent Tracks Section */}
+                {/* Recent Tracks Section
                 <section>
                     <h2 className="mb-6 text-2xl font-bold">Nghe gần đây</h2>
                     {recentTracks.length > 0 ? (
@@ -285,6 +338,28 @@ const ProfilePage = () => {
                     ) : (
                         <p className="text-[#b3b3b3]">No recent tracks</p>
                     )}
+                </section> */}
+
+                {/* Followed Artists Section */}
+                <section className="mt-6">
+                    <h2 className="mb-4 text-2xl font-bold">Nghệ sĩ đã theo dõi</h2>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+                        {followedArtists.map((artist) => (
+                            <div 
+                                key={artist.id}
+                                className="group relative cursor-pointer rounded-md bg-[#181818] p-4 hover:bg-[#282828] transition-all duration-300"
+                                onClick={() => navigate(`/artist/${artist.id}`)}
+                            >
+                                <img
+                                    src={artist.images[0]?.url}
+                                    alt={artist.name}
+                                    className="aspect-square w-full rounded-full object-cover mb-4"
+                                />
+                                <h3 className="font-bold text-base mb-1 truncate">{artist.name}</h3>
+                                <p className="text-sm text-[#a7a7a7]">Nghệ sĩ</p>
+                            </div>
+                        ))}
+                    </div>
                 </section>
             </div>
             {showEditDialog && (

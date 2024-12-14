@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { login, signInWithGoogle, getWebPlayBackSDKToken } from "../util/api";
+import { login, signInWithGoogle, getWebPlayBackSDKToken } from "../util/authApi";
 
 const SignIn = () => {
   const navigate = useNavigate();

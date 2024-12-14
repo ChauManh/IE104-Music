@@ -1,11 +1,11 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom"; // Add useLocation
 import { PlayerContext } from "../context/PlayerContext";
 import { assets } from "../assets/assets";
 import ColorThief from "colorthief";
 import axios from "axios";
-import AlbumItem from "../components/AlbumItem"; // Add this import
-import { QueueProvider, useQueue } from '../context/QueueContext';
+import { useQueue } from "../context/QueueContext";
+import { getTrack } from "../util/trackApi";
 import {
   fetchPlaylistData,
   addSongToPlaylist,
@@ -13,29 +13,28 @@ import {
   updatePlaylistThumbnail,
   searchContent,
   getIdSpotifFromSongId,
-  getTrack,
 } from "../util/api";
 
 const handleDeletePlaylist = async (e) => {
   e.stopPropagation();
-    if (window.confirm('Are you sure you want to delete this?')) {
-      try {
-        const token = localStorage.getItem('access_token');
-        if (!token) throw new Error('No access token found');
-          await axios.delete(
-            `http://localhost:3000/user/playlist/${playlist._id}`,
-            {
-              headers: { Authorization: `Bearer ${token}` }
-            }
-          );
-        // Refresh sidebar
-        window.dispatchEvent(new Event('playlistsUpdated'));
-      } catch (error) {
-        console.error('Error deleting:', error);
-        alert('Failed to delete');
-      }
+  if (window.confirm("Are you sure you want to delete this?")) {
+    try {
+      const token = localStorage.getItem("access_token");
+      if (!token) throw new Error("No access token found");
+      await axios.delete(
+        `http://localhost:3000/user/playlist/${playlist._id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      // Refresh sidebar
+      window.dispatchEvent(new Event("playlistsUpdated"));
+    } catch (error) {
+      console.error("Error deleting:", error);
+      alert("Failed to delete");
     }
-  };
+  }
+};
 
 const PlaylistPage = () => {
   const { id } = useParams();
@@ -53,14 +52,14 @@ const PlaylistPage = () => {
     setPlaylistData(null);
     setPlaylistSongs([]);
     setSearchResults({ tracks: [], artists: [], albums: [] });
-    setSearchQuery('');
+    setSearchQuery("");
     setIsSearching(false);
     setSelectedArtist(null);
     setSelectedAlbum(null);
     setArtistTracks([]);
     setArtistAlbums([]);
     setShowNotification(false);
-    
+
     // Fetch new playlist data
     const fetchPlaylistData = async () => {
       setIsLoading(true);
@@ -152,7 +151,7 @@ const PlaylistPage = () => {
     const idSpotify = await getIdSpotifFromSongId(SongId);
     const trackData = await getTrack(idSpotify);
     return trackData;
-  }
+  };
 
   const handlePlayAll = async () => {
     if (!playlistSongs || playlistSongs.length === 0) {
@@ -168,11 +167,11 @@ const PlaylistPage = () => {
       image: item.image,
       singer: item.artistName,
       duration: item.duration_ms,
-      uri: item.uri, 
+      uri: item.uri,
     }));
-    if (newQueue.length>0) {
-      setQueue(newQueue);    
-      addTrackToQueue(newQueue[0].uri); 
+    if (newQueue.length > 0) {
+      setQueue(newQueue);
+      addTrackToQueue(newQueue[0].uri);
     }
     playWithUri(trackData.uri);
   };
@@ -187,12 +186,12 @@ const PlaylistPage = () => {
       image: item.image,
       singer: item.artistName,
       duration: item.duration_ms,
-      uri: item.uri, 
+      uri: item.uri,
     }));
-    if (newQueue.length>0) {
-      setQueue(newQueue);    
-      addTrackToQueue(newQueue[0].uri); 
-    } 
+    if (newQueue.length > 0) {
+      setQueue(newQueue);
+      addTrackToQueue(newQueue[0].uri);
+    }
     playWithUri(trackData.uri);
   };
 
@@ -292,97 +291,83 @@ const PlaylistPage = () => {
     }
   };
 
-  const handleAddToPlaylist = async (trackId) => {
+  const handleAddToPlaylist = useCallback(
+  async (trackId, e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
     try {
       const token = localStorage.getItem("access_token");
       if (!token) {
         throw new Error("No access token found");
       }
 
-      // First create/get song in database with album name
-      let songResponse;
-      try {
-        songResponse = await axios.post(
-          "http://localhost:3000/songs/create",
-          {
-            spotifyId: trackId,
+      setIsLoading(true); // Add loading state
+
+      // Create/get song in database
+      const songResponse = await axios.post(
+        "http://localhost:3000/songs/create",
+        { spotifyId: trackId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
           },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-
-        // Get the MongoDB _id from the created/existing song
-        const songId = songResponse.data.song._id;
-
-        // Add song to playlist using MongoDB _id
-        const response = await axios.post(
-          "http://localhost:3000/user/playlist/add_song",
-          {
-            playlistID: id,
-            songID: songId,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-
-        if (response.data.message === "Song added to playlist successfully.") {
-          // Show notification
-          setShowNotification(true);
-          setTimeout(() => setShowNotification(false), 2000); // Hide after 2 seconds
-
-          // Fetch updated playlist data including new song
-          const updatedPlaylistResponse = await axios.get(
-            `http://localhost:3000/user/playlist/${id}`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            },
-          );
-
-          const { playlist } = updatedPlaylistResponse.data;
-          setPlaylistData(playlist);
-
-          // Fetch details for all songs including the new one
-          if (playlist.songs && playlist.songs.length > 0) {
-            const songsWithDetails = await Promise.all(
-              playlist.songs.map(async (songId) => {
-                const songResponse = await axios.get(
-                  `http://localhost:3000/songs/${songId}`,
-                  {
-                    headers: {
-                      Authorization: `Bearer ${token}`,
-                    },
-                  },
-                );
-                return songResponse.data;
-              }),
-            );
-            setPlaylistSongs(songsWithDetails);
-
-            // Filter out the added song from search results
-            setSearchResults((prev) => ({
-              ...prev,
-              tracks: prev.tracks.filter((track) => track.id !== trackId),
-            }));
-          }
         }
-      } catch (err) {
-        console.error("Error creating/adding song:", err);
-        throw err;
+      );
+
+      const songId = songResponse.data.song._id;
+
+      // Add song to playlist
+      await axios.post(
+        "http://localhost:3000/user/playlist/add_song",
+        {
+          playlistID: id,
+          songID: songId,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      // Update UI
+      setShowNotification(true);
+      setNotificationMessage("Đã thêm vào playlist");
+      
+      // Fetch updated playlist data
+      const updatedPlaylistResponse = await axios.get(
+        `http://localhost:3000/user/playlist/${id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (updatedPlaylistResponse.data.playlist.songs) {
+        const songsWithDetails = await Promise.all(
+          updatedPlaylistResponse.data.playlist.songs.map(async (songId) => {
+            const songResponse = await axios.get(
+              `http://localhost:3000/songs/${songId}`,
+              {
+                headers: { Authorization: `Bearer ${token}` },
+              }
+            );
+            return songResponse.data;
+          })
+        );
+        setPlaylistSongs(songsWithDetails);
       }
     } catch (error) {
-      alert(
-        error.response?.data?.message || "Không thể thêm bài hát vào playlist",
-      );
+      console.error("Error adding song to playlist:", error);
+    } finally {
+      setIsLoading(false);
+      setTimeout(() => setShowNotification(false), 2000);
     }
-  };
+  },
+  [id]
+);
 
   const handleRemoveSong = async (songId) => {
     try {
@@ -390,7 +375,7 @@ const PlaylistPage = () => {
       if (!token) {
         throw new Error("No access token found");
       }
-  
+
       // Delete song from playlist using the correct API endpoint
       await axios.delete(
         `http://localhost:3000/user/playlist/${id}/songs/${songId}`,
@@ -398,17 +383,17 @@ const PlaylistPage = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
-  
+
       // Update UI by removing the song from the local state
       setPlaylistSongs((prev) => prev.filter((song) => song._id !== songId));
-      
+
       // Show success notification
       setNotificationMessage("Đã xóa bài hát khỏi playlist");
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 2000);
-  
+
       // Refresh playlists in sidebar
       window.dispatchEvent(new Event("playlistsUpdated"));
     } catch (error) {
@@ -471,11 +456,11 @@ const PlaylistPage = () => {
       img.onload = () => {
         const colorThief = new ColorThief();
         const color = colorThief.getColor(img);
-        setDominantColor(`rgb(${color.join(',')})`);
-        setSecondaryColor(`rgba(${color.join(',')}, 0.5)`);
+        setDominantColor(`rgb(${color.join(",")})`);
+        setSecondaryColor(`rgba(${color.join(",")}, 0.5)`);
       };
     } catch (error) {
-      console.error('Error extracting color:', error);
+      console.error("Error extracting color:", error);
     }
   };
 
@@ -700,7 +685,7 @@ const PlaylistPage = () => {
                         className="group flex cursor-pointer items-center gap-4 rounded-md p-2 hover:bg-[#ffffff1a]"
                       >
                         <img
-                          src={selectedAlbum.images[2].url}
+                          src={track.album.images[2].url}
                           alt={track.name}
                           className="h-10 w-10 rounded"
                         />
@@ -713,14 +698,11 @@ const PlaylistPage = () => {
                           </p>
                         </div>
                         <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleAddToPlaylist(track.id);
-                          }}
-                          className="rounded-full border border-white bg-transparent px-4 py-1 text-sm opacity-0 transition-all hover:scale-105 group-hover:opacity-100"
-                        >
-                          Thêm
-                        </button>
+  onClick={(e) => handleAddToPlaylist(track.id, e)}
+  className="invisible rounded-full border border-white bg-transparent px-4 py-1 text-sm group-hover:visible"
+>
+  Thêm
+</button>
                       </div>
                     ))}
                   </div>
@@ -754,14 +736,11 @@ const PlaylistPage = () => {
                               </p>
                             </div>
                             <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleAddToPlaylist(track.id);
-                              }}
-                              className="rounded-full border border-white bg-transparent px-4 py-1 text-sm opacity-0 transition-all hover:scale-105 group-hover:opacity-100"
-                            >
-                              Thêm
-                            </button>
+  onClick={(e) => handleAddToPlaylist(track.id, e)}
+  className="invisible rounded-full border border-white bg-transparent px-4 py-1 text-sm group-hover:visible"
+>
+  Thêm
+</button>
                           </div>
                         ))}
                       </div>
@@ -849,14 +828,11 @@ const PlaylistPage = () => {
                           </p>
                         </div>
                         <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleAddToPlaylist(track.id);
-                          }}
-                          className="rounded-full border border-white bg-transparent px-4 py-1 text-sm opacity-0 transition-all hover:scale-105 group-hover:opacity-100"
-                        >
-                          Thêm
-                        </button>
+  onClick={(e) => handleAddToPlaylist(track.id, e)}
+  className="invisible rounded-full border border-white bg-transparent px-4 py-1 text-sm group-hover:visible"
+>
+  Thêm
+</button>
                       </div>
                     ))}
                   </div>
@@ -955,7 +931,7 @@ const PlaylistPage = () => {
             <img
               src={playlistData?.thumbnail || assets.plus_icon}
               alt="Playlist Cover"
-              className="h-40 w-40 rounded-md shadow-2xl md:h-60 md:w-60 object-cover"
+              className="h-40 w-40 rounded-md object-cover shadow-2xl md:h-60 md:w-60"
             />
             <div className="absolute inset-0 flex items-center justify-center rounded-md bg-black bg-opacity-50 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
               <label className="cursor-pointer">
@@ -981,7 +957,7 @@ const PlaylistPage = () => {
               Playlist
             </p>
             <h1
-              className="mt-4 mb-1 cursor-pointer text-2xl font-black sm:mb-2 sm:text-3xl md:mb-3 lg:text-4xl xl:text-3xl 2xl:text-[60px]"
+              className="mb-1 mt-4 cursor-pointer text-2xl font-black sm:mb-2 sm:text-3xl md:mb-3 lg:text-4xl xl:text-3xl 2xl:text-[60px]"
               onClick={handleTitleClick}
             >
               {playlistData?.name || "My Playlist"}
@@ -1011,93 +987,93 @@ const PlaylistPage = () => {
       </div>
 
       {/* Controls Section */}
-        <div
-          className="relative px-8 pb-12"
-          style={{
-            background: `linear-gradient(to bottom, ${secondaryColor} 0%, #121212 100%)`,
-          }}
-        >
-          <div className="flex items-center gap-8">
-                <button 
-                  className="flex h-14 w-14 items-center justify-center rounded-full bg-[#1ed760] hover:scale-105 hover:bg-[#1fdf64]"
-                  onClick={() => handlePlayAll()}
-                >
-                  <img className="h-5 w-5" src={assets.play_icon} alt="Play" />
-                </button>
-          </div>
+      <div
+        className="relative px-8 pb-12"
+        style={{
+          background: `linear-gradient(to bottom, ${secondaryColor} 0%, #121212 100%)`,
+        }}
+      >
+        <div className="flex items-center gap-8">
+          <button
+            className="flex h-14 w-14 items-center justify-center rounded-full bg-[#1ed760] hover:scale-105 hover:bg-[#1fdf64]"
+            onClick={() => handlePlayAll()}
+          >
+            <img className="h-5 w-5" src={assets.play_icon} alt="Play" />
+          </button>
         </div>
-  
-        {/* Playlist Songs Section */}
-        <div className="px-8 py-6">
-          {playlistSongs.length > 0 && (
-            <div className="mb-8">
-              {/* Headers */}
-              <div className="hidden grid-cols-[16px_4fr_3fr_2fr_1fr_80px] gap-4 px-4 py-2 text-sm text-[#b3b3b3] md:grid">
-                <span className="flex items-center">#</span>
-                <span className="flex items-center">Tiêu đề</span>
-                <span className="hidden items-center sm:flex">Album</span>
-                <span className="hidden items-center md:flex">Ngày thêm</span>
-                <div className="flex items-center justify-end">
-                  <img
-                    src={assets.clock_icon}
-                    alt="Duration"
-                    className="h-5 w-5"
-                  />
-                </div>
-                <span></span> {/* Empty space for delete button column */}
+      </div>
+
+      {/* Playlist Songs Section */}
+      <div className="px-8 py-6">
+        {playlistSongs.length > 0 && (
+          <div className="mb-8">
+            {/* Headers */}
+            <div className="hidden grid-cols-[16px_4fr_3fr_2fr_1fr_80px] gap-4 px-4 py-2 text-sm text-[#b3b3b3] md:grid">
+              <span className="flex items-center">#</span>
+              <span className="flex items-center">Tiêu đề</span>
+              <span className="hidden items-center sm:flex">Album</span>
+              <span className="hidden items-center md:flex">Ngày thêm</span>
+              <div className="flex items-center justify-end">
+                <img
+                  src={assets.clock_icon}
+                  alt="Duration"
+                  className="h-5 w-5"
+                />
               </div>
-  
-              <hr className="my-2 border-t border-[#2a2a2a]" />
-  
-              {/* Song List */}
-              <div className="mt-4 flex flex-col gap-2">
-                {playlistSongs.map((song, index) => (
-                  <div
-                    key={song._id}
-                    onClick={() => handleTrackClick(song, index)}
-                    className="group grid grid-cols-[16px_1fr_80px] gap-4 rounded-md px-4 py-2 text-sm hover:bg-[#ffffff1a] sm:grid-cols-[16px_4fr_3fr_80px] md:grid-cols-[16px_4fr_3fr_2fr_1fr_80px] cursor-pointer"
-                  >
-                    <span className="flex items-center text-[#b3b3b3]">
-                      {index + 1}
-                    </span>
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={song.image}
-                        alt={song.title}
-                        className="h-10 w-10 rounded"
-                      />
-                      <div className="flex flex-col overflow-hidden">
-                        <span className="max-w-[200px] truncate text-white sm:max-w-[300px] md:max-w-[180px]">
-                          {song.title}
-                        </span>
-                        <span className="truncate text-[#b3b3b3]">
-                          {song.artistName}
-                        </span>
-                      </div>
-                    </div>
-                    <span className=" items-center overflow-hidden truncate text-[#b3b3b3] sm:flex md:max-w-[160px]">
-                      {song.album || "Unknown Album"}
-                    </span>
-                    <span className="hidden items-center text-[#b3b3b3] md:flex">
-                      {formatDate(song.createdAt)}
-                    </span>
-                    <div className="hidden items-center justify-end text-[#b3b3b3] md:flex">
-                      {formatDuration(song.duration)}
-                    </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemoveSong(song._id);
-                      }}
-                      className="rounded-full border border-white bg-transparent px-2 py-1 text-sm text-white opacity-0 transition-all hover:scale-105 group-hover:opacity-100"
-                    >
-                      Xóa
-                    </button>
-                  </div>
-                ))}
-              </div>
+              <span></span> {/* Empty space for delete button column */}
             </div>
-          )}
+
+            <hr className="my-2 border-t border-[#2a2a2a]" />
+
+            {/* Song List */}
+            <div className="mt-4 flex flex-col gap-2">
+              {playlistSongs.map((song, index) => (
+                <div
+                  key={song._id}
+                  onClick={() => handleTrackClick(song, index)}
+                  className="group grid cursor-pointer grid-cols-[16px_1fr_80px] gap-4 rounded-md px-4 py-2 text-sm hover:bg-[#ffffff1a] sm:grid-cols-[16px_4fr_3fr_80px] md:grid-cols-[16px_4fr_3fr_2fr_1fr_80px]"
+                >
+                  <span className="flex items-center text-[#b3b3b3]">
+                    {index + 1}
+                  </span>
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={song.image}
+                      alt={song.title}
+                      className="h-10 w-10 rounded"
+                    />
+                    <div className="flex flex-col overflow-hidden">
+                      <span className="max-w-[200px] truncate text-white sm:max-w-[300px] md:max-w-[180px]">
+                        {song.title}
+                      </span>
+                      <span className="truncate text-[#b3b3b3]">
+                        {song.artistName}
+                      </span>
+                    </div>
+                  </div>
+                  <span className="items-center overflow-hidden truncate text-[#b3b3b3] sm:flex md:max-w-[160px]">
+                    {song.album || "Unknown Album"}
+                  </span>
+                  <span className="hidden items-center text-[#b3b3b3] md:flex">
+                    {formatDate(song.createdAt)}
+                  </span>
+                  <div className="hidden items-center justify-end text-[#b3b3b3] md:flex">
+                    {formatDuration(song.duration)}
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveSong(song._id);
+                    }}
+                    className="rounded-full border border-white bg-transparent px-2 py-1 text-sm text-white opacity-0 transition-all hover:scale-105 group-hover:opacity-100"
+                  >
+                    Xóa
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Search Section */}
         <div className="mt-8">
@@ -1123,9 +1099,7 @@ const PlaylistPage = () => {
           {searchQuery && <SearchResults />}
         </div>
       </div>
-      {showNotification && (
-        <Notification message={notificationMessage} />
-      )}
+      {showNotification && <Notification message={notificationMessage} />}
       {showEditDialog && (
         <EditPlaylistDialog
           playlistData={playlistData}

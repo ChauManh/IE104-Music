@@ -8,42 +8,42 @@ const saltRounds = 10;
 
 const createUserService = async (name, email, password) => {
     try {
-        //check user exist
-        const existingUser = await User.findOne({ $or: [{ email }, { name }] });
-        if (existingUser) {
-            if (existingUser.name === name) {
-                return {
-                    EC: 1,
-                    EM: 'Username already exists',
-                };
-            }
-            if (existingUser.email === email) {
-                return {
-                    EC: 2,
-                    EM: 'Email already used',
-                };
-            }
+        // Check if email exists
+        const existingEmail = await User.findOne({ email });
+        if (existingEmail) {
+            return {
+                EC: 2,
+                EM: 'Email already exists'
+            };
+        }
+
+        // Check if username exists
+        const existingUsername = await User.findOne({ name });
+        if (existingUsername) {
+            return {
+                EC: 3,
+                EM: 'Username already exists'
+            };
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        // Add default role when creating new user
         const newUser = new User({ 
             name, 
             email, 
             password: hashedPassword,
-            role: 'user' // Set default role
+            role: 'user'
         });
 
         await newUser.save();
         return {
             EC: 0,
-            EM: 'User created successfully',
+            EM: 'User created successfully'
         };
     } catch (err) {
         return {
-            EC: 3,
+            EC: 1,
             EM: 'Error occurred during sign-up',
-            details: err.message,
+            details: err.message
         };
     }
 }

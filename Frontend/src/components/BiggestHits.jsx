@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import SongItem2 from './SongItem2';
-import { fetchPopularTracks } from '../util/api';
+import { fetchPopularTracks } from '../util/trackApi';
 import { PlayerContext } from '../context/PlayerContext';
 
 const BiggestHits = () => {
