@@ -15,27 +15,6 @@ import {
   getIdSpotifFromSongId,
 } from "../util/api";
 
-const handleDeletePlaylist = async (e) => {
-  e.stopPropagation();
-  if (window.confirm("Are you sure you want to delete this?")) {
-    try {
-      const token = localStorage.getItem("access_token");
-      if (!token) throw new Error("No access token found");
-      await axios.delete(
-        `http://localhost:3000/user/playlist/${playlist._id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
-      // Refresh sidebar
-      window.dispatchEvent(new Event("playlistsUpdated"));
-    } catch (error) {
-      console.error("Error deleting:", error);
-      alert("Failed to delete");
-    }
-  }
-};
-
 const PlaylistPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -291,6 +270,40 @@ const PlaylistPage = () => {
     }
   };
 
+  // const handleDeletePlaylist = async (e) => {
+  //   e.stopPropagation();
+  //   if (window.confirm("Are you sure you want to delete this?")) {
+  //     try {
+  //       const token = localStorage.getItem("access_token");
+  //       if (!token) throw new Error("No access token found");
+        
+  //       await axios.delete(
+  //         `http://localhost:3000/user/playlist/${playlist._id}`,
+  //         {
+  //           headers: { Authorization: `Bearer ${token}` },
+  //         }
+  //       );
+  
+  //       // Show notification for successful deletion
+  //       setNotificationMessage("Đã xóa playlist thành công");
+  //       setShowNotification(true);
+  //       setTimeout(() => setShowNotification(false), 2000);
+        
+  //       // Refresh sidebar and navigate
+  //       window.dispatchEvent(new Event("playlistsUpdated"));
+  //       navigate('/');
+  
+  //     } catch (error) {
+  //       console.error("Error deleting:", error);
+  //       // Show error notification
+  //       setNotificationMessage("Không thể xóa playlist");
+  //       setShowNotification(true);
+  //       setTimeout(() => setShowNotification(false), 2000);
+  //     }
+  //   }
+  // };
+  
+
   const handleAddToPlaylist = useCallback(
   async (trackId, e) => {
     if (e) {
@@ -389,12 +402,9 @@ const PlaylistPage = () => {
       // Update UI by removing the song from the local state
       setPlaylistSongs((prev) => prev.filter((song) => song._id !== songId));
 
-      // Show success notification
       setNotificationMessage("Đã xóa bài hát khỏi playlist");
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 2000);
-
-      // Refresh playlists in sidebar
       window.dispatchEvent(new Event("playlistsUpdated"));
     } catch (error) {
       console.error("Error removing song:", error);
@@ -1099,7 +1109,13 @@ const PlaylistPage = () => {
           {searchQuery && <SearchResults />}
         </div>
       </div>
-      {showNotification && <Notification message={notificationMessage} />}
+      {showNotification && (
+  <div className="fixed bottom-24 left-1/2 z-50 -translate-x-1/2 transform">
+    <div className="rounded-full bg-[#1ed760] px-4 py-2 text-center text-sm font-medium text-black shadow-lg">
+      <span>{notificationMessage}</span>
+    </div>
+  </div>
+)}
       {showEditDialog && (
         <EditPlaylistDialog
           playlistData={playlistData}

@@ -27,6 +27,8 @@ const ForgotPassword = () => {
     // Handle OTP input
     const handleOtpChange = (index, value) => {
         if (value.length <= 1 && /^\d*$/.test(value)) {
+            setError('');
+            
             const newOtp = [...otp];
             newOtp[index] = value;
             setOtp(newOtp);
@@ -39,19 +41,24 @@ const ForgotPassword = () => {
     };
 
     // Handle OTP verification
-    const handleOtpSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            const otpString = otp.join('');
-            await axios.post('http://localhost:3000/auth/verify-otp', {
-                email,
-                otp: otpString
-            });
-            setStep(3);
-        } catch (error) {
-            setError('Mã OTP không hợp lệ');
-        }
-    };
+const handleOtpSubmit = async (e) => {
+    e.preventDefault();
+    try {
+        // Clear previous error message
+        setError('');
+        
+        const otpString = otp.join('');
+        await axios.post('http://localhost:3000/auth/verify-otp', {
+            email,
+            otp: otpString
+        });
+        setStep(3);
+        window.dispatchEvent(new Event("PasswordUpdate"));
+    } catch (error) {
+        setError('Mã OTP không hợp lệ');
+        window.dispatchEvent(new Event("PasswordUpdate"));
+    }
+};
 
     // Handle password reset
     const handleResetPassword = async (e) => {

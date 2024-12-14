@@ -302,6 +302,9 @@ const ArtistPage = () => {
         );
   
         setNotificationMessage("Đã thêm vào Bài hát đã thích");
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 2000);
+        window.dispatchEvent(new Event("playlistsUpdated"));
       } else {
         // Unlike logic - Find and remove song
         if (!likedPlaylist) {
