@@ -7,6 +7,7 @@ import PopupAbout from "../components/PopupAbout";
 import { assets } from "../assets/assets";
 import { createPlaylist, addSongToPlaylist } from "../util/api";
 import { PlayerContext } from "../context/PlayerContext";
+import { useQueue } from "../context/QueueContext";
 import ColorThief from "colorthief";
 import { refreshPlaylists } from "../Layout/Components/sidebar";
 import PlaylistPopup from "../components/PlaylistPopup";
@@ -14,8 +15,8 @@ import PlaylistPopup from "../components/PlaylistPopup";
 const ArtistPage = () => {
   const { id } = useParams();
   const [artist, setArtist] = useState(null);
-  const { playWithUri } = useContext(PlayerContext);
-  const { play, pause, plus } = useContext(PlayerContext);
+  const { playWithUri, setTrack, addTrackToQueue } = useContext(PlayerContext);
+  const { setQueue } = useQueue();
   const [topTracks, setTopTracks] = useState([]);
   const [albums, setAlbums] = useState([]);
   const [likedTracks, setLikedTracks] = useState({});
@@ -28,6 +29,63 @@ const ArtistPage = () => {
   const [selectedTrackId, setSelectedTrackId] = useState(null);
   const [userPlaylists, setUserPlaylists] = useState([]);
   const [isFollowed, setIsFollowed] = useState(false);
+
+  const handlePlayAll = async () => {
+    console.log(topTracks);
+    if (!topTracks || topTracks.length === 0) {
+      alert("No songs in the playlist");
+      return;
+    }
+    setTrack({
+      id: topTracks[0].id,
+      name: topTracks[0].name,
+      album: topTracks[0].album.name,
+      image: topTracks[0].album.images[0]?.url,
+      singer: topTracks[0].artists[0].name,
+      duration: topTracks[0].duration_ms,
+      uri: topTracks[0].uri, // Nếu có URI bài hát
+    });
+    const newQueue = topTracks.slice(1).map((item) => ({
+      id: item.id,
+      name: item.name,
+      album: item.album.name,
+      image: item.album.images[0]?.url,
+      singer: item.artists[0].name,
+      duration: item.duration_ms,
+      uri: item.uri, // Nếu có URI bài hát
+    }));
+    if (newQueue.length > 0) {
+      setQueue(newQueue);
+      addTrackToQueue(newQueue[0].uri);
+    }
+    playWithUri(topTracks[0].uri);
+  };
+
+  const handleTrackClick = (track, index) => {
+    setTrack({
+      id: track.id,
+      name: track.name,
+      album: track.album.name,
+      image: track.album.images[0]?.url,
+      singer: track.artists[0].name,
+      duration: track.duration_ms,
+      uri: track.uri, // Nếu có URI bài hát
+    });
+    const newQueue = topTracks.slice(index + 1).map((item) => ({
+      id: item.id,
+      name: item.name,
+      album: item.album.name,
+      image: item.album.images[0]?.url,
+      singer: item.artists[0].name,
+      duration: item.duration_ms,
+      uri: item.uri, // Nếu có URI bài hát
+    }));
+    if (newQueue.length > 0) {
+      setQueue(newQueue);
+      addTrackToQueue(newQueue[0].uri);
+    }
+    playWithUri(track.uri);
+  };
 
   const togglePopup = () => {
     setIsPopupVisible(!isPopupVisible);
@@ -419,6 +477,7 @@ const ArtistPage = () => {
               className="h-14 w-14 cursor-pointer rounded-[30px] border-[18px] border-[#3be477] bg-[#3be477] opacity-70 transition-all hover:opacity-100"
               src={assets.play_icon}
               alt=""
+              onClick={() => handlePlayAll()}
             />
           </div>
 
@@ -439,8 +498,9 @@ const ArtistPage = () => {
             {Array.isArray(topTracks) &&
               topTracks.map((track, index) => (
                 <div
+                  onClick={() => handleTrackClick(track, index)}
                   key={track.id}
-                  className="group grid grid-cols-[0.1fr_auto_2fr_0.1fr_auto_auto] items-center gap-4 rounded py-2 pr-4 transition-colors duration-200 hover:bg-[#ffffff26]"
+                  className="group grid grid-cols-[0.1fr_auto_2fr_0.1fr_auto_auto] items-center gap-4 rounded py-2 pr-4 transition-colors duration-200 hover:bg-[#ffffff26] cursor-pointer"
                 >
                   <p className="w-full text-right text-gray-400">{index + 1}</p>{" "}
                   {/* Index */}
