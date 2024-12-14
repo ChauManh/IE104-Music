@@ -4,8 +4,8 @@ import { PlayerContext } from "../context/PlayerContext";
 import { assets } from "../assets/assets";
 import ColorThief from "colorthief";
 import axios from "axios";
-import AlbumItem from "../components/AlbumItem"; // Add this import
-import { QueueProvider, useQueue } from "../context/QueueContext";
+import { useQueue } from "../context/QueueContext";
+import { getTrack } from "../util/trackApi";
 import {
   fetchPlaylistData,
   addSongToPlaylist,
@@ -13,7 +13,6 @@ import {
   updatePlaylistThumbnail,
   searchContent,
   getIdSpotifFromSongId,
-  getTrack,
 } from "../util/api";
 
 const handleDeletePlaylist = async (e) => {

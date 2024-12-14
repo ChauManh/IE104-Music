@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { assets } from "../assets/assets";
-import { createUser, signInWithGoogle } from "../util/api";
+import { createUser, signInWithGoogle } from "../util/authApi";
 
 const SignupForm = () => {
   const navigate = useNavigate();
