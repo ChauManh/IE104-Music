@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Route, Routes, useNavigate } from "react-router-dom";
 import DisplayHome from "../components/DisplayHome";
-import DisplaySong from "../components/DisplaySong";
+// import DisplaySong from "../components/DisplaySong";
 import SearchPage from "./SearchPage";
 import ArtistPage from "./ArtistPage";
 import AlbumPage from "./AlbumPage";
@@ -49,7 +49,7 @@ const Display = () => {
         <Route path="/" element={<DisplayHome key={refresh} />} />
         <Route path="/album/:id" element={<AlbumPage key={refresh} />} />
         <Route path="/playlist/:id" element={<PlaylistPage key={refresh} />} />
-        <Route path="/track/:id" element={<DisplaySong key={refresh} />} />
+        {/* <Route path="/track/:id" element={<DisplaySong key={refresh} />} /> */}
         <Route path="/search/:query" element={<SearchPage key={refresh} />} />
         <Route path="/artist/:id" element={<ArtistPage key={refresh} />} />
         <Route path="/profile" element={<ProfilePage key={refresh} />} />
