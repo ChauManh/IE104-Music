@@ -405,7 +405,7 @@ const UserController = {
     
             try {
                 // Upload image to Cloudinary
-                const result = await uploadImage(req.file.path);
+                const result = await uploadImage(req.file.path, 'playlist');
                 
                 // Update playlist with Cloudinary URL
                 playlist.thumbnail = result.secure_url;
@@ -552,15 +552,36 @@ const UserController = {
                 return res.status(404).json({ message: 'User not found' });
             }
 
-            // Upload to Cloudinary
-            const result = await uploadImage(req.file.path);
-            user.avatar = result.secure_url;
-            await user.save();
+            try {
+                // Upload to Cloudinary
+                const result = await uploadImage(req.file.path, 'avatar');
+                
+                // Save the new avatar URL
+                user.avatar = result.secure_url;
+                await user.save();
 
-            res.status(200).json({
-                message: 'Avatar updated successfully',
-                avatar: user.avatar
-            });
+                // Remove the temporary file after successful upload
+                fs.unlink(req.file.path, (err) => {
+                    if (err) console.error('Error deleting temporary file:', err);
+                });
+
+                // Return complete user object without sensitive data
+                const userObject = user.toObject();
+                delete userObject.password;
+                delete userObject.__v;
+
+                // Return the updated user object
+                res.status(200).json({
+                    success: true,
+                    message: 'Avatar updated successfully',
+                    user: userObject
+                });
+            } catch (uploadError) {
+                if (req.file.path) {
+                    fs.unlink(req.file.path, () => {});
+                }
+                throw uploadError;
+            }
         } catch (error) {
             console.error('Error in updateAvatar:', error);
             res.status(500).json({ message: 'Error updating avatar' });
@@ -590,6 +611,31 @@ const UserController = {
                 message: 'Error fetching recent tracks',
                 error: error.message 
             });
+        }
+    },
+
+    async getProfile(req, res) {
+        try {
+            const userId = req.user.id;
+            const user = await User.findById(userId).select('-password -__v');
+            
+            if (!user) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+
+            res.status(200).json({
+                success: true,
+                user: {
+                    id: user._id,
+                    name: user.name,
+                    email: user.email,
+                    avatar: user.avatar,
+                    role: user.role
+                }
+            });
+        } catch (error) {
+            console.error('Error in getProfile:', error);
+            res.status(500).json({ message: 'Error fetching user profile' });
         }
     }
 }

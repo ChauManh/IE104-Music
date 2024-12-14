@@ -2,7 +2,9 @@ require("dotenv").config();
 const jwt = require("jsonwebtoken");
 
 const auth = (req, res, next) => {
+    // Remove /update_avatar from white list if it's there
     const white_lists = ["auth/register", "auth/login"];
+    
     if (white_lists.includes(req.originalUrl)) {
         next();
     } else {

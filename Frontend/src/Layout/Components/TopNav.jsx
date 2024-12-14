@@ -14,23 +14,40 @@ const TopNav = () => {
   const [userGmail, setUserGmail] = useState('');
 
   useEffect(() => {
-    // Get user data from localStorage
-    const user = JSON.parse(localStorage.getItem('user'));
-    if (user) {
-      setUserData(user);
-      setUserName(user.name);
-      setUserGmail(user.email);
-    }
+    const fetchUserData = async () => {
+      try {
+        const token = localStorage.getItem('access_token');
+        if (!token) return;
 
-    // Handle clicking outside dropdown
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsDropdownOpen(false);
+        // Fetch fresh user data from server
+        const response = await axios.get('http://localhost:3000/user/profile', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        const user = response.data.user;
+        setUserData(user);
+        setUserName(user.name);
+        setUserGmail(user.email);
+        
+        // Update localStorage with fresh data
+        localStorage.setItem('user', JSON.stringify(user));
+      } catch (error) {
+        console.error('Error fetching user data:', error);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    // Initial fetch
+    fetchUserData();
+
+    // Listen for avatar updates
+    const handleAvatarUpdate = () => {
+      fetchUserData();
+    };
+    window.addEventListener('avatarUpdated', handleAvatarUpdate);
+
+    return () => {
+      window.removeEventListener('avatarUpdated', handleAvatarUpdate);
+    };
   }, []);
 
   const handleSearch = async (e) => {

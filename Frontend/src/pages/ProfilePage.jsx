@@ -20,10 +20,9 @@ const ProfilePage = () => {
 
     const handleUpdateProfile = async () => {
         try {
-            setIsLoading(true); // Start loading
+            setIsLoading(true);
             const token = localStorage.getItem('access_token');
             
-            // Update avatar if changed
             if (editForm.avatar) {
                 const formData = new FormData();
                 formData.append('avatar', editForm.avatar);
@@ -39,54 +38,35 @@ const ProfilePage = () => {
                     }
                 );
 
-                if (avatarResponse.data.avatar) {
-                    setUserData(prev => ({
-                        ...prev,
-                        avatar: avatarResponse.data.avatar
-                    }));
-
-                    // Update localStorage
-                    const user = JSON.parse(localStorage.getItem('user'));
-                    user.avatar = avatarResponse.data.avatar;
-                    localStorage.setItem('user', JSON.stringify(user));
-
-                    // Update color extraction
-                    extractColor(avatarResponse.data.avatar);
-                }
-            }
-
-            // Update name if changed
-            if (editForm.name && editForm.name !== userData?.name) {
-                const nameResponse = await axios.put(
-                    'http://localhost:3000/user/update_profile',
-                    { name: editForm.name },
-                    {
-                        headers: { 
-                            'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json'
-                        }
+                if (avatarResponse.data.success) {
+                    // Update both local state and localStorage with complete user object
+                    const updatedUser = avatarResponse.data.user;
+                    setUserData(updatedUser); // This triggers a re-render
+                    localStorage.setItem('user', JSON.stringify(updatedUser));
+                    
+                    // Extract new color from updated avatar
+                    if (updatedUser.avatar) {
+                        extractColor(updatedUser.avatar);
                     }
-                );
+                    
+                    // Dispatch custom event for avatar update
+                    window.dispatchEvent(new Event('avatarUpdated'));
 
-                if (nameResponse.data.user) {
-                    setUserData(prev => ({
-                        ...prev,
-                        name: nameResponse.data.user.name
-                    }));
-
-                    // Update localStorage
-                    const user = JSON.parse(localStorage.getItem('user'));
-                    user.name = nameResponse.data.user.name;
-                    localStorage.setItem('user', JSON.stringify(user));
+                    // Fetch fresh user data to ensure everything is in sync
+                    const userResponse = await axios.get('http://localhost:3000/user/profile', {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    
+                    setUserData(userResponse.data.user);
                 }
             }
-
+            
             setShowEditDialog(false);
         } catch (error) {
             console.error('Error updating profile:', error);
-            alert(error.response?.data?.message || 'Failed to update profile');
+            alert('Failed to update profile');
         } finally {
-            setIsLoading(false); // Stop loading regardless of outcome
+            setIsLoading(false);
         }
     };
 
@@ -119,18 +99,23 @@ const ProfilePage = () => {
         const fetchUserData = async () => {
             try {
                 const token = localStorage.getItem('access_token');
-                const user = JSON.parse(localStorage.getItem('user'));
                 
-                if (!token || !user) {
-                    throw new Error('No authentication data');
-                }
-
-                setUserData(user);
-                setEditForm({ name: user.name, avatar: null });
+                // Fetch current user data from server instead of localStorage
+                const userResponse = await axios.get('http://localhost:3000/user/profile', {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                
+                const userData = userResponse.data.user;
+                
+                // Update local storage with fresh data from server
+                localStorage.setItem('user', JSON.stringify(userData));
+                
+                setUserData(userData);
+                setEditForm({ name: userData.name, avatar: null });
 
                 // Extract color from avatar if exists
-                if (user.avatar) {
-                    extractColor(user.avatar);
+                if (userData.avatar) {
+                    extractColor(userData.avatar);
                 }
 
                 // Fetch user's playlists
@@ -149,9 +134,6 @@ const ProfilePage = () => {
                         headers: { Authorization: `Bearer ${token}` }
                     }
                 );
-
-                // Log to debug
-                console.log('Recent tracks response:', recentTracksResponse.data);
                 
                 if (recentTracksResponse.data.tracks) {
                     setRecentTracks(recentTracksResponse.data.tracks);

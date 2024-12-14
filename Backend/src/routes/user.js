@@ -50,6 +50,7 @@ router.delete('/albums/remove', auth, UserController.removeFavoriteAlbum);
 router.put('/change-password', auth, UserController.changePassword);
 router.put('/update_profile', auth, UserController.updateProfile);
 router.put('/update_avatar', auth, upload.single('avatar'), UserController.updateAvatar);
+router.get('/profile', auth, UserController.getProfile);
 
 // Recent tracks
 router.get('/recent_tracks', auth, UserController.getRecentTracks);
