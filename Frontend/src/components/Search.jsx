@@ -155,7 +155,6 @@ const SongsSection = ({ tracks }) => {
     try {
       const token = localStorage.getItem("access_token");
       if (!token) {
-        alert("Please login first");
         return;
       }
   

@@ -18,7 +18,7 @@ const FeaturedCharts = () => {
           localStorage.setItem('albumsData', JSON.stringify(data));
         }
       } catch (error) {
-        alert(`Error fetching data: ${error.message}`);
+        console.error('Error loading albums data:', error);
       }
     };
 
