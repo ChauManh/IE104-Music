@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { assets } from "../../assets/assets";
 import { PlayerContext } from "../../context/PlayerContext";
 import { useQueue } from "../../context/QueueContext";
@@ -17,7 +17,6 @@ const Player = () => {
     previousTrack,
     nextTrack,
     repeatStatus,
-    toggleRepeat,
     volume,
     changeVolume,
     currentTime,
@@ -38,6 +37,15 @@ const Player = () => {
   } = useQueue();
   const [isDragging, setIsDragging] = useState(false);
   const [localTime, setLocalTime] = useState(currentTime);
+  const [repeatMode, setRepeatMode] = useState("off"); // "off", "track", "context"
+
+  useEffect(() => {
+    if (player) {
+      player.getRepeatMode().then(mode => {
+        setRepeatMode(mode === 0 ? "off" : mode === 1 ? "track" : "context");
+      });
+    }
+  }, [player]);
 
   const handleNext = async () => {
     if (queue.length === 0) return;
@@ -88,6 +96,34 @@ const Player = () => {
       // Update position in real-time while dragging
       player.seek(newTime * 1000);
       setCurrentTime(newTime);
+    }
+  };
+
+  const toggleRepeat = async () => {
+    try {
+      // Cycle through repeat modes: off -> track -> context -> off
+      const newMode = repeatMode === "off" ? "track" : 
+                     repeatMode === "track" ? "context" : "off";
+      
+      setRepeatMode(newMode);
+
+      // Update player state based on repeat mode
+      switch(newMode) {
+        case "track":
+          // Repeat current track only
+          await player?.setRepeatMode(1);
+          break;
+        case "context":
+          // Repeat entire album/playlist
+          await player?.setRepeatMode(2);
+          break;
+        default:
+          // No repeat
+          await player?.setRepeatMode(0);
+          break;
+      }
+    } catch (error) {
+      console.error('Error setting repeat mode:', error);
     }
   };
 
@@ -152,9 +188,18 @@ const Player = () => {
           />
           <img
             onClick={toggleRepeat}
-            className={`h-4 w-4 cursor-pointer opacity-70 transition-all hover:opacity-100 ${repeatStatus ? "text-green-500" : ""}`}
-            src={assets.loop_icon}
-            alt=""
+            className="h-[14px] w-[14px] cursor-pointer opacity-70 transition-all hover:opacity-100"
+            src={
+              repeatMode === "track" ? assets.repeated_icon :
+              repeatMode === "context" ? assets.repeatall_icon :
+              assets.repeat_icon
+            }
+            alt="Repeat"
+            title={
+              repeatMode === "track" ? "Repeat current track" :
+              repeatMode === "context" ? "Repeat entire album" :
+              "Repeat off"
+            }
           />
         </div>
 

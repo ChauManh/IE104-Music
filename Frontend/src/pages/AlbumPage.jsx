@@ -92,7 +92,6 @@ const AlbumPage = () => {
     try {
       const token = localStorage.getItem("access_token");
       if (!token) {
-        alert("Please login first to follow album");
         return;
       }
   
@@ -111,7 +110,10 @@ const AlbumPage = () => {
       );
   
       if (exists) {
-        alert("Album already in your library");
+        setNotificationMessage(`Album đã có sẵn trong thư viện`);
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 2000);
+        window.dispatchEvent(new Event("playlistsUpdated"));
         return;
       }
   
@@ -139,7 +141,10 @@ const AlbumPage = () => {
   
     } catch (error) {
       console.error("Error following album:", error);
-      alert("Failed to add album to library");
+      setNotificationMessage(`Không thể thêm album vào thư viện`);
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 2000);
+      window.dispatchEvent(new Event("playlistsUpdated"));
     }
   };
 

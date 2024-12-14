@@ -32,7 +32,10 @@ const ArtistPage = () => {
   const handlePlayAll = async () => {
     console.log(topTracks);
     if (!topTracks || topTracks.length === 0) {
-      alert("No songs in the playlist");
+      setNotificationMessage(`Không có bài hát nào có sẵn trong playlist`);
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 2000);
+      window.dispatchEvent(new Event("playlistsUpdated"));
       return;
     }
     setTrack({
@@ -353,7 +356,6 @@ const ArtistPage = () => {
     try {
       const token = localStorage.getItem("access_token");
       if (!token) {
-        alert("Please login first to follow/unfollow artist");
         return;
       }
 

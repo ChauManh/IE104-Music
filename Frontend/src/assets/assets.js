@@ -1,7 +1,7 @@
 import bell_icon from './bell.png'
 import home_icon from './home.png'
 import like_icon from './like.png'
-import loop_icon from './loop.png'
+import repeat_icon from './repeat.png'
 import mic_icon from './mic.png'
 import next_icon from './next.png'
 import play_icon from './play.png'
@@ -53,13 +53,15 @@ import music_icon from './music.png'
 import remove_icon from './remove.png'
 import more_icon from './more.png'
 import liked_icon from './liked.png'
+import repeated_icon from './repeated.png'
+import repeatall_icon from './repeatall.png'
 import soundtify from './soundtify_logo.png'
 
 export const assets = {
     bell_icon,
     home_icon,
     like_icon,
-    loop_icon,
+    repeat_icon,
     mic_icon,
     next_icon,
     play_icon,
@@ -92,7 +94,6 @@ export const assets = {
     remove_icon,
     more_icon,
     liked_icon,
-    soundtify
 }
 
 export const albumsData = [

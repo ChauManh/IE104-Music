@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from "react";
-import SongItem from "./SongItem3";
+import React, { useState, useEffect, useContext } from "react";
 import ArtistItem from "./ArtistItem";
 import AlbumItem from "./AlbumItem";
-import { useNavigate } from "react-router-dom";
 import { assets } from "../assets/assets";
 import PlaylistPopup from "./PlaylistPopup";
 import axios from "axios";
+import { PlayerContext } from "../context/PlayerContext";
 
 const Search = ({ results, query, onArtistClick, onAlbumClick }) => {
   const topResult =
@@ -66,21 +65,27 @@ const Search = ({ results, query, onArtistClick, onAlbumClick }) => {
 
 // Top Result Section remains the same
 const TopResultSection = ({ result }) => {
-  const navigate = useNavigate();
+  const { setTrack, playWithUri } = useContext(PlayerContext);
 
   if (!result) return null;
 
-  const handleTrackClick = (trackId) => {
-    if (result.type === "track") {
-      navigate(`/track/${trackId}`);
-    }
+  const handleTrackClick = (track) => {
+    setTrack({
+      id: track.id,
+      name: track.name,
+      image: track.album.images[0]?.url,
+      singer: track.artists[0].name,
+      duration: track.duration_ms,
+      uri: track.uri,
+    });
+    playWithUri(track.uri);
   };
 
   return (
     <section>
       <h2 className="mb-4 text-xl font-bold">Kết quả hàng đầu</h2>
       <div
-        onClick={() => handleTrackClick(result.id)}
+        onClick={() => handleTrackClick(result)}
         className="cursor-pointer rounded-lg bg-[#181818] p-5 transition-colors hover:bg-[#282828]"
       >
         <img
@@ -100,6 +105,7 @@ const TopResultSection = ({ result }) => {
 
 // Songs Section using SongItem
 const SongsSection = ({ tracks }) => {
+  const { playWithUri, setTrack } = useContext(PlayerContext);
   const [showPlaylistPopup, setShowPlaylistPopup] = useState(false);
   const [selectedTrackId, setSelectedTrackId] = useState(null);
   const [userPlaylists, setUserPlaylists] = useState([]);
@@ -150,12 +156,24 @@ const SongsSection = ({ tracks }) => {
     checkLikedTracks();
   }, []);
 
+  const handleTrackClick = (track) => {
+    console.log(track)
+    setTrack({
+      id: track.id,
+      name: track.name,
+      image: track.album.images[0]?.url,
+      singer: track.artists[0].name,
+      duration: track.duration_ms,
+      uri: track.uri,
+    });
+    playWithUri(track.uri);
+  }
+
   // Handle like/unlike
   const handleLikeClick = async (trackId) => {
     try {
       const token = localStorage.getItem("access_token");
       if (!token) {
-        alert("Please login first");
         return;
       }
   
@@ -263,8 +281,9 @@ const SongsSection = ({ tracks }) => {
       <div className="flex flex-col gap-2">
         {tracks.slice(0, 4).map((track) => (
           <div
+          onClick={() => handleTrackClick(track)}
             key={track.id}
-            className="group flex items-center justify-between gap-4 rounded-md p-2 hover:bg-[#ffffff1a]"
+            className="group flex items-center justify-between gap-4 rounded-md p-2 hover:bg-[#ffffff1a] cursor-pointer"
           >
             <div className="flex items-center gap-4">
               <img

@@ -24,12 +24,12 @@ const AdminController = {
             ).select('-password');
 
             if (!user) {
-                return res.status(404).json({ message: 'User not found' });
+                return res.status(404).json({ message: 'Không tìm thấy User' });
             }
 
-            res.status(200).json({ message: 'User updated successfully', user });
+            res.status(200).json({ message: 'Cập nhật User thành công!', user });
         } catch (error) {
-            res.status(500).json({ message: 'Error updating user', error: error.message });
+            res.status(500).json({ message: 'Lỗi cập nhật User!', error: error.message });
         }
     },
 
@@ -39,15 +39,15 @@ const AdminController = {
             const user = await User.findByIdAndDelete(id);
 
             if (!user) {
-                return res.status(404).json({ message: 'User not found' });
+                return res.status(404).json({ message: 'Không tìm thấy User' });
             }
 
             // Also delete user's playlists
             await Playlist.deleteMany({ userID: id });
 
-            res.status(200).json({ message: 'User deleted successfully' });
+            res.status(200).json({ message: 'Xóa User thành công!' });
         } catch (error) {
-            res.status(500).json({ message: 'Error deleting user', error: error.message });
+            res.status(500).json({ message: 'Lỗi xóa User!', error: error.message });
         }
     },
 
@@ -79,10 +79,10 @@ const AdminController = {
             const playlist = await Playlist.findByIdAndDelete(id);
 
             if (!playlist) {
-                return res.status(404).json({ message: 'Playlist not found' });
+                return res.status(404).json({ message: 'Không tìm thấy Playlist!' });
             }
 
-            res.status(200).json({ message: 'Playlist deleted successfully' });
+            res.status(200).json({ message: 'Xóa Playlist thành công!' });
         } catch (error) {
             res.status(500).json({ message: 'Error deleting playlist', error: error.message });
         }
@@ -103,7 +103,7 @@ const AdminController = {
             await user.save();
             
             const userResponse = await User.findById(user._id).select('-password');
-            res.status(201).json({ message: 'User created successfully', user: userResponse });
+            res.status(201).json({ message: 'Tạo User thành công!', user: userResponse });
         } catch (error) {
             res.status(500).json({ message: 'Error creating user', error: error.message });
         }
