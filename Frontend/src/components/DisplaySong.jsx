@@ -1,7 +1,7 @@
 import React, { useContext, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { PlayerContext } from '../context/PlayerContext'; // Đảm bảo đường dẫn chính xác
-import { getTrack } from '../util/api';
+import { getTrack } from '../util/trackApi';
 const DisplaySong = () => {
   const { id } = useParams(); // Lấy id từ URL
   const { setTrack, playWithUri } = useContext(PlayerContext);
