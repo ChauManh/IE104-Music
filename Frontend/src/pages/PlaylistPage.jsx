@@ -6,12 +6,12 @@ import ColorThief from "colorthief";
 import axios from "axios";
 import { useQueue } from "../context/QueueContext";
 import { getTrack } from "../util/trackApi";
+import { searchContent } from "../util/searchApi";
 import {
   fetchPlaylistData,
   addSongToPlaylist,
   removeSongFromPlaylist,
   updatePlaylistThumbnail,
-  searchContent,
   getIdSpotifFromSongId,
 } from "../util/api";
 

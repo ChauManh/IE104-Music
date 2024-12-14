@@ -3,10 +3,10 @@ import { useParams, useLocation } from "react-router-dom";
 import axios from "axios";
 import { assets } from "../assets/assets";
 import ColorThief from "colorthief";
-import { refreshPlaylists } from '../Layout/Components/sidebar';
 import AlbumItem from "../components/AlbumItem"; // Import AlbumItem component
 import { PlayerContext } from "../context/PlayerContext"; // Import PlayerContext
 import { useQueue } from '../context/QueueContext';
+import { fetchAlbum, fetchAlbumTracks, fetchNewAlbums } from "../util/albumApi";
 
 
 const AlbumPage = () => {

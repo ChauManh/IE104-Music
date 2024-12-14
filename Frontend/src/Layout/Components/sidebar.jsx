@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { assets } from "../../assets/assets";
 import PlaylistItem from "../../components/PlaylistItem";
 import axios from "axios";
-import { createPlaylist } from "../../util/api";
+import { createPlaylist } from "../../util/userApi";
 import { useNavigate } from "react-router-dom";
 
 // Export the function to be used by other components

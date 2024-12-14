@@ -1,11 +1,10 @@
 import React, { useEffect, useState, useContext } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
-import SongItem from "../components/SongItem";
 import AlbumItem from "../components/AlbumItem";
 import PopupAbout from "../components/PopupAbout";
 import { assets } from "../assets/assets";
-import { createPlaylist, addSongToPlaylist } from "../util/api";
+import { createPlaylist, addSongToPlaylist } from "../util/userApi";
 import { PlayerContext } from "../context/PlayerContext";
 import { useQueue } from "../context/QueueContext";
 import ColorThief from "colorthief";
