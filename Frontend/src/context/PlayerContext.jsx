@@ -190,10 +190,12 @@ const PlayerContextProvider = ({ children }) => {
   };
 
   const handleTimeClick = (e) => {
-    const progressBar = e.target;
-    const clickPosition = e.clientX - progressBar.getBoundingClientRect().left;
-    const newTime = (clickPosition / progressBar.offsetWidth) * duration;
-    player.seek(newTime * 1000); 
+    const progressBar = e.currentTarget;
+    const rect = progressBar.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const percent = x / progressBar.offsetWidth;
+    const newTime = percent * duration;
+    player.seek(newTime * 1000);
     setCurrentTime(newTime);
   };
 

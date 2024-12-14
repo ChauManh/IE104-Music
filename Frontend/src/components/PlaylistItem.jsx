@@ -12,7 +12,7 @@ const PlaylistItem = ({ playlist }) => {
     } else if (playlist.type === 'album') {
       navigate(`/album/${playlist.albumId}`);
     } else {
-      navigate(`/playlist/${playlist._id}`);
+      navigate(`/playlist/${playlist._id}`, { replace: true }); // Add replace: true
     }
   };
 

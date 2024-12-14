@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom"; // Add useLocation
 import { PlayerContext } from "../context/PlayerContext";
 import { assets } from "../assets/assets";
 import ColorThief from "colorthief";
@@ -39,13 +39,86 @@ const handleDeletePlaylist = async (e) => {
 
 const PlaylistPage = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation(); // Add this
 
   // If this is the liked songs playlist, render the LikedSongsPlaylist component
   if (id === "liked") {
     return <LikedSongsPlaylist token={token} />;
   }
+
+  // Reset states when playlist changes
+  useEffect(() => {
+    // Reset all states
+    setPlaylistData(null);
+    setPlaylistSongs([]);
+    setSearchResults({ tracks: [], artists: [], albums: [] });
+    setSearchQuery('');
+    setIsSearching(false);
+    setSelectedArtist(null);
+    setSelectedAlbum(null);
+    setArtistTracks([]);
+    setArtistAlbums([]);
+    setShowNotification(false);
+    
+    // Fetch new playlist data
+    const fetchPlaylistData = async () => {
+      setIsLoading(true);
+      try {
+        const token = localStorage.getItem("access_token");
+        if (!token) {
+          throw new Error("No access token found");
+        }
+
+        const response = await axios.get(
+          `http://localhost:3000/user/playlist/${id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        const { playlist } = response.data;
+        setPlaylistData(playlist);
+        setEditFormData({
+          name: playlist.name || "",
+          description: playlist.description || "",
+        });
+
+        // Fetch song details if playlist has songs
+        if (playlist.songs && playlist.songs.length > 0) {
+          const songsWithDetails = await Promise.all(
+            playlist.songs.map(async (songId) => {
+              const songResponse = await axios.get(
+                `http://localhost:3000/songs/${songId}`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                },
+              );
+              return songResponse.data;
+            }),
+          );
+          setPlaylistSongs(songsWithDetails);
+        }
+
+        // Extract colors from thumbnail if exists
+        if (playlist.thumbnail) {
+          extractColors(playlist.thumbnail);
+        }
+      } catch (error) {
+        console.error("Error fetching playlist:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPlaylistData();
+  }, [id, location.pathname]); // Add location.pathname as dependency
+
   const { setQueue } = useQueue();
-  const navigate = useNavigate();
   const { playWithUri, setTrack, addTrackToQueue } = useContext(PlayerContext);
   const [dominantColor, setDominantColor] = useState("#333333");
   const [secondaryColor, setSecondaryColor] = useState("#121212");
@@ -390,6 +463,22 @@ const PlaylistPage = () => {
     }
   };
 
+  const extractColors = async (imageUrl) => {
+    try {
+      const img = new Image();
+      img.crossOrigin = "Anonymous";
+      img.src = imageUrl;
+      img.onload = () => {
+        const colorThief = new ColorThief();
+        const color = colorThief.getColor(img);
+        setDominantColor(`rgb(${color.join(',')})`);
+        setSecondaryColor(`rgba(${color.join(',')}, 0.5)`);
+      };
+    } catch (error) {
+      console.error('Error extracting color:', error);
+    }
+  };
+
   useEffect(() => {
     const fetchPlaylistData = async () => {
       setIsLoading(true);
@@ -450,6 +539,12 @@ const PlaylistPage = () => {
       fetchPlaylistData();
     }
   }, [id]);
+
+  useEffect(() => {
+    if (playlistData?.thumbnail) {
+      extractColors(playlistData.thumbnail);
+    }
+  }, [playlistData?.thumbnail]);
 
   // Add calculateTotalDuration helper function
   const calculateTotalDuration = (songs) => {
@@ -886,7 +981,7 @@ const PlaylistPage = () => {
               Playlist
             </p>
             <h1
-              className="mb-1 cursor-pointer text-2xl font-black sm:mb-2 sm:text-3xl md:mb-3 xl:text-6xl 2xl:text-7xl"
+              className="mt-4 mb-1 cursor-pointer text-2xl font-black sm:mb-2 sm:text-3xl md:mb-3 lg:text-4xl xl:text-3xl 2xl:text-[60px]"
               onClick={handleTitleClick}
             >
               {playlistData?.name || "My Playlist"}
