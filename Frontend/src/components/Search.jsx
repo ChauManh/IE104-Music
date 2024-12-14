@@ -271,7 +271,7 @@ const SongsSection = ({ tracks }) => {
       <div className="flex flex-col gap-2">
         {tracks.slice(0, 4).map((track) => (
           <div
-            onClick={handleTrackClick(track)}
+            // onClick={handleTrackClick(track)}
             key={track.id}
             className="group flex items-center justify-between gap-4 rounded-md p-2 hover:bg-[#ffffff1a] cursor-pointer"
           >
