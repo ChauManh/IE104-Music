@@ -116,8 +116,8 @@ const SignIn = () => {
 };
 
   return (
-    <div className="flex min-h-screen w-full flex-col items-center gap-4 bg-black py-8">
-      <header>
+    <div className="flex min-h-screen w-full flex-col items-center bg-black px-4 py-8">
+      <header className="mb-8">
         <img
           src={assets.soundtify}
           alt="spotify"
@@ -125,52 +125,51 @@ const SignIn = () => {
         />
       </header>
 
-      {/* Continue */}
-
-      <section className="h-[33.33%]">
-        <h1 className="mb-6 text-center text-3xl font-bold text-white">
+      <section className="w-full max-w-[300px] flex flex-col items-center">
+        <h1 className="mb-8 text-center text-3xl font-bold text-white">
           Đăng nhập vào Soundify
         </h1>
-        <div className="flex w-[300px] flex-col justify-center gap-4">
+        
+        {/* Google Sign In Button */}
+        <div className="w-full mb-6">
           <button
             onClick={handleGoogleSignIn}
-            className="flex w-full items-center rounded-md border border-gray-500 px-4 py-2 text-white transition duration-150 hover:border-green-300"
+            className="flex w-full items-center justify-center rounded-md border border-gray-500 px-4 py-2 text-white transition duration-150 hover:border-green-300"
           >
             <img
               src="https://accounts.scdn.co/sso/images/new-google-icon.72fd940a229bc94cf9484a3320b3dccb.svg"
               alt="Google"
-              className="mr-10"
+              className="mr-4"
             />
             Đăng nhập bằng Google
           </button>
         </div>
 
-        {/* Line */}
-
-        <div className="m-[16px] flex items-center">
+        {/* Divider */}
+        <div className="w-full mb-6">
           <hr className="w-full border-gray-600" />
         </div>
 
-        {/* Form */}
-
-        <div className="w-[300px] text-white">
-          <form onSubmit={handleSubmit}>
-            <div className="mb-4">
-              <label>Tên hoặc email</label>
+        {/* Login Form */}
+        <div className="w-full text-white">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <div>
+              <label className="block mb-2">Tên hoặc email</label>
               <input
                 name="email"
-                className="mt-2 w-full rounded-md border border-gray-500 bg-transparent p-2 transition duration-200 hover:border-green-300 focus:outline-none focus:ring-1 focus:ring-green-300"
+                className="w-full rounded-md border border-gray-500 bg-transparent p-2 transition duration-200 hover:border-green-300 focus:outline-none focus:ring-1 focus:ring-green-300"
                 type="text"
                 placeholder="Tên hoặc email"
                 required
                 onChange={handleChange}
               />
             </div>
-            <div className="mb-6">
-              <label>Mật khẩu</label>
+            
+            <div>
+              <label className="block mb-2">Mật khẩu</label>
               <input
                 name="password"
-                className="mt-2 w-full rounded-md border border-gray-500 bg-transparent p-2 transition duration-200 hover:border-green-300 focus:outline-none focus:ring-1 focus:ring-green-300"
+                className="w-full rounded-md border border-gray-500 bg-transparent p-2 transition duration-200 hover:border-green-300 focus:outline-none focus:ring-1 focus:ring-green-300"
                 type="password"
                 placeholder="Mật khẩu"
                 required
@@ -180,22 +179,24 @@ const SignIn = () => {
 
             <button
               type="submit"
-              className="mb-4 w-full rounded-full bg-[#32c967] py-3 font-bold text-black hover:scale-105 hover:bg-[#3bef7a]"
+              className="mt-4 w-full rounded-full bg-[#32c967] py-3 font-bold text-black hover:scale-105 hover:bg-[#3bef7a]"
             >
               Đăng nhập
             </button>
           </form>
         </div>
-        <div className="text-gray-400">
-          <div className="mb-4 flex justify-center">
-            <Link to="/forgot-password" className="mt-1 text-white underline">
+
+        {/* Links */}
+        <div className="mt-6 text-center text-gray-400">
+          <div className="mb-4">
+            <Link to="/forgot-password" className="text-white underline">
               Bạn quên mật khẩu ?
             </Link>
           </div>
           <p>
             Không có tài khoản ?
             <Link to="/signup" className="ml-1 text-white underline">
-              Đăng ký tài khoản mới
+              Đăng ký tài khoản 
             </Link>
           </p>
         </div>

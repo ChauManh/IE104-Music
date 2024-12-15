@@ -94,6 +94,7 @@ export const assets = {
     remove_icon,
     more_icon,
     liked_icon,
+    soundtify,
 }
 
 export const albumsData = [
