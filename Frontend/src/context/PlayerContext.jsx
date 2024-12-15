@@ -1,7 +1,7 @@
 import React, { createContext, useEffect, useState } from "react";
 import axios from "axios";
-import { getWebPlayBackSDKToken } from "../util/authApi";
-import useTokenRefresh from "../services/refresh_webplaybacksdk_token";
+import { getWebPlayBackSDKToken } from "../services/authApi";
+import useTokenRefresh from "../utils/refresh_webplaybacksdk_token";
 // import { QueueProvider, useQueue } from "./QueueContext";
 export const PlayerContext = createContext();
 

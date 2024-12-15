@@ -11,8 +11,7 @@ const fetchNewAlbums = async () => {
 
 const fetchAlbum = async (id) => {
   try {
-    const response = await axios.get(`http://localhost:3000/album/${id}`);
-    return response.data;
+    return await axios.get(`http://localhost:3000/album/${id}`);
   } catch (error) {
     alert(error.message);
   }
@@ -23,7 +22,7 @@ const fetchAlbumTracks = async (id) => {
     const response = await axios.get(
       `http://localhost:3000/album/${id}/tracks`,
     );
-    return response.data;
+    return response;
   } catch (error) {
     alert(error.message);
   }

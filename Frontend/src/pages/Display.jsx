@@ -1,12 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Route, Routes, useNavigate } from "react-router-dom";
 import DisplayHome from "../components/DisplayHome";
-// import DisplaySong from "../components/DisplaySong";
 import SearchPage from "./SearchPage";
 import ArtistPage from "./ArtistPage";
 import AlbumPage from "./AlbumPage";
 import PlaylistPage from "./PlaylistPage";
-import { refreshApp } from '../Layout/Components/sidebar';
 import LoginRequiredPopup from '../components/LoginRequiredPopup';
 import ProfilePage from "./ProfilePage";
 

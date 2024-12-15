@@ -44,7 +44,7 @@ const AlbumController = {
       const albumTracks = response.data.items.map(item => ({
         name: item.name,
         id: item.id,
-        // image: item.images[0].url, // Uncomment if needed
+        // image: item.album.images[2].url, // Uncomment if needed
         singers: item.artists.map(artist => artist.name), // Lấy tất cả tên nghệ sĩ
         duration: item.duration_ms,
         uri: item.uri,
@@ -58,7 +58,6 @@ const AlbumController = {
   async getAlbum(req, res) {
     try {
       const albumId = req.params.id;
-      console.log("Fetching album with ID:", albumId); // Debug log
       
       const token = await getSpotifyToken();
       const response = await axios.get(`https://api.spotify.com/v1/albums/${albumId}`, {

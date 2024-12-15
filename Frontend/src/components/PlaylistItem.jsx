@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { assets } from '../assets/assets';
-import axios from 'axios';
+import { deletePlaylist, removeLikedAlbum, unfollowArtist } from '../services/userApi';
 
 const PlaylistItem = ({ playlist }) => {
   const navigate = useNavigate();
@@ -22,54 +22,24 @@ const PlaylistItem = ({ playlist }) => {
     e.stopPropagation();
      {
       try {
-        const token = localStorage.getItem('access_token');
-        if (!token) throw new Error('No access token found');
-
         if (playlist.type === 'artist') {
           await Promise.all([
-            axios.delete(
-              `http://localhost:3000/user/playlist/${playlist._id}`,
-              {
-                headers: { Authorization: `Bearer ${token}` }
-              }
-            ),
-            axios.delete(
-              `http://localhost:3000/user/artists/unfollow`,
-              {
-                headers: { Authorization: `Bearer ${token}` },
-                data: { artistId: playlist.artistId }
-              }
-            )
+            deletePlaylist(playlist._id),
+            unfollowArtist(playlist.artistId)
           ]);
         } else if (playlist.type === 'album') {
           await Promise.all([
-            axios.delete(
-              `http://localhost:3000/user/playlist/${playlist._id}`,
-              {
-                headers: { Authorization: `Bearer ${token}` }
-              }
-            ),
-            axios.delete(
-              `http://localhost:3000/user/albums/remove`,
-              {
-                headers: { Authorization: `Bearer ${token}` },
-                data: { albumId: playlist.albumId }
-              }
-            )
+            deletePlaylist(playlist._id),
+            removeLikedAlbum(playlist.albumId)
           ]);
         } else {
-          await axios.delete(
-            `http://localhost:3000/user/playlist/${playlist._id}`,
-            {
-              headers: { Authorization: `Bearer ${token}` }
-            }
-          );
+          deletePlaylist(playlist._id)
         }
 
         setNotificationMessage("Đã xóa playlist thành công");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 2000);
-        navigate('/');
+        // navigate('/');
 
       } catch (error) {
         console.error('Error deleting:', error);

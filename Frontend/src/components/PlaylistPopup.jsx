@@ -1,43 +1,12 @@
 import React, { useCallback } from 'react';
-import axios from 'axios';
 import { assets } from '../assets/assets';
-
+import { addSongToPlaylist } from '../services/userApi';
 const PlaylistPopup = ({ isOpen, onClose, trackId, playlists, setShowNotification, setNotificationMessage }) => {
     if (!isOpen) return null;
 
     const handleAddToPlaylist = useCallback(async (playlistId) => {
         try {
-            const token = localStorage.getItem("access_token");
-            if (!token) {
-                throw new Error("No access token found");
-            }
-
-            // Create/get song in database
-            const songResponse = await axios.post(
-                "http://localhost:3000/songs/create",
-                { spotifyId: trackId },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
-
-            const songId = songResponse.data.song._id;
-
-            // Add song to playlist
-            await axios.post(
-                "http://localhost:3000/user/playlist/add_song",
-                {
-                    playlistID: playlistId,
-                    songID: songId,
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
+            await addSongToPlaylist(playlistId,trackId)
 
             setShowNotification(true);
             setNotificationMessage("Đã thêm vào playlist");

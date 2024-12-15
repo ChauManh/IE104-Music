@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { login, signInWithGoogle, getWebPlayBackSDKToken } from "../util/authApi";
+import {
+  login,
+  signInWithGoogle,
+  getWebPlayBackSDKToken,
+} from "../services/authApi";
 import { assets } from "../assets/assets";
-import axios from "axios";
-
 const SignIn = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -21,99 +23,71 @@ const SignIn = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-        const result = await login(formData.email, formData.password);
+      const result = await login(formData.email, formData.password);
 
-        if (result && result.EC === 0) {
-            localStorage.setItem("access_token", result.access_token);
-            localStorage.setItem("user", JSON.stringify(result.user));
+      if (result && result.EC === 0) {
+        localStorage.setItem("access_token", result.access_token);
+        localStorage.setItem("user", JSON.stringify(result.user));
 
-            // Check if "Bài hát đã thích" playlist exists
-            const token = result.access_token;
-            const playlistsResponse = await axios.get(
-                "http://localhost:3000/user/get_playlists",
-                {
-                    headers: { Authorization: `Bearer ${token}` }
-                }
-            );
-
-            const likedPlaylist = playlistsResponse.data.playlists.find(
-                playlist => playlist.name === "Bài hát đã thích"
-            );
-
-            // Create if doesn't exist
-            if (!likedPlaylist) {
-                await axios.post(
-                    "http://localhost:3000/user/create_playlist",
-                    { 
-                        name: "Bài hát đã thích",
-                        type: "playlist",
-                        description: "Những bài hát bạn yêu thích" 
-                    },
-                    {
-                        headers: { Authorization: `Bearer ${token}` }
-                    }
-                );
-            }
-
-            // Refresh sidebar
-            window.dispatchEvent(new Event("playlistsUpdated"));
-
-            // Navigate based on role
-            if (result.user.role === "admin") {
-                window.location.href = "/admin/dashboard";
-            } else {
-                navigate("/");
-            }
+        // Navigate based on role
+        if (result.user.role === "admin") {
+          window.location.href = "/admin/dashboard";
+        } else {
+          navigate("/");
         }
+      }
     } catch (error) {
-        console.error("Login error:", error);
-        alert(error.response?.data?.EM || "Login failed");
+      console.error("Login error:", error);
+      alert(error.response?.data?.EM || "Login failed");
     }
-};
+  };
 
   // Also handle Google sign-in for admin
   const handleGoogleSignIn = async () => {
     try {
-        // First handle Google authentication
-        const result = await signInWithGoogle();
-        if (result && result.EC === 0) {
-            // Store authentication data
-            localStorage.setItem("access_token", result.access_token);
-            localStorage.setItem("user", JSON.stringify(result.user));
-            
-            // Clear any existing Spotify tokens
-            localStorage.removeItem("web_playback_token");
-            
-            console.log("Google login successful!");
+      // First handle Google authentication
+      const result = await signInWithGoogle();
+      if (result && result.EC === 0) {
+        // Store authentication data
+        localStorage.setItem("access_token", result.access_token);
+        localStorage.setItem("user", JSON.stringify(result.user));
 
-            // Check if admin user
-            if (result.user.role === "admin") {
-                navigate("/admin/dashboard");
-                return;
-            }
+        // Clear any existing Spotify tokens
+        localStorage.removeItem("web_playback_token");
 
-            try {
-                // Redirect to Spotify auth
-                window.location.href = "http://localhost:3000/spotify_auth/login";
-                
-                // Note: The code below won't execute immediately due to redirect
-                const spotifyToken = await getWebPlayBackSDKToken();
-                if (spotifyToken) {
-                    localStorage.setItem("web_playback_token", spotifyToken.access_token);
-                    localStorage.setItem("refresh_token", spotifyToken.refresh_token);
-                    localStorage.setItem("expires_in", spotifyToken.expires_in);
-                    console.log("Web Playback SDK Token:", spotifyToken.access_token);
-                }
-            } catch (spotifyError) {
-                console.error("Spotify auth error:", spotifyError);
-                alert("Error getting Spotify access. Please try again.");
-            }
+        console.log("Google login successful!");
+
+        // Check if admin user
+        if (result.user.role === "admin") {
+          navigate("/admin/dashboard");
+          return;
         }
+
+        try {
+          // Redirect to Spotify auth
+          window.location.href = "http://localhost:3000/spotify_auth/login";
+
+          // Note: The code below won't execute immediately due to redirect
+          const spotifyToken = await getWebPlayBackSDKToken();
+          if (spotifyToken) {
+            localStorage.setItem(
+              "web_playback_token",
+              spotifyToken.access_token,
+            );
+            localStorage.setItem("refresh_token", spotifyToken.refresh_token);
+            localStorage.setItem("expires_in", spotifyToken.expires_in);
+            console.log("Web Playback SDK Token:", spotifyToken.access_token);
+          }
+        } catch (spotifyError) {
+          console.error("Spotify auth error:", spotifyError);
+          alert("Error getting Spotify access. Please try again.");
+        }
+      }
     } catch (error) {
-        console.error("Google signin error:", error);
-        alert(error.message || "Login failed. Please try again.");
+      console.error("Google signin error:", error);
+      alert(error.message || "Login failed. Please try again.");
     }
-};
+  };
 
   return (
     <div className="flex min-h-screen w-full flex-col items-center bg-black px-4 py-8">
@@ -125,13 +99,13 @@ const SignIn = () => {
         />
       </header>
 
-      <section className="w-full max-w-[300px] flex flex-col items-center">
+      <section className="flex w-full max-w-[300px] flex-col items-center">
         <h1 className="mb-8 text-center text-3xl font-bold text-white">
           Đăng nhập vào Soundify
         </h1>
-        
+
         {/* Google Sign In Button */}
-        <div className="w-full mb-6">
+        <div className="mb-6 w-full">
           <button
             onClick={handleGoogleSignIn}
             className="flex w-full items-center justify-center rounded-md border border-gray-500 px-4 py-2 text-white transition duration-150 hover:border-green-300"
@@ -146,7 +120,7 @@ const SignIn = () => {
         </div>
 
         {/* Divider */}
-        <div className="w-full mb-6">
+        <div className="mb-6 w-full">
           <hr className="w-full border-gray-600" />
         </div>
 
@@ -154,7 +128,7 @@ const SignIn = () => {
         <div className="w-full text-white">
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div>
-              <label className="block mb-2">Tên hoặc email</label>
+              <label className="mb-2 block">Tên hoặc email</label>
               <input
                 name="email"
                 className="w-full rounded-md border border-gray-500 bg-transparent p-2 transition duration-200 hover:border-green-300 focus:outline-none focus:ring-1 focus:ring-green-300"
@@ -164,9 +138,9 @@ const SignIn = () => {
                 onChange={handleChange}
               />
             </div>
-            
+
             <div>
-              <label className="block mb-2">Mật khẩu</label>
+              <label className="mb-2 block">Mật khẩu</label>
               <input
                 name="password"
                 className="w-full rounded-md border border-gray-500 bg-transparent p-2 transition duration-200 hover:border-green-300 focus:outline-none focus:ring-1 focus:ring-green-300"
@@ -196,7 +170,7 @@ const SignIn = () => {
           <p>
             Không có tài khoản ?
             <Link to="/signup" className="ml-1 text-white underline">
-              Đăng ký tài khoản 
+              Đăng ký tài khoản
             </Link>
           </p>
         </div>

@@ -2,8 +2,7 @@ import axios from "axios";
 
 const getArtist = async (id) => {
   try {
-    const response = await axios.get(`http://localhost:3000/artist/${id}`);
-    return response.data;
+    return await axios.get(`http://localhost:3000/artist/${id}`);
   } catch (error) {
     console.error(error);
     throw error;
@@ -12,10 +11,7 @@ const getArtist = async (id) => {
 
 const getArtistAlbums = async (id) => {
   try {
-    const response = await axios.get(
-      `http://localhost:3000/artist/${id}/albums`,
-    );
-    return response.data;
+    return await axios.get(`http://localhost:3000/artist/${id}/albums`);
   } catch (error) {
     console.error(error);
     throw error;
@@ -24,10 +20,7 @@ const getArtistAlbums = async (id) => {
 
 const getArtistTopTracks = async (id) => {
   try {
-    const response = await axios.get(
-      `http://localhost:3000/artist/${id}/top-tracks`,
-    );
-    return response.data;
+    return await axios.get(`http://localhost:3000/artist/${id}/top-tracks`);
   } catch (error) {
     console.error(error);
     throw error;

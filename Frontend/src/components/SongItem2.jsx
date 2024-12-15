@@ -1,8 +1,7 @@
 import React, { useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { assets } from '../assets/assets';
 import { PlayerContext } from '../context/PlayerContext';
-import { getTrack } from '../util/trackApi';
+import { getTrack } from '../services/trackApi';
 
 const SongItem2 = ({ name, image, singer, id }) => {
   const { playWithUri, setTrack } = useContext(PlayerContext);

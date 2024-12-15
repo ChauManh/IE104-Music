@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import ColorThief from 'colorthief';
 import { assets } from '../assets/assets';
+import { getPlaylists } from '../services/userApi';
+import { getDetailSong } from '../services/songApi';
 
 const LikedSongsPlaylist = ({ token }) => {
   const [likedSongs, setLikedSongs] = useState([]);
@@ -21,14 +22,7 @@ const LikedSongsPlaylist = ({ token }) => {
   useEffect(() => {
     const fetchLikedSongs = async () => {
       try {
-        const response = await axios.get(
-          "http://localhost:3000/user/get_playlists",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await getPlaylists();
 
         const likedPlaylist = response.data.playlists.find(
           playlist => playlist.name === "Bài hát đã thích"
@@ -37,14 +31,7 @@ const LikedSongsPlaylist = ({ token }) => {
         if (likedPlaylist && likedPlaylist.songs.length > 0) {
           const songsWithDetails = await Promise.all(
             likedPlaylist.songs.map(async (songId) => {
-              const songResponse = await axios.get(
-                `http://localhost:3000/songs/${songId}`,
-                {
-                  headers: {
-                    Authorization: `Bearer ${token}`,
-                  },
-                }
-              );
+              const songResponse = await getDetailSong(songId);
               return songResponse.data;
             })
           );

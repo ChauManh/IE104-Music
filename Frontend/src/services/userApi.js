@@ -26,6 +26,21 @@ const createPlaylist = async () => {
   }
 };
 
+const deletePlaylist = async (id) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("No access token found");
+    }
+    await axios.delete(`http://localhost:3000/user/playlist/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  } catch (error) {
+    console.error("API delete playlist error:", error);
+    throw error;
+  }
+};
+
 const addSongToPlaylist = async (playlistId, trackId) => {
   try {
     const token = localStorage.getItem("access_token");
@@ -95,21 +110,34 @@ const removeLikedSong = async (trackId) => {
   }
 };
 
-const followArtist = async (artistId) => {
+const followArtist = async (artist) => {
   try {
     const token = localStorage.getItem("access_token");
     if (!token) {
       throw new Error("No access token found");
     }
-
-    const response = await axios.post(
-      "http://localhost:3000/user/artists/follow",
-      { artistId },
+    await axios.post(
+      "http://localhost:3000/user/create_playlist",
       {
-        headers: { Authorization: `Bearer ${token}` },
+        name: artist.name,
+        thumbnail: artist.images[0]?.url,
+        type: "artist",
+        artistId: artist.id,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       },
     );
-    return response.data;
+
+    // await axios.post(
+    //   "http://localhost:3000/user/artists/follow",
+    //   { artistId: artist.id },
+    //   {
+    //     headers: { Authorization: `Bearer ${token}` },
+    //   },
+    // );
   } catch (error) {
     console.error("API followArtist error:", error);
     throw error;
@@ -122,36 +150,44 @@ const unfollowArtist = async (artistId) => {
     if (!token) {
       throw new Error("No access token found");
     }
-
-    const response = await axios.delete(
-      "http://localhost:3000/user/artists/unfollow",
-      {
-        headers: { Authorization: `Bearer ${token}` },
-        data: { artistId },
-      },
-    );
-    return response.data;
+    await axios.delete("http://localhost:3000/user/artists/unfollow", {
+      headers: { Authorization: `Bearer ${token}` },
+      data: { artistId },
+    });
   } catch (error) {
     console.error("API unfollowArtist error:", error);
     throw error;
   }
 };
 
-const addLikedAlbum = async (albumId) => {
+const addLikedAlbum = async (album) => {
   try {
     const token = localStorage.getItem("access_token");
     if (!token) {
       throw new Error("No access token found");
     }
-
-    const response = await axios.post(
-      "http://localhost:3000/user/albums/add",
-      { albumId },
+    await axios.post(
+      "http://localhost:3000/user/create_playlist",
       {
-        headers: { Authorization: `Bearer ${token}` },
+        name: album.name,
+        thumbnail: album.images[0]?.url,
+        type: "album",
+        albumId: album.id, // Store the album ID
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       },
     );
-    return response.data;
+
+    // await axios.post(
+    //   "http://localhost:3000/user/albums/add",
+    //   { albumId: album.id },
+    //   {
+    //     headers: { Authorization: `Bearer ${token}` },
+    //   },
+    // );
   } catch (error) {
     console.error("API addLikedAlbum error:", error);
     throw error;
@@ -203,15 +239,37 @@ const removeSongFromPlaylist = async (playlistId, songId) => {
     if (!token) throw new Error("No access token found");
 
     const response = await axios.delete(
-      "http://localhost:3000/user/playlist/remove_song",
+      `http://localhost:3000/user/playlist/${playlistId}/songs/${songId}`,
       {
         headers: { Authorization: `Bearer ${token}` },
-        data: { playlistID: playlistId, songID: songId },
       },
     );
     return response.data;
   } catch (error) {
     console.error("Error removing song from playlist:", error);
+    throw error;
+  }
+};
+
+const updatePlaylist = async (id, name, description) => {
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) throw new Error("No access token found");
+
+    return axios.put(
+      `http://localhost:3000/user/playlist/${id}`,
+      {
+        name: name,
+        description: description, // Make sure description is included
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+  } catch (error) {
+    console.error("Error updating thumbnail:", error);
     throw error;
   }
 };
@@ -223,10 +281,9 @@ const updatePlaylistThumbnail = async (playlistId, file) => {
 
     const formData = new FormData();
     formData.append("thumbnail", file);
-    formData.append("playlistId", playlistId);
 
-    const response = await axios.post(
-      "http://localhost:3000/user/playlist/update_thumbnail",
+    return await axios.put(
+      `http://localhost:3000/user/playlist/${playlistId}/thumbnail`,
       formData,
       {
         headers: {
@@ -235,11 +292,52 @@ const updatePlaylistThumbnail = async (playlistId, file) => {
         },
       },
     );
-    return response.data;
   } catch (error) {
     console.error("Error updating thumbnail:", error);
     throw error;
   }
+};
+
+const updateProfile = async (name) => {
+  const token = localStorage.getItem("access_token");
+  await axios.put(
+    "http://localhost:3000/user/update_profile",
+    { name: name },
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    },
+  );
+};
+
+const updateAvatar = async (formData) => {
+  const token = localStorage.getItem("access_token");
+  await axios.put("http://localhost:3000/user/update_avatar", formData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
+const getProfile = async () => {
+  const token = localStorage.getItem("access_token");
+  return await axios.get("http://localhost:3000/user/profile", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+};
+
+const getPlaylists = async () => {
+  const token = localStorage.getItem("access_token");
+  return await axios.get("http://localhost:3000/user/get_playlists", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+};
+
+const getRecentTracks = async () => {
+  const token = localStorage.getItem("access_token");
+  return await axios.get("http://localhost:3000/user/recent_tracks", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
 };
 
 const fetchPlaylistData = async (playlistId) => {
@@ -304,14 +402,22 @@ const fetchPlaylistData = async (playlistId) => {
 
 export {
   createPlaylist,
+  deletePlaylist,
   addSongToPlaylist,
   addLikedSong,
+  addLikedAlbum,
+  getPlaylists,
   removeLikedSong,
   followArtist,
   unfollowArtist,
   removeLikedAlbum,
+  getRecentTracks,
   getPlaylistById,
   removeSongFromPlaylist,
   updatePlaylistThumbnail,
+  updateProfile,
+  updateAvatar,
+  getProfile,
   fetchPlaylistData,
+  updatePlaylist,
 };

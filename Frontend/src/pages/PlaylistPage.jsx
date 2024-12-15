@@ -1,95 +1,31 @@
 import React, { useContext, useState, useEffect, useCallback } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom"; // Add useLocation
+import { useParams, useLocation } from "react-router-dom";
 import { PlayerContext } from "../context/PlayerContext";
 import { assets } from "../assets/assets";
 import ColorThief from "colorthief";
-import axios from "axios";
+import { formatDuration } from "../utils/formatDuration";
 import { useQueue } from "../context/QueueContext";
-import { getTrack } from "../util/trackApi";
-import { searchContent } from "../util/searchApi";
-import { getIdSpotifFromSongId } from "../util/songApi";
+import { getTrack } from "../services/trackApi";
+import { searchContent } from "../services/searchApi";
+import { calculateTotalDuration } from "../utils/calculateTotalDuration";
+import { getArtistTopTracks, getArtistAlbums } from "../services/artistApi";
+import { fetchAlbumTracks } from "../services/albumApi";
+import {
+  getIdSpotifFromSongId,
+  getDetailSong,
+  createSong,
+} from "../services/songApi";
+import {
+  getPlaylistById,
+  addSongToPlaylist,
+  removeSongFromPlaylist,
+  updatePlaylistThumbnail,
+  updatePlaylist,
+} from "../services/userApi";
 
 const PlaylistPage = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
-  const location = useLocation(); // Add this
-
-  // If this is the liked songs playlist, render the LikedSongsPlaylist component
-  if (id === "liked") {
-    return <LikedSongsPlaylist token={token} />;
-  }
-
-  // Reset states when playlist changes
-  useEffect(() => {
-    // Reset all states
-    setPlaylistData(null);
-    setPlaylistSongs([]);
-    setSearchResults({ tracks: [], artists: [], albums: [] });
-    setSearchQuery("");
-    setIsSearching(false);
-    setSelectedArtist(null);
-    setSelectedAlbum(null);
-    setArtistTracks([]);
-    setArtistAlbums([]);
-    setShowNotification(false);
-
-    // Fetch new playlist data
-    const fetchPlaylistData = async () => {
-      setIsLoading(true);
-      try {
-        const token = localStorage.getItem("access_token");
-        if (!token) {
-          throw new Error("No access token found");
-        }
-
-        const response = await axios.get(
-          `http://localhost:3000/user/playlist/${id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-
-        const { playlist } = response.data;
-        setPlaylistData(playlist);
-        setEditFormData({
-          name: playlist.name || "",
-          description: playlist.description || "",
-        });
-
-        // Fetch song details if playlist has songs
-        if (playlist.songs && playlist.songs.length > 0) {
-          const songsWithDetails = await Promise.all(
-            playlist.songs.map(async (songId) => {
-              const songResponse = await axios.get(
-                `http://localhost:3000/songs/${songId}`,
-                {
-                  headers: {
-                    Authorization: `Bearer ${token}`,
-                  },
-                },
-              );
-              return songResponse.data;
-            }),
-          );
-          setPlaylistSongs(songsWithDetails);
-        }
-
-        // Extract colors from thumbnail if exists
-        if (playlist.thumbnail) {
-          extractColors(playlist.thumbnail);
-        }
-      } catch (error) {
-        console.error("Error fetching playlist:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchPlaylistData();
-  }, [id, location.pathname]); // Add location.pathname as dependency
-
+  const location = useLocation();
   const { setQueue } = useQueue();
   const { playWithUri, setTrack, addTrackToQueue } = useContext(PlayerContext);
   const [dominantColor, setDominantColor] = useState("#333333");
@@ -111,7 +47,6 @@ const PlaylistPage = () => {
   const [albumTracks, setAlbumTracks] = useState([]);
   const [playlistSongs, setPlaylistSongs] = useState([]);
   const [showNotification, setShowNotification] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editFormData, setEditFormData] = useState({
     name: "",
@@ -119,6 +54,60 @@ const PlaylistPage = () => {
   });
   const [isThumbnailLoading, setIsThumbnailLoading] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState("");
+
+  // Reset states when playlist changes
+  useEffect(() => {
+    setPlaylistData(null);
+    setPlaylistSongs([]);
+    setSearchResults({ tracks: [], artists: [], albums: [] });
+    setSearchQuery("");
+    setIsSearching(false);
+    setSelectedArtist(null);
+    setSelectedAlbum(null);
+    setArtistTracks([]);
+    setArtistAlbums([]);
+    setShowNotification(false);
+
+    const fetchPlaylistData = async () => {
+      setIsLoading(true);
+      try {
+        const token = localStorage.getItem("access_token");
+        if (!token) {
+          throw new Error("No access token found");
+        }
+
+        const response = await getPlaylistById(id);
+
+        const { playlist } = response;
+        setPlaylistData(playlist);
+        setEditFormData({
+          name: playlist.name || "",
+          description: playlist.description || "",
+        });
+
+        if (playlist.songs && playlist.songs.length > 0) {
+          const songsWithDetails = await Promise.all(
+            playlist.songs.map(async (songId) => {
+              const songResponse = await getDetailSong(songId);
+              return songResponse.data;
+            }),
+          );
+          setPlaylistSongs(songsWithDetails);
+        }
+
+        // Extract colors from thumbnail if exists
+        if (playlist.thumbnail) {
+          extractColors(playlist.thumbnail);
+        }
+      } catch (error) {
+        console.error("Error fetching playlist:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPlaylistData();
+  }, [id, location.pathname]); // Add location.pathname as dependency
 
   const getTrackBySongId = async (SongId) => {
     const idSpotify = await getIdSpotifFromSongId(SongId);
@@ -128,179 +117,39 @@ const PlaylistPage = () => {
 
   const handlePlayAll = async () => {
     if (!playlistSongs || playlistSongs.length === 0) {
+      setNotificationMessage(`Không có bài hát nào có sẵn trong playlist`);
       setShowNotification(true);
-      setNotificationMessage("Không có bài hát nào có sẵn trong playlist");
       setTimeout(() => setShowNotification(false), 2000);
       window.dispatchEvent(new Event("playlistsUpdated"));
       return;
     }
-    const trackData = await getTrackBySongId(playlistSongs[0]._id);
-    setTrack(trackData);
-    const newQueue = playlistSongs.slice(1).map((item) => ({
-      id: item.spotifyId,
-      name: item.title,
-      album: item.album,
-      image: item.image,
-      singer: item.artistName,
-      duration: item.duration_ms,
-      uri: item.uri,
-    }));
-    if (newQueue.length > 0) {
-      setQueue(newQueue);
-      addTrackToQueue(newQueue[0].uri);
-    }
-    playWithUri(trackData.uri);
+    handleTrackClick(playlistSongs[0], 0);
   };
 
   const handleTrackClick = async (song, index) => {
     const trackData = await getTrackBySongId(song._id);
     setTrack(trackData);
-    const newQueue = playlistSongs.slice(index + 1).map((item) => ({
-      id: item.spotifyId,
-      name: item.title,
-      album: item.album,
-      image: item.image,
-      singer: item.artistName,
-      duration: item.duration_ms,
-      uri: item.uri,
-    }));
-    if (newQueue.length > 0) {
+    if (index === playlistSongs.length - 1) {
+      setQueue([]);
+    } else {
+      const newQueue = playlistSongs.slice(index + 1).map((item) => ({
+        id: item.spotifyId,
+        name: item.title,
+        album: item.album,
+        image: item.image,
+        singer: item.artistName,
+        duration: item.duration,
+        uri: item.uri,
+      }));
       setQueue(newQueue);
       addTrackToQueue(newQueue[0].uri);
     }
     playWithUri(trackData.uri);
   };
 
-  // Update the Notification component styling
-  const Notification = ({ message }) => (
-    <div className="fixed bottom-24 left-1/2 z-50 -translate-x-1/2 transform">
-      <div className="rounded-full bg-[#1ed760] px-4 py-2 text-center text-sm font-medium text-black shadow-lg">
-        <span>{message}</span>
-      </div>
-    </div>
-  );
-
-  // Add new function to check if song is already in playlist
   const isSongInPlaylist = (trackId) => {
     return playlistSongs.some((song) => song.spotifyId === trackId);
   };
-
-  // Add function to check if playlist exists
-  const isPlaylistExists = async (playlistName) => {
-    try {
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        throw new Error("No access token found");
-      }
-
-      const response = await axios.get(
-        "http://localhost:3000/user/get_playlists",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-
-      // Check if a playlist with this name already exists
-      return response.data.playlists.some(
-        (playlist) => playlist.name === playlistName,
-      );
-    } catch (error) {
-      console.error("Error checking playlist existence:", error);
-      return false;
-    }
-  };
-
-  const handleFollowAlbum = async (album) => {
-    try {
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        return;
-      }
-
-      // Check if album playlist already exists
-      const playlistsResponse = await axios.get(
-        "http://localhost:3000/user/get_playlists",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-
-      const exists = playlistsResponse.data.playlists.some(
-        (playlist) =>
-          playlist.type === "album" && playlist.albumId === album.id,
-      );
-
-      if (exists) {
-        setNotificationMessage(`Album đã có sẵn trong thư viện`);
-        setShowNotification(true);
-        setTimeout(() => setShowNotification(false), 2000);
-        window.dispatchEvent(new Event("playlistsUpdated"));
-        return;
-      }
-
-      // Create new album playlist
-      const createPlaylistResponse = await axios.post(
-        "http://localhost:3000/user/create_playlist",
-        {
-          name: album.name,
-          thumbnail: album.images[0]?.url,
-          type: "album",
-          albumId: album.id,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-
-      // Show notification
-      setNotificationMessage(`Đã thêm ${album.name} vào thư viện`);
-      setShowNotification(true);
-      setTimeout(() => setShowNotification(false), 2000);
-      window.dispatchEvent(new Event("playlistsUpdated"));
-    } catch (error) {
-      console.error("Error following album:", error);
-      
-    }
-  };
-
-  // const handleDeletePlaylist = async (e) => {
-  //   e.stopPropagation();
-  //   if (window.confirm("Are you sure you want to delete this?")) {
-  //     try {
-  //       const token = localStorage.getItem("access_token");
-  //       if (!token) throw new Error("No access token found");
-
-  //       await axios.delete(
-  //         `http://localhost:3000/user/playlist/${playlist._id}`,
-  //         {
-  //           headers: { Authorization: `Bearer ${token}` },
-  //         }
-  //       );
-
-  //       // Show notification for successful deletion
-  //       setNotificationMessage("Đã xóa playlist thành công");
-  //       setShowNotification(true);
-  //       setTimeout(() => setShowNotification(false), 2000);
-
-  //       // Refresh sidebar and navigate
-  //       window.dispatchEvent(new Event("playlistsUpdated"));
-  //       navigate('/');
-
-  //     } catch (error) {
-  //       console.error("Error deleting:", error);
-  //       // Show error notification
-  //       setNotificationMessage("Không thể xóa playlist");
-  //       setShowNotification(true);
-  //       setTimeout(() => setShowNotification(false), 2000);
-  //     }
-  //   }
-  // };
 
   const handleAddToPlaylist = useCallback(
     async (trackId, e) => {
@@ -310,61 +159,19 @@ const PlaylistPage = () => {
       }
 
       try {
-        const token = localStorage.getItem("access_token");
-        if (!token) {
-          throw new Error("No access token found");
-        }
+        setIsLoading(true);
+        await createSong(trackId);
+        await addSongToPlaylist(id, trackId);
 
-        setIsLoading(true); // Add loading state
-
-        // Create/get song in database
-        const songResponse = await axios.post(
-          "http://localhost:3000/songs/create",
-          { spotifyId: trackId },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-
-        const songId = songResponse.data.song._id;
-
-        // Add song to playlist
-        await axios.post(
-          "http://localhost:3000/user/playlist/add_song",
-          {
-            playlistID: id,
-            songID: songId,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-
-        // Update UI
         setShowNotification(true);
         setNotificationMessage("Đã thêm vào playlist");
 
-        // Fetch updated playlist data
-        const updatedPlaylistResponse = await axios.get(
-          `http://localhost:3000/user/playlist/${id}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          },
-        );
+        const updatedPlaylistResponse = await getPlaylistById(id);
 
-        if (updatedPlaylistResponse.data.playlist.songs) {
+        if (updatedPlaylistResponse.playlist.songs) {
           const songsWithDetails = await Promise.all(
-            updatedPlaylistResponse.data.playlist.songs.map(async (songId) => {
-              const songResponse = await axios.get(
-                `http://localhost:3000/songs/${songId}`,
-                {
-                  headers: { Authorization: `Bearer ${token}` },
-                },
-              );
+            updatedPlaylistResponse.playlist.songs.map(async (songId) => {
+              const songResponse = await getDetailSong(songId);
               return songResponse.data;
             }),
           );
@@ -382,20 +189,8 @@ const PlaylistPage = () => {
 
   const handleRemoveSong = async (songId) => {
     try {
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        throw new Error("No access token found");
-      }
-
       // Delete song from playlist using the correct API endpoint
-      await axios.delete(
-        `http://localhost:3000/user/playlist/${id}/songs/${songId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
+      await removeSongFromPlaylist(id, songId);
 
       // Update UI by removing the song from the local state
       setPlaylistSongs((prev) => prev.filter((song) => song._id !== songId));
@@ -418,21 +213,7 @@ const PlaylistPage = () => {
     if (file && file.type.startsWith("image/")) {
       setIsThumbnailLoading(true);
       try {
-        const formData = new FormData();
-        formData.append("thumbnail", file);
-
-        const token = localStorage.getItem("access_token");
-        const response = await axios.put(
-          `http://localhost:3000/user/playlist/${id}/thumbnail`,
-          formData,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "multipart/form-data",
-            },
-          },
-        );
-
+        const response = await updatePlaylistThumbnail(id, file);
         if (response.data.playlist) {
           setPlaylistData(response.data.playlist);
           setShowNotification(true);
@@ -443,7 +224,6 @@ const PlaylistPage = () => {
         }
       } catch (error) {
         console.error("Error uploading thumbnail:", error);
-        // Only show error alerts for actual errors
         if (error.response?.status === 413) {
           alert("File too large. Please choose a smaller image.");
         } else if (error.response?.status === 415) {
@@ -484,16 +264,9 @@ const PlaylistPage = () => {
           throw new Error("No access token found");
         }
 
-        const response = await axios.get(
-          `http://localhost:3000/user/playlist/${id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
+        const response = await getPlaylistById(id);
 
-        const { playlist } = response.data;
+        const { playlist } = response;
 
         // Set all playlist data including description
         setPlaylistData(playlist);
@@ -512,14 +285,7 @@ const PlaylistPage = () => {
         if (playlist.songs && playlist.songs.length > 0) {
           const songsWithDetails = await Promise.all(
             playlist.songs.map(async (songId) => {
-              const songResponse = await axios.get(
-                `http://localhost:3000/songs/${songId}`,
-                {
-                  headers: {
-                    Authorization: `Bearer ${token}`,
-                  },
-                },
-              );
+              const songResponse = await getDetailSong(songId);
               return songResponse.data;
             }),
           );
@@ -541,14 +307,6 @@ const PlaylistPage = () => {
       extractColors(playlistData.thumbnail);
     }
   }, [playlistData?.thumbnail]);
-
-  // Add calculateTotalDuration helper function
-  const calculateTotalDuration = (songs) => {
-    const totalDuration = songs.reduce((acc, song) => acc + song.duration, 0);
-    const minutes = Math.floor(totalDuration / 60000);
-    const seconds = Math.floor((totalDuration % 60000) / 1000);
-    return `${minutes} phút ${seconds < 10 ? "0" : ""}${seconds} giây`;
-  };
 
   // Update the useEffect for search
   useEffect(() => {
@@ -579,12 +337,6 @@ const PlaylistPage = () => {
     return () => clearTimeout(searchTimer);
   }, [searchQuery, playlistSongs]);
 
-  const formatDuration = (ms) => {
-    const minutes = Math.floor(ms / 60000);
-    const seconds = Math.floor((ms % 60000) / 1000);
-    return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
-  };
-
   const handleArtistClick = async (artist) => {
     try {
       setIsSearching(true);
@@ -592,8 +344,8 @@ const PlaylistPage = () => {
 
       // Fetch artist's tracks and albums
       const [tracksResponse, albumsResponse] = await Promise.all([
-        axios.get(`http://localhost:3000/artist/${artist.id}/top-tracks`),
-        axios.get(`http://localhost:3000/artist/${artist.id}/albums`),
+        getArtistTopTracks(artist.id),
+        getArtistAlbums(artist.id),
       ]);
 
       setArtistTracks(tracksResponse.data.tracks || []);
@@ -615,10 +367,7 @@ const PlaylistPage = () => {
       setArtistAlbums([]); // Clear artist albums
 
       // Fetch album tracks
-      const tracksResponse = await axios.get(
-        `http://localhost:3000/album/${album.id}/tracks`,
-      );
-
+      const tracksResponse = await fetchAlbumTracks(album.id);
       setAlbumTracks(tracksResponse.data || []);
       setIsSearching(false);
     } catch (error) {
@@ -639,12 +388,8 @@ const PlaylistPage = () => {
           try {
             setIsSearching(true);
             const [tracksResponse, albumsResponse] = await Promise.all([
-              axios.get(
-                `http://localhost:3000/artist/${selectedArtist.id}/top-tracks`,
-              ),
-              axios.get(
-                `http://localhost:3000/artist/${selectedArtist.id}/albums`,
-              ),
+              getArtistTopTracks(selectedArtist.id),
+              getArtistAlbums(selectedArtist.id),
             ]);
             setArtistTracks(tracksResponse.data.tracks || []);
             setArtistAlbums(albumsResponse.data.items || []);
@@ -696,7 +441,7 @@ const PlaylistPage = () => {
                         className="group flex cursor-pointer items-center gap-4 rounded-md p-2 hover:bg-[#ffffff1a]"
                       >
                         <img
-                          src={track.album.images[2].url}
+                          src={selectedAlbum.images[2].url}
                           alt={track.name}
                           className="h-10 w-10 rounded"
                         />
@@ -891,18 +636,10 @@ const PlaylistPage = () => {
 
   const handleSaveChanges = async () => {
     try {
-      const token = localStorage.getItem("access_token");
-      const response = await axios.put(
-        `http://localhost:3000/user/playlist/${id}`,
-        {
-          name: editFormData.name,
-          description: editFormData.description, // Make sure description is included
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
+      const response = await updatePlaylist(
+        id,
+        editFormData.name,
+        editFormData.description,
       );
 
       if (response.data.playlist) {

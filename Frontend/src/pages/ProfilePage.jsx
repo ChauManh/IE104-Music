@@ -1,8 +1,15 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { assets } from "../assets/assets";
 import ColorThief from "colorthief";
 import { useNavigate } from "react-router-dom";
+import {
+  updateAvatar,
+  updateProfile,
+  getProfile,
+  getPlaylists,
+  getRecentTracks,
+} from "../services/userApi";
+import { getArtist } from "../services/artistApi";
 
 const ProfilePage = () => {
   const navigate = useNavigate();
@@ -10,7 +17,9 @@ const ProfilePage = () => {
   const [playlists, setPlaylists] = useState([]);
   const [recentTracks, setRecentTracks] = useState([]);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState("");
   const [dominantColor, setDominantColor] = useState("#333333");
+  const [showNotification, setShowNotification] = useState(false);
   const [editForm, setEditForm] = useState({
     name: "",
     avatar: null,
@@ -21,43 +30,21 @@ const ProfilePage = () => {
   const handleUpdateProfile = async () => {
     try {
       setIsLoading(true);
-      const token = localStorage.getItem("access_token");
-      
+
       // Update name first if changed
       if (editForm.name !== userData?.name) {
-        await axios.put(
-          "http://localhost:3000/user/update_profile",
-          { name: editForm.name },
-          {
-            headers: { Authorization: `Bearer ${token}` }
-          }
-        );
+        await updateProfile(editForm.name);
       }
 
       // Update avatar if new file selected
       if (editForm.avatar) {
         const formData = new FormData();
         formData.append("avatar", editForm.avatar);
-
-        await axios.put(
-          "http://localhost:3000/user/update_avatar",
-          formData,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "multipart/form-data",
-            },
-          }
-        );
+        await updateAvatar(formData);
       }
 
       // Fetch updated user data
-      const userResponse = await axios.get(
-        "http://localhost:3000/user/profile",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const userResponse = await getProfile();
 
       // Update local state and storage
       const updatedUser = userResponse.data.user;
@@ -71,16 +58,15 @@ const ProfilePage = () => {
 
       // Trigger avatar update in other components
       window.dispatchEvent(new Event("avatarUpdated"));
-      
+
       // Show success notification
       setNotificationMessage("Đã cập nhật thông tin thành công");
       setShowNotification(true);
-      
+
       // Close dialog FIRST before showing notification
       setShowEditDialog(false);
-      
-      setTimeout(() => setShowNotification(false), 2000);
 
+      setTimeout(() => setShowNotification(false), 2000);
     } catch (error) {
       console.error("Error updating profile:", error);
       setNotificationMessage("Không thể cập nhật thông tin");
@@ -121,15 +107,8 @@ const ProfilePage = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const token = localStorage.getItem("access_token");
-
         // Fetch current user data from server instead of localStorage
-        const userResponse = await axios.get(
-          "http://localhost:3000/user/profile",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          },
-        );
+        const userResponse = await getProfile();
 
         const userData = userResponse.data.user;
 
@@ -145,12 +124,7 @@ const ProfilePage = () => {
         }
 
         // Fetch user's playlists
-        const playlistsResponse = await axios.get(
-          "http://localhost:3000/user/get_playlists",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          },
-        );
+        const playlistsResponse = await getPlaylists();
 
         // Filter to only show playlists with type 'playlist'
         const userPlaylists = playlistsResponse.data.playlists.filter(
@@ -159,12 +133,7 @@ const ProfilePage = () => {
         setPlaylists(userPlaylists);
 
         // Fetch recent tracks
-        const recentTracksResponse = await axios.get(
-          "http://localhost:3000/user/recent_tracks",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          },
-        );
+        const recentTracksResponse = getRecentTracks();
 
         if (recentTracksResponse.data.tracks) {
           setRecentTracks(recentTracksResponse.data.tracks);
@@ -184,12 +153,7 @@ const ProfilePage = () => {
         if (!token) return;
 
         // Fetch user's playlists
-        const playlistsResponse = await axios.get(
-          "http://localhost:3000/user/get_playlists",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          },
-        );
+        const playlistsResponse = await getPlaylists();
 
         // Filter artist type playlists
         const artistPlaylists = playlistsResponse.data.playlists.filter(
@@ -200,13 +164,8 @@ const ProfilePage = () => {
         const artistDetails = await Promise.all(
           artistPlaylists.map(async (playlist) => {
             try {
-              const response = await axios.get(
-                `http://localhost:3000/artist/${playlist.artistId}`,
-                {
-                  headers: { Authorization: `Bearer ${token}` },
-                },
-              );
-              return response.data;
+              const response = await getArtist(playlist.artistId);
+              return response;
             } catch (error) {
               console.error(
                 `Error fetching artist ${playlist.artistId}:`,

@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import AlbumItem from './AlbumItem';
-import { fetchNewAlbums } from '../util/albumApi';
+import { fetchNewAlbums } from '../services/albumApi';
 import { PlayerContext } from '../context/PlayerContext';
 
 const FeaturedCharts = () => {

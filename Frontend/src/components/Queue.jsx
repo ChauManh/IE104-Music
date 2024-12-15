@@ -1,5 +1,5 @@
-import React, { useEffect, useContext } from 'react';
-import { QueueProvider, useQueue } from '../context/QueueContext';
+import React, { useContext } from 'react';
+import { useQueue } from '../context/QueueContext';
 import { PlayerContext } from '../context/PlayerContext';
 
 const Queue = () => {

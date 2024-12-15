@@ -1,23 +1,30 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { assets } from "../assets/assets";
+import {
+  createUser,
+  deleteUser,
+  getAllPlaylist,
+  getAllStat,
+  getAlluser,
+  updateUser,
+} from "../services/adminApi";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
-  const [users, setUsers] = useState([]); // Danh sách người dùng
-  const [playlists, setPlaylists] = useState([]); // Danh sách phát
-  const [stats, setStats] = useState({}); // Thống kê
-  const [activeTab, setActiveTab] = useState("users"); // Tab đang hoạt động
-  const [showUserModal, setShowUserModal] = useState(false); // Hiển thị modal người dùng
-  const [selectedUser, setSelectedUser] = useState(null); // Người dùng được chọn
+  const [users, setUsers] = useState([]);
+  const [playlists, setPlaylists] = useState([]);
+  const [stats, setStats] = useState({});
+  const [activeTab, setActiveTab] = useState("users");
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
   const [userForm, setUserForm] = useState({
-    name: "", // Tên
-    email: "", // Email
-    password: "", // Mật khẩu
-    role: "user", // Vai trò
+    name: "",
+    email: "",
+    password: "",
+    role: "user",
   });
 
   useEffect(() => {
@@ -39,31 +46,14 @@ const AdminDashboard = () => {
 
   const fetchData = async () => {
     try {
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        throw new Error("No access token found");
-      }
-
       if (activeTab === "users") {
-        const response = await axios.get("http://localhost:3000/admin/users", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
+        const response = getAlluser();
         setUsers(response.data.users);
       } else if (activeTab === "playlists") {
-        const response = await axios.get(
-          "http://localhost:3000/admin/playlists",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          },
-        );
+        const response = await getAllPlaylist();
         setPlaylists(response.data.playlists);
       } else if (activeTab === "stats") {
-        const response = await axios.get("http://localhost:3000/admin/stats", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await getAllStat();
         setStats(response.data.stats);
       }
     } catch (error) {
@@ -81,10 +71,7 @@ const AdminDashboard = () => {
   const handleDeleteUser = async (userId) => {
     if (window.confirm("Are you sure you want to delete this user?")) {
       try {
-        const token = localStorage.getItem("access_token");
-        await axios.delete(`http://localhost:3000/admin/users/${userId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await deleteUser(userId);
         fetchData();
       } catch (error) {
         console.error("Error deleting user:", error);
@@ -96,28 +83,18 @@ const AdminDashboard = () => {
   const handleSubmitUser = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem("access_token");
       if (selectedUser) {
         // Update user
-        await axios.put(
-          `http://localhost:3000/admin/users/${selectedUser._id}`,
-          userForm,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          },
-        );
+        updateUser(selectedUser._id, userForm);
       } else {
         // Create user
-        await axios.post("http://localhost:3000/admin/users", userForm, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await createUser(userForm);
       }
       fetchData();
       setShowUserModal(false);
       setSelectedUser(null);
       setUserForm({ name: "", email: "", password: "", role: "user" });
     } catch (error) {
-      console.error("Error saving user:", error);
       alert(error.response?.data?.message || "Error saving user");
     }
   };

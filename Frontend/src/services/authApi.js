@@ -30,6 +30,41 @@ const login = async (email, password) => {
   }
 };
 
+const forgotPassword = async (email) => {
+  try {
+    await axios.post("http://localhost:3000/auth/forgot-password", { email });
+  } catch (error) {
+    console.error("API forgot-password error:", error);
+    throw error;
+  }
+};
+
+const verifyOtp = async (email, otpString) => {
+  try {
+    await axios.post('http://localhost:3000/auth/verify-otp', {
+      email,
+      otp: otpString
+  });
+  } catch (error) {
+    console.error("API verifyOtp error:", error);
+    throw error;
+  }
+};
+
+const resetPassword = async (email, otpString, newPassword) => {
+  try {
+    return await axios.post('http://localhost:3000/auth/reset-password', {
+      email,
+      otp: otpString,
+      newPassword
+  });
+  } catch (error) {
+    console.error("API verifyOtp error:", error);
+    throw error;
+  }
+};
+
+
 const signInWithGoogle = async () => {
   try {
     if (!auth) {
@@ -98,6 +133,9 @@ export {
   getWebPlayBackSDKToken,
   getRefreshToken,
   login,
+  forgotPassword,
+  verifyOtp,
+  resetPassword,
   signInWithGoogle,
   getSpotifyToken,
 };

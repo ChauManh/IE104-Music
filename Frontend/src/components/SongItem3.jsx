@@ -1,12 +1,9 @@
 import React, { useEffect, useState, useContext } from "react";
 import { useNavigate } from 'react-router-dom';
-import { assets } from '../assets/assets'
 import { PlayerContext } from '../context/PlayerContext'
-import { useQueue } from '../context/QueueContext';
 
 const SongItem3 = ({ name, image, singer, id}) => {
   const navigate = useNavigate();
-  const {play,  pause,  like  } = useContext(PlayerContext);
   const handleClick = async () => {
     try {
       navigate(`/track/${id}`);

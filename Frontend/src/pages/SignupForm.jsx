@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { assets } from "../assets/assets";
-import { createUser, signInWithGoogle } from "../util/authApi";
+import { createUser, signInWithGoogle, login } from "../services/authApi";
 import axios from "axios";
 
 const SignupForm = () => {
@@ -13,7 +13,7 @@ const SignupForm = () => {
     verifyPassword: "",
   });
   const [showNotification, setShowNotification] = useState(false);
-  const [notificationMessage, setNotificationMessage] = useState('');
+  const [notificationMessage, setNotificationMessage] = useState("");
   const [isError, setIsError] = useState(false);
 
   const onUpdateField = (e) => {
@@ -25,105 +25,107 @@ const SignupForm = () => {
   };
 
   const validateForm = () => {
-    if (!form.email || !form.username || !form.password || !form.verifyPassword) {
-        setIsError(true);
-        setNotificationMessage("Vui lòng điền đầy đủ thông tin");
-        setShowNotification(true);
-        setTimeout(() => setShowNotification(false), 2000);
-        return false;
+    if (
+      !form.email ||
+      !form.username ||
+      !form.password ||
+      !form.verifyPassword
+    ) {
+      setIsError(true);
+      setNotificationMessage("Vui lòng điền đầy đủ thông tin");
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 2000);
+      return false;
     }
 
     if (form.password.length < 6) {
-        setIsError(true);
-        setNotificationMessage("Mật khẩu phải có ít nhất 6 ký tự");
-        setShowNotification(true);
-        setTimeout(() => setShowNotification(false), 2000);
-        return false;
+      setIsError(true);
+      setNotificationMessage("Mật khẩu phải có ít nhất 6 ký tự");
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 2000);
+      return false;
     }
 
     return true;
-};
+  };
 
   const handleSignUp = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
-    
+
     if (form.password !== form.verifyPassword) {
-        setIsError(true);
-        setNotificationMessage("Mật khẩu không khớp");
-        setShowNotification(true);
-        setTimeout(() => setShowNotification(false), 2000);
-        return;
+      setIsError(true);
+      setNotificationMessage("Mật khẩu không khớp");
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 2000);
+      return;
     }
 
     try {
-        const res = await createUser(form.username, form.email, form.password);
-        
-        if (res.data.EC === 0) {
-            // Login immediately after signup to get access token
-            const loginResponse = await axios.post('http://localhost:3000/auth/login', {
-                email: form.email,
-                password: form.password
-            });
+      const res = await createUser(form.username, form.email, form.password);
 
-            if (loginResponse.data.EC === 0) {
-                const token = loginResponse.data.access_token;
-                localStorage.setItem('access_token', token);
-                localStorage.setItem('user', JSON.stringify(loginResponse.data.user));
+      if (res.data.EC === 0) {
+        // Login immediately after signup to get access token
+        const loginResponse = await login(form.email, form.password);
 
-                try {
-                    // Create liked songs playlist immediately after signup
-                    await axios.post(
-                        "http://localhost:3000/user/create_playlist",
-                        { 
-                            name: "Bài hát đã thích",
-                            type: "playlist",
-                            description: "Những bài hát bạn yêu thích" 
-                        },
-                        {
-                            headers: {
-                                Authorization: `Bearer ${token}`
-                            }
-                        }
-                    );
+        if (loginResponse.data.EC === 0) {
+          const token = loginResponse.data.access_token;
+          localStorage.setItem("access_token", token);
+          localStorage.setItem("user", JSON.stringify(loginResponse.data.user));
 
-                    // Show success notification
-                    setIsError(false);
-                    setNotificationMessage("Đăng ký thành công");
-                    setShowNotification(true);
-                    
-                    // Trigger sidebar refresh
-                    window.dispatchEvent(new Event("playlistsUpdated"));
-                    
-                    setTimeout(() => {
-                        setShowNotification(false);
-                        navigate('/signin');
-                    }, 2000);
-                } catch (error) {
-                    console.error("Error creating liked songs playlist:", error);
-                }
-            }
-        } else if (res.data.EC === 2) {
-            setIsError(true);
-            setNotificationMessage("Email đã được sử dụng");
+          try {
+            // Create liked songs playlist immediately after signup
+            await axios.post(
+              "http://localhost:3000/user/create_playlist",
+              {
+                name: "Bài hát đã thích",
+                type: "playlist",
+                description: "Những bài hát bạn yêu thích",
+              },
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              },
+            );
+
+            // Show success notification
+            setIsError(false);
+            setNotificationMessage("Đăng ký thành công");
             setShowNotification(true);
-            setTimeout(() => setShowNotification(false), 2000);
-        } else if (res.data.EC === 3) {
-            setIsError(true);
-            setNotificationMessage("Tên tài khoản đã tồn tại");
-            setShowNotification(true);
-            setTimeout(() => setShowNotification(false), 2000);
+
+            // Trigger sidebar refresh
+            window.dispatchEvent(new Event("playlistsUpdated"));
+
+            setTimeout(() => {
+              setShowNotification(false);
+              navigate("/signin");
+            }, 2000);
+          } catch (error) {
+            console.error("Error creating liked songs playlist:", error);
+          }
         }
-    } catch (err) {
+      } else if (res.data.EC === 2) {
         setIsError(true);
-        setNotificationMessage(
-            err.response?.data?.EM || 
-            err.response?.data?.message || 
-            "Đăng ký thất bại"
-        );
+        setNotificationMessage("Email đã được sử dụng");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 2000);
+      } else if (res.data.EC === 3) {
+        setIsError(true);
+        setNotificationMessage("Tên tài khoản đã tồn tại");
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 2000);
+      }
+    } catch (err) {
+      setIsError(true);
+      setNotificationMessage(
+        err.response?.data?.EM ||
+          err.response?.data?.message ||
+          "Đăng ký thất bại",
+      );
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 2000);
     }
   };
 
@@ -152,7 +154,9 @@ const SignupForm = () => {
 
   const Notification = ({ message, isError }) => (
     <div className="fixed bottom-24 left-1/2 z-50 -translate-x-1/2 transform">
-      <div className={`rounded-full ${isError ? 'bg-red-500' : 'bg-[#1ed760]'} px-4 py-2 text-center text-sm font-medium text-white shadow-lg`}>
+      <div
+        className={`rounded-full ${isError ? "bg-red-500" : "bg-[#1ed760]"} px-4 py-2 text-center text-sm font-medium text-white shadow-lg`}
+      >
         <span>{message}</span>
       </div>
     </div>
@@ -168,11 +172,11 @@ const SignupForm = () => {
         />
       </header>
 
-      <section className="flex flex-col items-center w-full">
+      <section className="flex w-full flex-col items-center">
         <h1 className="mb-6 text-center text-3xl font-bold text-white">
           Đăng ký tài khoản Soundify
         </h1>
-        
+
         <div className="flex w-[300px] flex-col items-center justify-center gap-4">
           <button
             onClick={handleGoogleSignUp}
@@ -187,7 +191,7 @@ const SignupForm = () => {
           </button>
         </div>
 
-        <div className="m-[16px] flex items-center w-[300px]">
+        <div className="m-[16px] flex w-[300px] items-center">
           <hr className="w-full border-gray-600" />
         </div>
 
@@ -250,7 +254,7 @@ const SignupForm = () => {
           </form>
         </div>
 
-        <div className="text-gray-400 text-center">
+        <div className="text-center text-gray-400">
           <p>
             Đã có tài khoản?{" "}
             <Link to="/signin" className="text-white underline">

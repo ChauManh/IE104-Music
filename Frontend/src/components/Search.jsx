@@ -3,10 +3,15 @@ import ArtistItem from "./ArtistItem";
 import AlbumItem from "./AlbumItem";
 import { assets } from "../assets/assets";
 import PlaylistPopup from "./PlaylistPopup";
-import axios from "axios";
 import { PlayerContext } from "../context/PlayerContext";
+import {
+  addSongToPlaylist,
+  getPlaylists,
+  removeSongFromPlaylist,
+} from "../services/userApi";
+import { getDetailSong, getDetailSongBySpotifyId } from "../services/songApi";
 
-const Search = ({ results, query, onArtistClick, onAlbumClick }) => {
+const Search = ({ results, query }) => {
   const topResult =
     results.tracks.items[0] ||
     results.artists.items[0] ||
@@ -117,33 +122,18 @@ const SongsSection = ({ tracks }) => {
   useEffect(() => {
     const checkLikedTracks = async () => {
       try {
-        const token = localStorage.getItem("access_token");
-        if (!token) return;
-
-        const response = await axios.get(
-          "http://localhost:3000/user/get_playlists",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await getPlaylists();
 
         // Find "Bài hát đã thích" playlist
         const likedPlaylist = response.data.playlists.find(
-          playlist => playlist.name === "Bài hát đã thích"
+          (playlist) => playlist.name === "Bài hát đã thích",
         );
 
         if (likedPlaylist && likedPlaylist.songs) {
           // Create a map of track IDs to their liked status
           const trackMap = {};
           for (const songId of likedPlaylist.songs) {
-            const songDetails = await axios.get(
-              `http://localhost:3000/songs/${songId}`,
-              {
-                headers: { Authorization: `Bearer ${token}` }
-              }
-            );
+            const songDetails = getDetailSong(songId);
             trackMap[songDetails.data.spotifyId] = true;
           }
           setLikedTracks(trackMap);
@@ -157,7 +147,7 @@ const SongsSection = ({ tracks }) => {
   }, []);
 
   const handleTrackClick = (track) => {
-    console.log(track)
+    console.log(track);
     setTrack({
       id: track.id,
       name: track.name,
@@ -167,110 +157,49 @@ const SongsSection = ({ tracks }) => {
       uri: track.uri,
     });
     playWithUri(track.uri);
-  }
+  };
 
-  // Handle like/unlike
   const handleLikeClick = async (trackId) => {
     try {
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        return;
-      }
-  
       // Toggle like status in UI immediately
-      setLikedTracks(prev => ({
+      setLikedTracks((prev) => ({
         ...prev,
-        [trackId]: !prev[trackId]
+        [trackId]: !prev[trackId],
       }));
-  
+
       // Get liked songs playlist
-      const playlistsResponse = await axios.get(
-        "http://localhost:3000/user/get_playlists",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-  
+      const playlistsResponse = await getPlaylists();
+
       let likedPlaylist = playlistsResponse.data.playlists.find(
-        playlist => playlist.name === "Bài hát đã thích"
+        (playlist) => playlist.name === "Bài hát đã thích",
       );
-  
+
       if (!likedTracks[trackId]) {
         // Add to liked songs
-        const songResponse = await axios.post(
-          "http://localhost:3000/songs/create",
-          { spotifyId: trackId },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-  
-        // Create liked playlist if it doesn't exist
-        if (!likedPlaylist) {
-          const createResponse = await axios.post(
-            "http://localhost:3000/user/create_playlist",
-            { name: "Bài hát đã thích" },
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-          likedPlaylist = createResponse.data.playlist;
-        }
-  
-        // Add song to playlist 
-        await axios.post(
-          "http://localhost:3000/user/playlist/add_song",
-          {
-            playlistID: likedPlaylist._id,
-            songID: songResponse.data.song._id,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        
+        await addSongToPlaylist(likedPlaylist._id, trackId);
+
         setNotificationMessage("Đã thêm vào Bài hát đã thích");
       } else {
         // Get the song details first
-        const songDetails = await axios.get(
-          `http://localhost:3000/songs/by-spotify-id/${trackId}`,
-          {
-            headers: { Authorization: `Bearer ${token}` }
-          }
-        );
-  
+        const songDetails = await getDetailSongBySpotifyId(trackId);
         if (!songDetails.data || !songDetails.data._id) {
-          throw new Error('Could not find song in database');
+          throw new Error("Could not find song in database");
         }
-  
+
         // Remove song from playlist
-        await axios.delete(
-          `http://localhost:3000/user/playlist/${likedPlaylist._id}/songs/${songDetails.data._id}`,
-          {
-            headers: { Authorization: `Bearer ${token}` }
-          }
-        );
-  
+        await removeSongFromPlaylist(likedPlaylist._id, songDetails.data._id);
         setNotificationMessage("Đã xóa khỏi Bài hát đã thích");
       }
-  
+
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 2000);
       window.dispatchEvent(new Event("playlistsUpdated"));
     } catch (error) {
       console.error("Error toggling like:", error);
       // Revert UI state if operation failed
-      setLikedTracks(prev => ({
+      setLikedTracks((prev) => ({
         ...prev,
-        [trackId]: !prev[trackId]
+        [trackId]: !prev[trackId],
       }));
     }
   };
@@ -281,9 +210,9 @@ const SongsSection = ({ tracks }) => {
       <div className="flex flex-col gap-2">
         {tracks.slice(0, 4).map((track) => (
           <div
-          onClick={() => handleTrackClick(track)}
+            onClick={() => handleTrackClick(track)}
             key={track.id}
-            className="group flex items-center justify-between gap-4 rounded-md p-2 hover:bg-[#ffffff1a] cursor-pointer"
+            className="group flex cursor-pointer items-center justify-between gap-4 rounded-md p-2 hover:bg-[#ffffff1a]"
           >
             <div className="flex items-center gap-4">
               <img
@@ -292,14 +221,20 @@ const SongsSection = ({ tracks }) => {
                 className="h-10 w-10 rounded"
               />
               <div className="flex flex-col">
-                <p className="text-white truncate max-w-[200px]">{track.name}</p>
-                <p className="text-sm text-[#a7a7a7]">{track.artists[0].name}</p>
+                <p className="max-w-[200px] truncate text-white">
+                  {track.name}
+                </p>
+                <p className="text-sm text-[#a7a7a7]">
+                  {track.artists[0].name}
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-3 opacity-0 transition-all hover:scale-105 group-hover:opacity-100">
               <img
                 className={`h-4 w-4 cursor-pointer opacity-70 transition-colors duration-200 hover:opacity-100`}
-                src={likedTracks[track.id] ? assets.liked_icon : assets.like_icon}
+                src={
+                  likedTracks[track.id] ? assets.liked_icon : assets.like_icon
+                }
                 alt="Like"
                 onClick={(e) => {
                   e.stopPropagation();

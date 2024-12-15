@@ -1,15 +1,28 @@
 import React, { useEffect, useState, useContext } from "react";
 import { useParams } from "react-router-dom";
-import axios from "axios";
 import AlbumItem from "../components/AlbumItem";
 import PopupAbout from "../components/PopupAbout";
 import { assets } from "../assets/assets";
-import { createPlaylist, addSongToPlaylist } from "../util/userApi";
 import { PlayerContext } from "../context/PlayerContext";
+import { formatDuration } from "../utils/formatDuration";
 import { useQueue } from "../context/QueueContext";
 import ColorThief from "colorthief";
-import { refreshPlaylists } from "../Layout/Components/sidebar";
+import { refreshPlaylists } from "../Layout/Components/Sidebar";
 import PlaylistPopup from "../components/PlaylistPopup";
+import {
+  addSongToPlaylist,
+  deletePlaylist,
+  followArtist,
+  getPlaylists,
+  removeSongFromPlaylist,
+  unfollowArtist,
+} from "../services/userApi";
+import {
+  getArtist,
+  getArtistAlbums,
+  getArtistTopTracks,
+} from "../services/artistApi";
+import { getDetailSong, getDetailSongBySpotifyId } from "../services/songApi";
 
 const ArtistPage = () => {
   const { id } = useParams();
@@ -30,7 +43,6 @@ const ArtistPage = () => {
   const [isFollowed, setIsFollowed] = useState(false);
 
   const handlePlayAll = async () => {
-    console.log(topTracks);
     if (!topTracks || topTracks.length === 0) {
       setNotificationMessage(`Không có bài hát nào có sẵn trong playlist`);
       setShowNotification(true);
@@ -38,29 +50,7 @@ const ArtistPage = () => {
       window.dispatchEvent(new Event("playlistsUpdated"));
       return;
     }
-    setTrack({
-      id: topTracks[0].id,
-      name: topTracks[0].name,
-      album: topTracks[0].album.name,
-      image: topTracks[0].album.images[0]?.url,
-      singer: topTracks[0].artists[0].name,
-      duration: topTracks[0].duration_ms,
-      uri: topTracks[0].uri, // Nếu có URI bài hát
-    });
-    const newQueue = topTracks.slice(1).map((item) => ({
-      id: item.id,
-      name: item.name,
-      album: item.album.name,
-      image: item.album.images[0]?.url,
-      singer: item.artists[0].name,
-      duration: item.duration_ms,
-      uri: item.uri, // Nếu có URI bài hát
-    }));
-    if (newQueue.length > 0) {
-      setQueue(newQueue);
-      addTrackToQueue(newQueue[0].uri);
-    }
-    playWithUri(topTracks[0].uri);
+    handleTrackClick(topTracks[0], 0);
   };
 
   const handleTrackClick = (track, index) => {
@@ -71,18 +61,20 @@ const ArtistPage = () => {
       image: track.album.images[0]?.url,
       singer: track.artists[0].name,
       duration: track.duration_ms,
-      uri: track.uri, // Nếu có URI bài hát
+      uri: track.uri,
     });
-    const newQueue = topTracks.slice(index + 1).map((item) => ({
-      id: item.id,
-      name: item.name,
-      album: item.album.name,
-      image: item.album.images[0]?.url,
-      singer: item.artists[0].name,
-      duration: item.duration_ms,
-      uri: item.uri, // Nếu có URI bài hát
-    }));
-    if (newQueue.length > 0) {
+    if (index === topTracks.length - 1) {
+      setQueue([]);
+    } else {
+      const newQueue = topTracks.slice(index + 1).map((item) => ({
+        id: item.id,
+        name: item.name,
+        album: item.album.name,
+        image: item.album.images[0]?.url,
+        singer: item.artists[0].name,
+        duration: item.duration_ms,
+        uri: item.uri,
+      }));
       setQueue(newQueue);
       addTrackToQueue(newQueue[0].uri);
     }
@@ -95,15 +87,7 @@ const ArtistPage = () => {
 
   const fetchUserPlaylists = async () => {
     try {
-      const token = localStorage.getItem("access_token");
-      const response = await axios.get(
-        "http://localhost:3000/user/get_playlists",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
+      const response = await getPlaylists();
       setUserPlaylists(
         response.data.playlists.filter((p) => p.type === "playlist"),
       );
@@ -123,20 +107,13 @@ const ArtistPage = () => {
   useEffect(() => {
     const fetchArtistData = async () => {
       try {
-        const response = await axios.get(`http://localhost:3000/artist/${id}`);
-        console.log("Artist data:", response.data); // Debugging log
+        const response = await getArtist(id);
         setArtist(response.data);
 
-        const tracksResponse = await axios.get(
-          `http://localhost:3000/artist/${id}/top-tracks`,
-        );
-        console.log("Top tracks:", tracksResponse.data); // Debugging log
-        setTopTracks(tracksResponse.data.tracks || []); // Ensure it's an array
+        const tracksResponse = await getArtistTopTracks(id);
+        setTopTracks(tracksResponse.data.tracks || []);
 
-        const albumsResponse = await axios.get(
-          `http://localhost:3000/artist/${id}/albums`,
-        );
-        console.log("Albums:", albumsResponse.data); // Debugging log
+        const albumsResponse = await getArtistAlbums(id);
         setAlbums(albumsResponse.data.items || []); // Ensure it's an array
 
         const img = new Image();
@@ -162,17 +139,7 @@ const ArtistPage = () => {
   useEffect(() => {
     const checkIfFollowed = async () => {
       try {
-        const token = localStorage.getItem("access_token");
-        if (!token) return;
-
-        const playlistsResponse = await axios.get(
-          "http://localhost:3000/user/get_playlists",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
+        const playlistsResponse = await getPlaylists();
 
         const exists = playlistsResponse.data.playlists.some(
           (playlist) => playlist.type === "artist" && playlist.artistId === id,
@@ -191,31 +158,15 @@ const ArtistPage = () => {
   useEffect(() => {
     const checkLikedTracks = async () => {
       try {
-        const token = localStorage.getItem("access_token");
-        if (!token) return;
-  
-        const response = await axios.get(
-          "http://localhost:3000/user/get_playlists",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-  
+        const response = await getPlaylists();
+
         const likedPlaylist = response.data.playlists.find(
-          playlist => playlist.name === "Bài hát đã thích"
+          (playlist) => playlist.name === "Bài hát đã thích",
         );
-  
         if (likedPlaylist && likedPlaylist.songs) {
           const trackMap = {};
           for (const songId of likedPlaylist.songs) {
-            const songDetails = await axios.get(
-              `http://localhost:3000/songs/${songId}`,
-              {
-                headers: { Authorization: `Bearer ${token}` }
-              }
-            );
+            const songDetails = await getDetailSong(songId);
             if (songDetails.data.spotifyId) {
               trackMap[songDetails.data.spotifyId] = true;
             }
@@ -226,84 +177,29 @@ const ArtistPage = () => {
         console.error("Error checking liked tracks:", error);
       }
     };
-  
+
     checkLikedTracks();
   }, []);
 
-  const formatDuration = (ms) => {
-    const minutes = Math.floor(ms / 60000);
-    const seconds = Math.floor((ms % 60000) / 1000);
-    return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
-  };
-
   const handleLikeClick = async (trackId) => {
     try {
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        alert("Please login first");
-        return;
-      }
-  
       // Toggle like status in UI immediately
-      setLikedTracks(prev => ({
+      setLikedTracks((prev) => ({
         ...prev,
-        [trackId]: !prev[trackId]
+        [trackId]: !prev[trackId],
       }));
-  
+
       // Get liked songs playlist
-      const playlistsResponse = await axios.get(
-        "http://localhost:3000/user/get_playlists",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-  
+      const playlistsResponse = await getPlaylists();
+
       let likedPlaylist = playlistsResponse.data.playlists.find(
-        playlist => playlist.name === "Bài hát đã thích"
+        (playlist) => playlist.name === "Bài hát đã thích",
       );
-  
+
       if (!likedTracks[trackId]) {
-        // Add to liked songs
-        const songResponse = await axios.post(
-          "http://localhost:3000/songs/create",
-          { spotifyId: trackId },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-  
-        // Create liked playlist if it doesn't exist
-        if (!likedPlaylist) {
-          const createResponse = await axios.post(
-            "http://localhost:3000/user/create_playlist",
-            { name: "Bài hát đã thích" },
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-          likedPlaylist = createResponse.data.playlist;
-        }
-  
         // Add song to playlist
-        await axios.post(
-          "http://localhost:3000/user/playlist/add_song",
-          {
-            playlistID: likedPlaylist._id,
-            songID: songResponse.data.song._id,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-  
+        await addSongToPlaylist(likedPlaylist._id, trackId);
+
         setNotificationMessage("Đã thêm vào Bài hát đã thích");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 2000);
@@ -315,25 +211,17 @@ const ArtistPage = () => {
         }
 
         // Get song details by Spotify ID
-        const songDetailsResponse = await axios.get(
-          `http://localhost:3000/songs/by-spotify-id/${trackId}`,
-          {
-            headers: { Authorization: `Bearer ${token}` }
-          }
-        );
+        const songDetailsResponse = await getDetailSongBySpotifyId(trackId);
 
         if (!songDetailsResponse.data?._id) {
           throw new Error("Song not found in database");
         }
-
         // Remove song from playlist using proper endpoint
-        await axios.delete(
-          `http://localhost:3000/user/playlist/${likedPlaylist._id}/songs/${songDetailsResponse.data._id}`,
-          {
-            headers: { Authorization: `Bearer ${token}` }
-          }
+        await removeSongFromPlaylist(
+          likedPlaylist._id,
+          songDetailsResponse.data._id,
         );
-  
+
         setNotificationMessage("Đã xóa khỏi Bài hát đã thích");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 2000);
@@ -342,9 +230,9 @@ const ArtistPage = () => {
     } catch (error) {
       console.error("Error toggling like:", error);
       // Revert UI state if operation failed
-      setLikedTracks(prev => ({
+      setLikedTracks((prev) => ({
         ...prev,
-        [trackId]: !prev[trackId]
+        [trackId]: !prev[trackId],
       }));
       setShowNotification(true);
       setNotificationMessage("Không thể xóa bài hát khỏi danh sách yêu thích");
@@ -360,14 +248,7 @@ const ArtistPage = () => {
       }
 
       // Get existing playlists before toggling UI state
-      const playlistsResponse = await axios.get(
-        "http://localhost:3000/user/get_playlists",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
+      const playlistsResponse = await getPlaylists();
 
       const existingPlaylist = playlistsResponse.data.playlists.find(
         (playlist) => playlist.type === "artist" && playlist.artistId === id,
@@ -378,17 +259,9 @@ const ArtistPage = () => {
           // Unfollow artist
           await Promise.all([
             // Delete the playlist
-            axios.delete(
-              `http://localhost:3000/user/playlist/${existingPlaylist._id}`,
-              {
-                headers: { Authorization: `Bearer ${token}` },
-              },
-            ),
+            deletePlaylist(existingPlaylist._id),
             // Unfollow the artist
-            axios.delete("http://localhost:3000/user/artists/unfollow", {
-              headers: { Authorization: `Bearer ${token}` },
-              data: { artistId: id },
-            }),
+            unfollowArtist(id),
           ]);
 
           // Update UI state after successful unfollow
@@ -401,20 +274,7 @@ const ArtistPage = () => {
       } else {
         try {
           // Follow artist
-          await axios.post(
-            "http://localhost:3000/user/create_playlist",
-            {
-              name: artist.name,
-              thumbnail: artist.images[0]?.url,
-              type: "artist",
-              artistId: id,
-            },
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            },
-          );
+          await followArtist(artist);
 
           // Update UI state after successful follow
           setIsFollowed(true);
@@ -508,7 +368,7 @@ const ArtistPage = () => {
                 <div
                   onClick={() => handleTrackClick(track, index)}
                   key={track.id}
-                  className="group grid grid-cols-[0.1fr_auto_2fr_0.1fr_auto_auto] items-center gap-4 rounded py-2 pr-4 transition-colors duration-200 hover:bg-[#ffffff26] cursor-pointer"
+                  className="group grid cursor-pointer grid-cols-[0.1fr_auto_2fr_0.1fr_auto_auto] items-center gap-4 rounded py-2 pr-4 transition-colors duration-200 hover:bg-[#ffffff26]"
                 >
                   <p className="w-full text-right text-gray-400">{index + 1}</p>{" "}
                   {/* Index */}

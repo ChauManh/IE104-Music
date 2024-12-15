@@ -1,13 +1,15 @@
 import React, { useEffect, useState, useContext } from "react";
 import { useParams, useLocation } from "react-router-dom";
-import axios from "axios";
 import { assets } from "../assets/assets";
 import ColorThief from "colorthief";
-import AlbumItem from "../components/AlbumItem"; // Import AlbumItem component
-import { PlayerContext } from "../context/PlayerContext"; // Import PlayerContext
-import { useQueue } from '../context/QueueContext';
-import { fetchAlbum, fetchAlbumTracks, fetchNewAlbums } from "../util/albumApi";
-
+import AlbumItem from "../components/AlbumItem";
+import { PlayerContext } from "../context/PlayerContext";
+import { useQueue } from "../context/QueueContext";
+import { fetchAlbum, fetchAlbumTracks } from "../services/albumApi";
+import { addLikedAlbum, getPlaylists } from "../services/userApi";
+import { getArtist, getArtistAlbums } from "../services/artistApi";
+import { formatDuration } from "../utils/formatDuration";
+import { calculateTotalDuration } from "../utils/calculateTotalDuration";
 
 const AlbumPage = () => {
   const { setQueue } = useQueue();
@@ -19,7 +21,7 @@ const AlbumPage = () => {
   const [albumTracks, setAlbumTracks] = useState([]);
   const [relatedAlbums, setRelatedAlbums] = useState([]); // State for related albums
   const [error, setError] = useState(null);
-  const [showNotification, setShowNotification] = useState(false); 
+  const [showNotification, setShowNotification] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState("");
   const [dominantColor, setDominantColor] = useState("#333333");
   const [secondaryColor, setSecondaryColor] = useState("#333333");
@@ -34,33 +36,14 @@ const AlbumPage = () => {
 
   const handlePlayAll = async () => {
     if (!albumTracks || albumTracks.length === 0) {
-      alert("No songs in the playlist");
+      setNotificationMessage(`Không có bài hát nào có sẵn trong playlist`);
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 2000);
+      window.dispatchEvent(new Event("playlistsUpdated"));
       return;
     }
-      setTrack({
-        id: albumTracks[0].id,
-        name: albumTracks[0].name,
-        album: album.name,
-        image: album.images[0]?.url,
-        singer: albumTracks[0].singers.join(", "),
-        duration: albumTracks[0].duration,
-        uri: albumTracks[0].uri, // Nếu có URI bài hát
-      });
-    const newQueue = albumTracks.slice(1).map((item) => ({
-        id: item.id,
-        name: item.name,
-        album: album.name,
-        image: album.images[0]?.url,
-        singer: item.singers.join(", "),
-        duration: item.duration,
-        uri: item.uri, 
-    }));
-    if (newQueue.length > 0) {
-      setQueue(newQueue);    
-      addTrackToQueue(newQueue[0].uri); 
-    } 
-    playWithUri(albumTracks[0].uri);
-  }
+    handleTrackClick(albumTracks[0], 0);
+  };
 
   const handleTrackClick = (track, index) => {
     setTrack({
@@ -72,43 +55,33 @@ const AlbumPage = () => {
       duration: track.duration,
       uri: track.uri, // Nếu có URI bài hát
     });
-    const newQueue = albumTracks.slice(index + 1).map((item) => ({
+    if (index === albumTracks.length - 1) {
+      setQueue([]);
+    } else {
+      const newQueue = albumTracks.slice(index + 1).map((item) => ({
         id: item.id,
         name: item.name,
         album: album.name,
         image: album.images[0]?.url,
         singer: item.singers.join(", "),
         duration: item.duration,
-        uri: item.uri, 
-    }));
-    if (newQueue.length > 0) {
-      setQueue(newQueue);    
-      addTrackToQueue(newQueue[0].uri); 
+        uri: item.uri,
+      }));
+      setQueue(newQueue);
+      addTrackToQueue(newQueue[0].uri);
     }
     playWithUri(track.uri);
   };
-  
+
   const handleFollowAlbum = async () => {
     try {
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        return;
-      }
-  
       // Check if album playlist already exists
-      const playlistsResponse = await axios.get(
-        "http://localhost:3000/user/get_playlists",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-  
+      const playlistsResponse = await getPlaylists();
+
       const exists = playlistsResponse.data.playlists.some(
-        (playlist) => playlist.type === 'album' && playlist.albumId === id
+        (playlist) => playlist.type === "album" && playlist.albumId === id,
       );
-  
+
       if (exists) {
         setNotificationMessage(`Album đã có sẵn trong thư viện`);
         setShowNotification(true);
@@ -116,29 +89,15 @@ const AlbumPage = () => {
         window.dispatchEvent(new Event("playlistsUpdated"));
         return;
       }
-  
+
       // Create new album playlist
-      const createPlaylistResponse = await axios.post(
-        "http://localhost:3000/user/create_playlist",
-        { 
-          name: album.name,
-          thumbnail: album.images[0]?.url,
-          type: 'album',
-          albumId: id // Store the album ID
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-  
+      await addLikedAlbum(album);
+
       // Show notification
       setNotificationMessage(`Đã thêm ${album.name} vào thư viện`);
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 2000);
-      window.dispatchEvent(new Event('playlistsUpdated'));
-  
+      window.dispatchEvent(new Event("playlistsUpdated"));
     } catch (error) {
       console.error("Error following album:", error);
       setNotificationMessage(`Không thể thêm album vào thư viện`);
@@ -152,27 +111,19 @@ const AlbumPage = () => {
     window.scrollTo(0, 0);
     const fetchAlbumData = async () => {
       try {
-        const response = await axios.get(`http://localhost:3000/album/${id}`);
-        console.log("Album data:", response.data); // Debugging log
+        const response = await fetchAlbum(id);
         setAlbum(response.data);
 
-        const artistResponse = await axios.get(
-          `http://localhost:3000/artist/${response.data.artists[0].id}`,
-        );
-        console.log("Artist data:", artistResponse.data); // Debugging log
+        const artistResponse = await getArtist(response.data.artists[0].id);
         setArtist(artistResponse.data);
 
-        const tracksResponse = await axios.get(
-          `http://localhost:3000/album/${id}/tracks`,
-        );
-        console.log("Album tracks:", tracksResponse.data); // Debugging log
-        setAlbumTracks(tracksResponse.data); // Ensure it's an array
+        const tracksResponse = await fetchAlbumTracks(id);
+        setAlbumTracks(tracksResponse.data);
 
         // Fetch related albums from the same artist
-        const relatedAlbumsResponse = await axios.get(
-          `http://localhost:3000/artist/${response.data.artists[0].id}/albums`,
+        const relatedAlbumsResponse = await getArtistAlbums(
+          response.data.artists[0].id,
         );
-        console.log("Related albums:", relatedAlbumsResponse.data); // Debugging log
         setRelatedAlbums(
           relatedAlbumsResponse.data.items.filter((album) => album.id !== id),
         );
@@ -198,22 +149,6 @@ const AlbumPage = () => {
 
     fetchAlbumData();
   }, [id, location.pathname]);
-
-  const formatDuration = (ms) => {
-    const minutes = Math.floor(ms / 60000);
-    const seconds = Math.floor((ms % 60000) / 1000);
-    return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
-  };
-
-  const calculateTotalDuration = (tracks) => {
-    const totalDuration = tracks.reduce(
-      (acc, track) => acc + track.duration,
-      0,
-    );
-    const minutes = Math.floor(totalDuration / 60000);
-    const seconds = Math.floor((totalDuration % 60000) / 1000);
-    return `${minutes} phút ${seconds < 10 ? "0" : ""}${seconds} giây`;
-  };
 
   if (error) return <div>{error}</div>;
   if (!album) return <div> </div>;
@@ -272,9 +207,10 @@ const AlbumPage = () => {
             />
           </div>
 
-          <button 
-          onClick={handleFollowAlbum}
-          className="flex h-4 cursor-pointer items-center justify-center rounded-3xl border-2 border-solid p-4 opacity-70 transition-all hover:opacity-100">
+          <button
+            onClick={handleFollowAlbum}
+            className="flex h-4 cursor-pointer items-center justify-center rounded-3xl border-2 border-solid p-4 opacity-70 transition-all hover:opacity-100"
+          >
             Thêm vào thư viện
           </button>
         </div>
@@ -299,7 +235,7 @@ const AlbumPage = () => {
             <div
               onClick={() => handleTrackClick(track, index)}
               key={index}
-              className="grid cursor-pointer grid-cols-[auto_1fr_auto] items-center gap-2 rounded-s p-2 text-[#a7a7a7] hover:bg-[#ffffff2b] rounded"
+              className="grid cursor-pointer grid-cols-[auto_1fr_auto] items-center gap-2 rounded rounded-s p-2 text-[#a7a7a7] hover:bg-[#ffffff2b]"
             >
               <div className="flex items-center">
                 <p className="mr-4 w-8 text-right">{index + 1}</p>
@@ -325,7 +261,7 @@ const AlbumPage = () => {
           <h2 className="mb-4 text-xl font-bold">
             Album khác của {album?.artists[0]?.name}
           </h2>
-          <div className="grid grid-flow-col auto-cols-[200px] gap-4 overflow-x-auto album-scrollbar">
+          <div className="album-scrollbar grid auto-cols-[200px] grid-flow-col gap-4 overflow-x-auto">
             {relatedAlbums.map((album) => (
               <AlbumItem
                 key={album.id}
@@ -339,12 +275,12 @@ const AlbumPage = () => {
           </div>
         </section>
       )}
-        {showNotification && (
+      {showNotification && (
         <>
           <Notification message={notificationMessage} />
-        </>)}
+        </>
+      )}
     </>
-    
   );
 };
 

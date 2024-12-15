@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import axios from 'axios';
+import { getArtist, getArtistAlbums } from '../services/artistApi';
 
 const PopupAbout = ({ onClose }) => {
   const { id } = useParams();
@@ -11,13 +11,11 @@ const PopupAbout = ({ onClose }) => {
   useEffect(() => {
     const fetchArtistData = async () => {
       try {
-        const response = await axios.get(`http://localhost:3000/artist/${id}`);
-        console.log('Artist data:', response.data); // Debugging log
+        const response = await getArtist(id);
         setArtist(response.data);
 
-        const albumsResponse = await axios.get(`http://localhost:3000/artist/${id}/albums`);
-        console.log('Albums:', albumsResponse.data); // Debugging log
-        setAlbums(albumsResponse.data.items || []); // Ensure it's an array
+        const albumsResponse = await getArtistAlbums(id);
+        setAlbums(albumsResponse.data.items || []);
       } catch (error) {
         setError('Error fetching artist data');
         console.error('Error fetching artist:', error.response ? error.response.data : error.message);

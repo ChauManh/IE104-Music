@@ -47,10 +47,15 @@ const Player = () => {
     }
   }, [player]);
 
+  // useEffect(() => {
+  //   if (plaer) {
+
+  //   }
+  // })
+
   const handleNext = async () => {
     if (queue.length === 0) return;
     setPreviousTracks((prev) => [...prev, track]);
-    console.log("list", previousTracks);
     const trackData = queue[0];
     setTrack(trackData);
     nextTrack(trackData.uri);
