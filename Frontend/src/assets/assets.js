@@ -95,6 +95,8 @@ export const assets = {
     more_icon,
     liked_icon,
     soundtify,
+    repeated_icon,
+    repeatall_icon
 }
 
 export const albumsData = [

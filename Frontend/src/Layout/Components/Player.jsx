@@ -16,7 +16,9 @@ const Player = () => {
     pause,
     previousTrack,
     nextTrack,
+    toggleRepeat,
     repeatStatus,
+    setRepeatStatus,
     volume,
     changeVolume,
     currentTime,
@@ -41,17 +43,11 @@ const Player = () => {
 
   useEffect(() => {
     if (player) {
-      player.getRepeatMode().then(mode => {
-        setRepeatMode(mode === 0 ? "off" : mode === 1 ? "track" : "context");
+      player.getRepeatMode().then((mode) => {
+        setRepeatStatus(mode === 0 ? "off" : mode === 1 ? "track" : "context");
       });
     }
   }, [player]);
-
-  // useEffect(() => {
-  //   if (plaer) {
-
-  //   }
-  // })
 
   const handleNext = async () => {
     if (queue.length === 0) return;
@@ -101,34 +97,6 @@ const Player = () => {
       // Update position in real-time while dragging
       player.seek(newTime * 1000);
       setCurrentTime(newTime);
-    }
-  };
-
-  const toggleRepeat = async () => {
-    try {
-      // Cycle through repeat modes: off -> track -> context -> off
-      const newMode = repeatMode === "off" ? "track" : 
-                     repeatMode === "track" ? "context" : "off";
-      
-      setRepeatMode(newMode);
-
-      // Update player state based on repeat mode
-      switch(newMode) {
-        case "track":
-          // Repeat current track only
-          await player?.setRepeatMode(1);
-          break;
-        case "context":
-          // Repeat entire album/playlist
-          await player?.setRepeatMode(2);
-          break;
-        default:
-          // No repeat
-          await player?.setRepeatMode(0);
-          break;
-      }
-    } catch (error) {
-      console.error('Error setting repeat mode:', error);
     }
   };
 
@@ -195,15 +163,19 @@ const Player = () => {
             onClick={toggleRepeat}
             className="h-[14px] w-[14px] cursor-pointer opacity-70 transition-all hover:opacity-100"
             src={
-              repeatMode === "track" ? assets.repeated_icon :
-              repeatMode === "context" ? assets.repeatall_icon :
-              assets.repeat_icon
+              repeatStatus === "track"
+                ? assets.repeated_icon
+                : repeatStatus === "context"
+                  ? assets.repeatall_icon
+                  : assets.repeat_icon
             }
             alt="Repeat"
             title={
-              repeatMode === "track" ? "Repeat current track" :
-              repeatMode === "context" ? "Repeat entire album" :
-              "Repeat off"
+              repeatMode === "track"
+                ? "Repeat current track"
+                : repeatMode === "context"
+                  ? "Repeat entire album"
+                  : "Repeat off"
             }
           />
         </div>

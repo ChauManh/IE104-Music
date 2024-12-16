@@ -1,6 +1,5 @@
 import React, { createContext, useEffect, useState } from "react";
 import axios from "axios";
-import { getWebPlayBackSDKToken } from "../services/authApi";
 import useTokenRefresh from "../utils/refresh_webplaybacksdk_token";
 // import { QueueProvider, useQueue } from "./QueueContext";
 export const PlayerContext = createContext();
@@ -32,7 +31,7 @@ const PlayerContextProvider = ({ children }) => {
       try {
         const web_playback_token = localStorage.getItem("web_playback_token");
         setToken(web_playback_token);
-        setTokenReady(true); 
+        setTokenReady(true);
       } catch (error) {
         console.error("Error fetching token:", error);
       }
@@ -43,10 +42,8 @@ const PlayerContextProvider = ({ children }) => {
   // Cấu hình Web Playback SDK
   useEffect(() => {
     if (!tokenReady || !token) {
-      console.log("Token chưa sẵn sàng, chờ đợi...");
       return; // Dừng lại nếu token chưa sẵn sàng
     }
-    console.log("Token sẵn sàng", token);
     const script = document.createElement("script");
     script.src = "https://sdk.scdn.co/spotify-player.js";
     script.async = true;
@@ -63,36 +60,39 @@ const PlayerContextProvider = ({ children }) => {
       setPlayer(player);
 
       player.addListener("ready", ({ device_id }) => {
-        console.log("Device ready with ID:", device_id);
         setDeviceId(device_id);
         setIsDeviceReady(true); // Đã sẵn sàng
       });
 
-      player.addListener("player_state_changed", (state) => {
-        if (!state) {
-          console.log("Player state is null");
-          return;
-        }
-  
-        const { paused, position, duration } = state;
-        setCurrentTime(position / 1000);
-        setDuration(duration / 1000);
-        if (paused && position === 0 && duration > 0) {
-          setPlayStatus(false);
-          console.log("Track ended");
-          // player.nextTrack().then(() => {
-          //   console.log('Skipped to next track!');
-          // });
-        }
-        const interval = setInterval(() => {
-          player.getCurrentState().then((state) => {
-            if (state) {
-              setCurrentTime(state.position / 1000); // Cập nhật thời gian hiện tại
-            }
-          });
-        }, 1000);
-        return () => clearInterval(interval);
-      }, [player]);
+      player.addListener(
+        "player_state_changed",
+        (state) => {
+          if (!state) {
+            console.log("Player state is null");
+            return;
+          }
+
+          const { paused, position, duration } = state;
+          setCurrentTime(position / 1000);
+          setDuration(duration / 1000);
+          if (paused && position === 0 && duration > 0) {
+            setPlayStatus(false);
+            console.log("Track ended");
+            // player.nextTrack().then(() => {
+            //   console.log('Skipped to next track!');
+            // });
+          }
+          const interval = setInterval(() => {
+            player.getCurrentState().then((state) => {
+              if (state) {
+                setCurrentTime(state.position / 1000); // Cập nhật thời gian hiện tại
+              }
+            });
+          }, 1000);
+          return () => clearInterval(interval);
+        },
+        [player],
+      );
 
       player.connect();
     };
@@ -156,27 +156,29 @@ const PlayerContextProvider = ({ children }) => {
   };
 
   const toggleRepeat = () => {
-  
-    const newRepeatStatus = 
-    repeatStatus === "off" ? "track" : 
-    repeatStatus === "track" ? "context" : 
-    "off";
-
+    const newRepeatStatus =
+      repeatStatus === "off"
+        ? "track"
+        : repeatStatus === "track"
+          ? "context"
+          : "off";
     setRepeatStatus(newRepeatStatus);
-
-    axios.put(
-      `https://api.spotify.com/v1/me/player/repeat?state=${newRepeatStatus}`,
-      {},
-      { headers: { Authorization: `Bearer ${token}` } }
-    )
-    .then(response => {
-      console.log('Response from API:', response.data);
-      console.log(repeatStatus);
-    })
-    .catch(error => {
-      console.error('Error setting repeat mode:', error.response?.data || error.message);
-    });
-
+    axios
+      .put(
+        `https://api.spotify.com/v1/me/player/repeat?state=${newRepeatStatus}`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } },
+      )
+      .then((response) => {
+        console.log("Response from API:", response.data);
+        console.log(repeatStatus);
+      })
+      .catch((error) => {
+        console.error(
+          "Error setting repeat mode:",
+          error.response?.data || error.message,
+        );
+      });
   };
 
   const changeVolume = (newVolume) => {
@@ -201,18 +203,18 @@ const PlayerContextProvider = ({ children }) => {
 
   const addTrackToQueue = async (trackUri) => {
     try {
-        const response = await axios.post(
-        `https://api.spotify.com/v1/me/player/queue`,      
-         null,
+      const response = await axios.post(
+        `https://api.spotify.com/v1/me/player/queue`,
+        null,
         {
-          params: { 
+          params: {
             uri: trackUri,
             device_id: deviceId, // Sử dụng deviceId hiện tại
-          },  
+          },
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
     } catch (error) {
       console.error("Error setting playback queue:", error);
@@ -221,18 +223,18 @@ const PlayerContextProvider = ({ children }) => {
 
   const nextTrack = (trackUri) => {
     playWithUri(trackUri);
-  }
+  };
 
   const previousTrack = (trackUri) => {
     playWithUri(trackUri);
-  }
+  };
 
   const contextValue = {
     track,
     setTrack,
     albumTracks,
     setAlbumTracks,
-    albumsData, 
+    albumsData,
     setAlbumData,
     playStatus,
     setPlayStatus,
@@ -246,11 +248,11 @@ const PlayerContextProvider = ({ children }) => {
     setVolume,
     changeVolume,
     currentTime,
-    duration, 
+    duration,
     handleTimeClick,
     addTrackToQueue,
     nextTrack,
-    previousTrack
+    previousTrack,
   };
 
   // if (!isDeviceReady) {
