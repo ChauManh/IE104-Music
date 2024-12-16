@@ -1,5 +1,14 @@
+SOUNDTIFY
+-
 Xin chào tất cả mọi người, đây là đồ án môn học IE106 của nhóm chúng mình. Nhóm sinh viên trường ĐHCNTT TP.HCM (UIT)
 -
+| HỌ VÀ TÊN                |  MSSV        | 
+|------------              |--------------|
+| Châu Đức Mạnh            | 22520846     |
+| Dương Anh Vũ             | 22521688     |
+| Nguyễn Công Nam Triều    | 22521533     |
+| Trần Quốc Trung          | 22521569     |
+
 Soundtify là một ứng dụng web nghe nhạc, kết hợp các tính năng nổi bật từ SoundCloud và Spotify, mang đến trải nghiệm âm nhạc đa dạng và phong phú.
 
 Soundtify là nền tảng âm nhạc trực tuyến giúp người dùng khám phá, nghe nhạc và quản lý playlist cá nhân. Ứng dụng hướng đến giao diện thân thiện và hiệu năng cao.
