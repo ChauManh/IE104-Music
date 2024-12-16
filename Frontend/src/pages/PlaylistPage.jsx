@@ -142,7 +142,7 @@ const PlaylistPage = () => {
         uri: item.uri,
       }));
       setQueue(newQueue);
-      addTrackToQueue(newQueue[0].uri);
+      // addTrackToQueue(newQueue[0].uri);
     }
     playWithUri(trackData.uri);
   };

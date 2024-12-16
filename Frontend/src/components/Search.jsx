@@ -133,7 +133,7 @@ const SongsSection = ({ tracks }) => {
           // Create a map of track IDs to their liked status
           const trackMap = {};
           for (const songId of likedPlaylist.songs) {
-            const songDetails = getDetailSong(songId);
+            const songDetails = await getDetailSong(songId);
             trackMap[songDetails.data.spotifyId] = true;
           }
           setLikedTracks(trackMap);

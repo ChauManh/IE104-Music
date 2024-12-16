@@ -125,7 +125,7 @@ const TopNav = () => {
           className="rounded-full bg-black p-2 hover:bg-[#282828] transition-colors"
         >
           <img 
-            src={userData?.avatar || assets.avatar} 
+            src={userData?.avatar || assets.image_icon} 
             alt="Profile" 
             className="h-8 w-8 rounded-full object-cover"
           />
@@ -135,7 +135,7 @@ const TopNav = () => {
           <div className="absolute right-0 top-12 w-48 rounded-md bg-[#282828] py-1 shadow-lg ring-1 ring-black ring-opacity-5 transition-all">
             <div className="flex items-center gap-3 px-4 py-3">
               <img 
-                src={userData?.avatar || assets.avatar}
+                src={userData?.avatar || assets.image_icon}
                 alt="Profile"
                 className="h-8 w-8 rounded-full object-cover"
               />

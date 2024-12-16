@@ -2,72 +2,32 @@ import React, { useContext, useState, useEffect } from "react";
 import { assets } from "../../assets/assets";
 import { PlayerContext } from "../../context/PlayerContext";
 import { useQueue } from "../../context/QueueContext";
+import { formatTime } from "../../utils/formatTime";
 
-const formatTime = (minutes, seconds) => {
-  const formattedSeconds = seconds < 10 ? `0${seconds}` : seconds;
-  return `${minutes}:${formattedSeconds}`;
-};
 const Player = () => {
   const {
     track,
-    setTrack,
     playStatus,
     play,
     pause,
-    previousTrack,
-    nextTrack,
+    handleNext,
+    handlePrevious,
     toggleRepeat,
     repeatStatus,
-    setRepeatStatus,
     volume,
     changeVolume,
     currentTime,
     duration,
     handleTimeClick,
-    addTrackToQueue,
     player,
     setCurrentTime,
   } = useContext(PlayerContext);
 
   const {
     toggleQueue,
-    moveToNext,
-    moveToPrevious,
-    queue,
-    previousTracks,
-    setPreviousTracks,
   } = useQueue();
   const [isDragging, setIsDragging] = useState(false);
   const [localTime, setLocalTime] = useState(currentTime);
-  const [repeatMode, setRepeatMode] = useState("off"); // "off", "track", "context"
-
-  useEffect(() => {
-    if (player) {
-      player.getRepeatMode().then((mode) => {
-        setRepeatStatus(mode === 0 ? "off" : mode === 1 ? "track" : "context");
-      });
-    }
-  }, [player]);
-
-  const handleNext = async () => {
-    if (queue.length === 0) return;
-    setPreviousTracks((prev) => [...prev, track]);
-    const trackData = queue[0];
-    setTrack(trackData);
-    nextTrack(trackData.uri);
-    await moveToNext();
-    addTrackToQueue(queue[0].uri);
-  };
-
-  const handlePrevious = () => {
-    if (previousTracks.length === 0) return;
-    const trackData = previousTracks[previousTracks.length - 1];
-    setPreviousTracks(previousTracks.slice(0, -1));
-    setTrack(trackData);
-    moveToPrevious();
-    previousTrack(trackData.uri);
-    addTrackToQueue(queue[0].uri);
-  };
 
   const handleMouseDown = () => {
     setIsDragging(true);
@@ -171,9 +131,9 @@ const Player = () => {
             }
             alt="Repeat"
             title={
-              repeatMode === "track"
+              repeatStatus === "track"
                 ? "Repeat current track"
-                : repeatMode === "context"
+                : repeatStatus === "context"
                   ? "Repeat entire album"
                   : "Repeat off"
             }

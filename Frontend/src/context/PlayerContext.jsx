@@ -1,7 +1,7 @@
 import React, { createContext, useEffect, useState } from "react";
 import axios from "axios";
 import useTokenRefresh from "../utils/refresh_webplaybacksdk_token";
-// import { QueueProvider, useQueue } from "./QueueContext";
+import { useQueue } from "./QueueContext";
 export const PlayerContext = createContext();
 
 const PlayerContextProvider = ({ children }) => {
@@ -25,6 +25,18 @@ const PlayerContextProvider = ({ children }) => {
   const [volume, setVolume] = useState(0.2); // Mặc định là 20%
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const {
+    toggleQueue,
+    moveToNext,
+    moveToPrevious,
+    queue,
+    previousTracks,
+    setPreviousTracks,
+  } = useQueue();
+
+  useEffect(() => {
+    console.log("Queue in PlayerContext:", queue); // Xem giá trị có phải undefined không
+  }, [queue]);
 
   useEffect(() => {
     const getAccessToken = async () => {
@@ -34,6 +46,7 @@ const PlayerContextProvider = ({ children }) => {
         setTokenReady(true);
       } catch (error) {
         console.error("Error fetching token:", error);
+
       }
     };
     getAccessToken();
@@ -71,7 +84,6 @@ const PlayerContextProvider = ({ children }) => {
             console.log("Player state is null");
             return;
           }
-
           const { paused, position, duration } = state;
           setCurrentTime(position / 1000);
           setDuration(duration / 1000);
@@ -90,6 +102,7 @@ const PlayerContextProvider = ({ children }) => {
             });
           }, 1000);
           return () => clearInterval(interval);
+
         },
         [player],
       );
@@ -106,14 +119,12 @@ const PlayerContextProvider = ({ children }) => {
 
   const play = () => {
     player.resume().then(() => {
-      console.log("Resumed!");
     });
     setPlayStatus(true);
   };
 
   const pause = () => {
     player.pause().then(() => {
-      console.log("Paused!");
     });
     setPlayStatus(false);
   };
@@ -123,7 +134,6 @@ const PlayerContextProvider = ({ children }) => {
       console.log("Device ID not available");
       return;
     }
-
     try {
       await axios.put(
         `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`,
@@ -146,8 +156,6 @@ const PlayerContextProvider = ({ children }) => {
             );
             return;
           }
-          console.log("Repeat", state.repeat_mode);
-          console.log(repeatStatus);
         });
       }, 500);
     } catch (error) {
@@ -169,9 +177,7 @@ const PlayerContextProvider = ({ children }) => {
         {},
         { headers: { Authorization: `Bearer ${token}` } },
       )
-      .then((response) => {
-        console.log("Response from API:", response.data);
-        console.log(repeatStatus);
+      .then(() => {
       })
       .catch((error) => {
         console.error(
@@ -203,7 +209,7 @@ const PlayerContextProvider = ({ children }) => {
 
   const addTrackToQueue = async (trackUri) => {
     try {
-      const response = await axios.post(
+        await axios.post(
         `https://api.spotify.com/v1/me/player/queue`,
         null,
         {
@@ -221,13 +227,35 @@ const PlayerContextProvider = ({ children }) => {
     }
   };
 
-  const nextTrack = (trackUri) => {
-    playWithUri(trackUri);
+  const handleNext = async () => {
+    if (queue.length === 0) return;
+    setPreviousTracks((prev) => [...prev, track]);
+    const trackData = queue[0];
+    await playWithUri(trackData.uri);
+    setTrack(trackData);
+    moveToNext();
+    // addTrackToQueue(queue[0].uri);
   };
 
-  const previousTrack = (trackUri) => {
-    playWithUri(trackUri);
+  const handlePrevious = async () => {
+    if (previousTracks.length === 0) return;
+    const trackData = previousTracks[previousTracks.length - 1];
+    setPreviousTracks(previousTracks.slice(0, -1));
+    await playWithUri(trackData.uri);
+    setTrack(trackData);
+    moveToPrevious();
+    // addTrackToQueue(queue[0].uri);
   };
+
+  // const handleAutoNextSong = React.useCallback(async () => {
+  //   if (queue.length === 0) return;
+  
+  //   const trackData = queue[0];
+  //   await playWithUri(trackData.uri);
+  //   setTrack(trackData);
+  //   moveToNext();
+  // }, [queue, playWithUri, setTrack, moveToNext]);
+  
 
   const contextValue = {
     track,
@@ -251,8 +279,8 @@ const PlayerContextProvider = ({ children }) => {
     duration,
     handleTimeClick,
     addTrackToQueue,
-    nextTrack,
-    previousTrack,
+    handleNext,
+    handlePrevious
   };
 
   // if (!isDeviceReady) {

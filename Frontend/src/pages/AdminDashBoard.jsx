@@ -47,7 +47,7 @@ const AdminDashboard = () => {
   const fetchData = async () => {
     try {
       if (activeTab === "users") {
-        const response = getAlluser();
+        const response = await getAlluser();
         setUsers(response.data.users);
       } else if (activeTab === "playlists") {
         const response = await getAllPlaylist();

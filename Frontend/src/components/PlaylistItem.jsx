@@ -39,7 +39,8 @@ const PlaylistItem = ({ playlist }) => {
         setNotificationMessage("Đã xóa playlist thành công");
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 2000);
-        // navigate('/');
+        window.dispatchEvent(new Event("playlistsUpdated"));
+        navigate('/');
 
       } catch (error) {
         console.error('Error deleting:', error);

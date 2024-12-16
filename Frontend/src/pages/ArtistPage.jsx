@@ -290,7 +290,7 @@ const ArtistPage = () => {
       setTimeout(() => setShowNotification(false), 2000);
 
       // Force refresh of playlists in sidebar
-      await refreshPlaylists(); // If you have this function
+      await refreshPlaylists(setUserPlaylists); // If you have this function
       window.dispatchEvent(new Event("playlistsUpdated"));
     } catch (error) {
       console.error("Error following/unfollowing artist:", error);

@@ -56,6 +56,7 @@ import liked_icon from './liked.png'
 import repeated_icon from './repeated.png'
 import repeatall_icon from './repeatall.png'
 import soundtify from './soundtify_logo.png'
+import image_icon from './image.png'
 
 export const assets = {
     bell_icon,
@@ -96,7 +97,8 @@ export const assets = {
     liked_icon,
     soundtify,
     repeated_icon,
-    repeatall_icon
+    repeatall_icon,
+    image_icon,
 }
 
 export const albumsData = [

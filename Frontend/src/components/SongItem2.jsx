@@ -7,7 +7,6 @@ const SongItem2 = ({ name, image, singer, id }) => {
   const { playWithUri, setTrack } = useContext(PlayerContext);
   const handleClick = async () => {
     try {
-      
       const data = await getTrack(id);
       const fetchTrackData = async () => {
         try {

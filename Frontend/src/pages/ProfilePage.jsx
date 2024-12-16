@@ -208,7 +208,7 @@ const ProfilePage = () => {
         <div className="flex items-center gap-6">
           <div className="group relative">
             <img
-              src={userData?.avatar || assets.avatar}
+              src={userData?.avatar || assets.image_icon}
               alt="Profile"
               className="h-48 w-48 rounded-full object-cover shadow-2xl"
             />

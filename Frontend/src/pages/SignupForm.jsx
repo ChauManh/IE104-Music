@@ -135,6 +135,21 @@ const SignupForm = () => {
       if (result && result.EC === 0) {
         localStorage.setItem("access_token", result.access_token);
         localStorage.setItem("user", JSON.stringify(result.user));
+
+        await axios.post(
+          "http://localhost:3000/user/create_playlist",
+          {
+            name: "Bài hát đã thích",
+            type: "playlist",
+            description: "Những bài hát bạn yêu thích",
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${result.access_token}`,
+            },
+          },
+        );
+        
         setIsError(false);
         setNotificationMessage("Đăng ký thành công");
         setShowNotification(true);

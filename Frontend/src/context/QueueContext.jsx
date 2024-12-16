@@ -19,7 +19,7 @@ export const QueueProvider = ({ children }) => {
     if (queue.length > 0) {
       const newQueue = queue.slice(1);
       setQueue(newQueue);
-    } else return;
+    }
   };
   
   const moveToPrevious = () => {};
