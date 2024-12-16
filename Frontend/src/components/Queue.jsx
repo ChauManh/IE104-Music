@@ -3,10 +3,11 @@ import { useQueue } from '../context/QueueContext';
 import { PlayerContext } from '../context/PlayerContext';
 
 const Queue = () => {
-  const { isVisible, queue, moveToTop} = useQueue();
+  const { isVisible, queue, moveToTop, setPreviousTracks} = useQueue();
   const { track, setTrack, playWithUri } = useContext(PlayerContext);
 
   const handleTrackClick = (index) => {
+    setPreviousTracks((prev) => [...prev, track]);
     const selectedTrack = queue[index];
     setTrack(selectedTrack);
     playWithUri(selectedTrack.uri);

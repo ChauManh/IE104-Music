@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { assets } from "../../assets/assets";
 import { PlayerContext } from "../../context/PlayerContext";
 import { useQueue } from "../../context/QueueContext";
@@ -23,9 +23,7 @@ const Player = () => {
     setCurrentTime,
   } = useContext(PlayerContext);
 
-  const {
-    toggleQueue,
-  } = useQueue();
+  const { toggleQueue } = useQueue();
   const [isDragging, setIsDragging] = useState(false);
   const [localTime, setLocalTime] = useState(currentTime);
 
@@ -34,6 +32,7 @@ const Player = () => {
   };
 
   const handleMouseUp = () => {
+    if (!player) return;
     if (isDragging) {
       setIsDragging(false);
       // Seek to the new position when mouse is released
@@ -47,6 +46,7 @@ const Player = () => {
   };
 
   const handleMouseMove = (e) => {
+    if (!player) return;
     if (isDragging) {
       const progressBar = e.currentTarget;
       const rect = progressBar.getBoundingClientRect();

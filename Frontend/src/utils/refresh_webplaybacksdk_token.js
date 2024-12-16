@@ -1,41 +1,42 @@
-import { useEffect } from "react";
 import { getRefreshToken } from "../services/authApi";
 
-const useTokenRefresh = (onTokenRefreshSuccess) => {
-  useEffect(() => {
-    let timeoutId;
+export const refreshAccessToken = async () => {
+  const refresh_token = localStorage.getItem("refresh_token");
+  const expires_in = localStorage.getItem("expires_in"); // Thời gian hết hạn (timestamp)
+  
+  if (!refresh_token || !expires_in) {
+    // alert("Đăng nhập để nghe nhạc")
+    // localStorage.clear();
+    // window.location.href = "http://localhost:5173/signin";
+    return;
+  }
 
-    const refreshAccessToken = async () => {
-      const refresh_token = localStorage.getItem("refresh_token");
-      if (!refresh_token) {
-        console.log("No refresh token found");
-        return;
-      }
+  // Kiểm tra nếu gần hết hạn (trước 5 phút)
+  const currentTime = Date.now();
+  const bufferTime = 5 * 60 * 1000; // 5 phút dưới dạng milliseconds
+  const expired_at = Number(expires_in);
 
-      try {
-        console.log("Refreshing access token...");
-        const tokenData = await getRefreshToken(refresh_token);
-        localStorage.setItem("web_playback_token", tokenData.access_token);
-        console.log("Access token refreshed:", tokenData.access_token);
+  if (currentTime < expired_at - bufferTime) {
+    console.log("Token vẫn còn hiệu lực, không cần làm mới.");
+    return; // Token vẫn còn hiệu lực
+  }
 
-        // Gọi callback khi làm mới thành công
-        if (onTokenRefreshSuccess) {
-          onTokenRefreshSuccess(tokenData.access_token);
-        }
+  try {
+    console.log("Refreshing access token...");
+    const tokenData = await getRefreshToken(refresh_token);
 
-        // Lên lịch làm mới token trước khi hết hạn (ví dụ: 5 phút trước khi hết hạn)
-        timeoutId = setTimeout(refreshAccessToken, 60 * 1000);
-      } catch (error) {
-        console.error("Failed to refresh token:", error);
-      }
-    };
+    // Lưu token mới và thời gian hết hạn mới
+    const newExpiredAt = Date.now() + tokenData.expires_in * 1000; // `expires_in` là giây
+    localStorage.setItem("web_playback_token", tokenData.access_token);
+    localStorage.setItem("expired_at", newExpiredAt.toString());
 
-    // Lần đầu gọi hàm refresh sau 55 phút để tránh lỗi
-    timeoutId = setTimeout(refreshAccessToken, 60 * 1000);
-
-    // Dọn dẹp timeout khi component unmount
-    return () => clearTimeout(timeoutId);
-  }, [onTokenRefreshSuccess]);
+    return tokenData.access_token;
+  } catch (error) {
+    console.error("Failed to refresh token:", error);
+    alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+    localStorage.clear();
+    window.location.href = "http://localhost:5173/signin";
+    return null;
+  }
 };
 
-export default useTokenRefresh;

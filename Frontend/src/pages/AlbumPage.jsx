@@ -68,7 +68,7 @@ const AlbumPage = () => {
         uri: item.uri,
       }));
       setQueue(newQueue);
-      addTrackToQueue(newQueue[0].uri);
+      // addTrackToQueue(newQueue[0].uri);
     }
     playWithUri(track.uri);
   };
