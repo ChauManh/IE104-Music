@@ -27,15 +27,15 @@ Bước 1: Clone repository:
 
 Bước 2: Cài đặt dependencies:
 
-+ cd Backend
+`cd Backend`
 
-+ npm install
+`npm install`
 
 Tạo 1 cửa sổ terminal mới:
 
-+ cd Frontend
+`cd Frontend`
 
-+ npm install
+`npm install`
 
 Cấu hình môi trường:
 -
@@ -43,7 +43,7 @@ Tạo file .env trong thư mục gốc và thêm các biến môi trường cầ
 
 + tạo 1 file giống .env giống với .env.example vào trong Frontend/src
 + Firebase Configuration : tìm hiểu firebase để có các key dưới đây
-
+```
 VITE_FIREBASE_API_KEY=
 
 VITE_FIREBASE_AUTH_DOMAIN=
@@ -55,10 +55,10 @@ VITE_FIREBASE_STORAGE_BUCKET=
 VITE_FIREBASE_MESSAGING_SENDER_ID=
 
 VITE_FIREBASE_APP_ID=
-
+```
 + tạo 1 file giống .env giống với .env.example vào trong Backend/src
 + Để có các key dưới đây, vui lòng tìm hiểu Web Playback SDK (Lưu ý để phát được nhạc cần có tài khoản Spotify Premium). Riêng JWT_SECRET: tạo 1 chuỗi bất kỳ để làm key cho ứng dụng của bạn
-
+```
 SPOTIFY_CLIENT_ID=your_spotify_client_id 
 
 SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
@@ -66,18 +66,18 @@ SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
 SPOTIFY_REDIRECT_URI=http://localhost:3000/callback (use can change this on Web PlayBack SDK)
 
 JWT_SECRET=your_jwt_secret
-
+```
 Chạy ứng dụng:
 -
-cd Backend
+`cd Backend`
 
-npm run dev
+`npm run dev`
 
 + Tạo 1 cửa sổ terminal mới:
 
-cd Frontend
+`cd Frontend`
 
-npm run dev
+`npm run dev`
 
 Tận hưởng web Soundtify
 -
