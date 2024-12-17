@@ -6,10 +6,20 @@ import AlbumItem from "../components/AlbumItem";
 import { PlayerContext } from "../context/PlayerContext";
 import { useQueue } from "../context/QueueContext";
 import { fetchAlbum, fetchAlbumTracks } from "../services/albumApi";
-import { addLikedAlbum, getPlaylists } from "../services/userApi";
-import { getArtist, getArtistAlbums } from "../services/artistApi";
+import { 
+  addLikedAlbum, 
+  getPlaylists, 
+  deletePlaylist,  // Make sure this is properly exported from userApi
+  removeLikedAlbum,
+  addSongToPlaylist,
+  removeSongFromPlaylist
+} from "../services/userApi";
+import { getArtist, getArtistAlbums } from "../services/artistApi"; // Remove deletePlaylist from here
 import { formatDuration } from "../utils/formatDuration";
 import { calculateTotalDuration } from "../utils/calculateTotalDuration";
+import PlaylistPopup from "../components/PlaylistPopup";
+import { getDetailSong, getDetailSongBySpotifyId } from "../services/songApi";
+import axios from "axios";
 
 const AlbumPage = () => {
   const { setQueue } = useQueue();
@@ -25,6 +35,11 @@ const AlbumPage = () => {
   const [notificationMessage, setNotificationMessage] = useState("");
   const [dominantColor, setDominantColor] = useState("#333333");
   const [secondaryColor, setSecondaryColor] = useState("#333333");
+  const [isFollowed, setIsFollowed] = useState(false);
+  const [likedTracks, setLikedTracks] = useState({});
+  const [showPlaylistPopup, setShowPlaylistPopup] = useState(false);
+  const [selectedTrackId, setSelectedTrackId] = useState(null);
+  const [userPlaylists, setUserPlaylists] = useState([]);
 
   const Notification = ({ message }) => (
     <div className="fixed bottom-24 left-1/2 z-50 -translate-x-1/2 transform">
@@ -73,39 +88,109 @@ const AlbumPage = () => {
     playWithUri(track.uri);
   };
 
-  const handleFollowAlbum = async () => {
+  const followAlbum = async (album) => {
     try {
-      // Check if album playlist already exists
-      const playlistsResponse = await getPlaylists();
-
-      const exists = playlistsResponse.data.playlists.some(
-        (playlist) => playlist.type === "album" && playlist.albumId === id,
-      );
-
-      if (exists) {
-        setNotificationMessage(`Album đã có sẵn trong thư viện`);
-        setShowNotification(true);
-        setTimeout(() => setShowNotification(false), 2000);
-        window.dispatchEvent(new Event("playlistsUpdated"));
-        return;
+      const token = localStorage.getItem("access_token");
+      if (!token) {
+        throw new Error("No access token found");
       }
-
-      // Create new album playlist
-      await addLikedAlbum(album);
-
-      // Show notification
-      setNotificationMessage(`Đã thêm ${album.name} vào thư viện`);
-      setShowNotification(true);
-      setTimeout(() => setShowNotification(false), 2000);
-      window.dispatchEvent(new Event("playlistsUpdated"));
+      await axios.post(
+        "http://localhost:3000/user/create_playlist",
+        {
+          name: album.name,
+          thumbnail: album.images[0]?.url,
+          type: "album",
+          albumId: album.id,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
     } catch (error) {
-      console.error("Error following album:", error);
-      setNotificationMessage(`Không thể thêm album vào thư viện`);
-      setShowNotification(true);
-      setTimeout(() => setShowNotification(false), 2000);
-      window.dispatchEvent(new Event("playlistsUpdated"));
+      console.error("API follow album error:", error);
+      throw error;
     }
   };
+  
+  const unfollowAlbum = async (albumId) => {
+    try {
+      const token = localStorage.getItem("access_token");
+      if (!token) {
+        throw new Error("No access token found");
+      }
+      await axios.delete("http://localhost:3000/user/albums/unfollow", {
+        headers: { Authorization: `Bearer ${token}` },
+        data: { albumId },
+      });
+    } catch (error) {
+      console.error("API unfollow album error:", error);
+      throw error;
+    }
+  };
+
+  const handleFollowAlbum = async () => {
+    try {
+      const token = localStorage.getItem("access_token");
+      if (!token) return;
+
+      const playlistsResponse = await getPlaylists();
+      const existingPlaylist = playlistsResponse.data.playlists.find(
+        playlist => playlist.type === "album" && playlist.albumId === id
+      );
+
+      if (existingPlaylist) {
+        // Unfollow album - make sure both operations complete
+        try {
+          await Promise.all([
+            deletePlaylist(existingPlaylist._id),
+            removeLikedAlbum(id)
+          ]);
+
+          setIsFollowed(false);
+          setNotificationMessage(`Đã xóa ${album.name} khỏi thư viện`);
+        } catch (error) {
+          console.error("Error unfollowing album:", error);
+          throw error;
+        }
+      } else {
+        // Follow album
+        await addLikedAlbum(album);
+        setIsFollowed(true);
+        setNotificationMessage(`Đã thêm ${album.name} vào thư viện`);
+      }
+
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 2000);
+      window.dispatchEvent(new Event("playlistsUpdated"));
+
+    } catch (error) {
+      console.error("Error following/unfollowing album:", error);
+      setIsFollowed(prev => !prev);
+      setNotificationMessage("Không thể thực hiện thao tác");
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 2000);
+    }
+  };
+
+  useEffect(() => {
+    const checkIfFollowed = async () => {
+      try {
+        const playlistsResponse = await getPlaylists();
+
+        const exists = playlistsResponse.data.playlists.some(
+          (playlist) => playlist.type === "album" && playlist.albumId === id,
+        );
+
+        setIsFollowed(exists);
+      } catch (error) {
+        console.error("Error checking album follow status:", error);
+      }
+    };
+
+    checkIfFollowed();
+  }, [id]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -150,6 +235,105 @@ const AlbumPage = () => {
     fetchAlbumData();
   }, [id, location.pathname]);
 
+  useEffect(() => {
+    const checkLikedTracks = async () => {
+      try {
+        const response = await getPlaylists();
+        const likedPlaylist = response.data.playlists.find(
+          playlist => playlist.name === "Bài hát đã thích"
+        );
+        
+        if (likedPlaylist && likedPlaylist.songs) {
+          const trackMap = {};
+          for (const songId of likedPlaylist.songs) {
+            const songDetails = await getDetailSong(songId);
+            if (songDetails.data.spotifyId) {
+              trackMap[songDetails.data.spotifyId] = true;
+            }
+          }
+          setLikedTracks(trackMap);
+        }
+      } catch (error) {
+        console.error("Error checking liked tracks:", error);
+      }
+    };
+
+    checkLikedTracks();
+  }, []);
+
+  const handleLikeClick = async (trackId) => {
+    try {
+      const token = localStorage.getItem("access_token");
+      if (!token) {
+        alert("Please login first");
+        return;
+      }
+
+      // Toggle like status in UI immediately
+      setLikedTracks(prev => ({
+        ...prev,
+        [trackId]: !prev[trackId]
+      }));
+
+      // Get liked songs playlist
+      const playlistsResponse = await getPlaylists();
+      let likedPlaylist = playlistsResponse.data.playlists.find(
+        playlist => playlist.name === "Bài hát đã thích"
+      );
+
+      if (!likedTracks[trackId]) {
+        // Create liked playlist if it doesn't exist
+        if (!likedPlaylist) {
+          const createResponse = await axios.post(
+            "http://localhost:3000/user/create_playlist",
+            { name: "Bài hát đã thích" },
+            {
+              headers: { Authorization: `Bearer ${token}` }
+            }
+          );
+          likedPlaylist = createResponse.data.playlist;
+        }
+
+        // Add song to playlist
+        await addSongToPlaylist(likedPlaylist._id, trackId);
+        setNotificationMessage("Đã thêm vào Bài hát đã thích");
+      } else {
+        if (!likedPlaylist) {
+          throw new Error("Liked songs playlist not found");
+        }
+
+        // Get song details by Spotify ID
+        const songDetails = await getDetailSongBySpotifyId(trackId);
+        
+        if (!songDetails.data || !songDetails.data._id) {
+          throw new Error("Song not found in database");
+        }
+
+        // Remove song from playlist
+        await removeSongFromPlaylist(
+          likedPlaylist._id,
+          songDetails.data._id
+        );
+        setNotificationMessage("Đã xóa khỏi Bài hát đã thích");
+      }
+
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 2000);
+      window.dispatchEvent(new Event("playlistsUpdated"));
+
+    } catch (error) {
+      console.error("Error toggling like:", error);
+      // Revert UI state if operation failed
+      setLikedTracks(prev => ({
+        ...prev,
+        [trackId]: !prev[trackId]
+      }));
+      setNotificationMessage("Không thể thực hiện thao tác");
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 2000);
+    }
+  };
+
   if (error) return <div>{error}</div>;
   if (!album) return <div> </div>;
 
@@ -191,7 +375,7 @@ const AlbumPage = () => {
         </div>
       </div>
 
-      <div
+      <section
         className="relative z-10 px-6 py-4"
         style={{
           background: `linear-gradient(to bottom, ${dominantColor} -25%, #121212 25%)`,
@@ -206,22 +390,25 @@ const AlbumPage = () => {
               onClick={() => handlePlayAll()}
             />
           </div>
-
           <button
             onClick={handleFollowAlbum}
-            className="flex h-4 cursor-pointer items-center justify-center rounded-3xl border-2 border-solid p-4 opacity-70 transition-all hover:opacity-100"
+            className={`flex h-4 cursor-pointer items-center justify-center rounded-3xl border-2 border-solid p-4 opacity-70 transition-all hover:opacity-100 ${
+              isFollowed ? "border-[#1ed760] bg-[#1ed760] text-black" : ""
+            }`}
           >
-            Thêm vào thư viện
+            {isFollowed ? "Đã theo dõi" : "Theo dõi"}
           </button>
         </div>
 
-        <div className="mb-4 mt-10 grid grid-cols-[1fr_auto_auto] pl-2 text-[#a7a7a7]">
+
+        {/* Tracklist Section */}
+        <div className="mb-4 mt-10 grid grid-cols-[1fr_auto_0.1fr] pl-2 text-[#a7a7a7]">
           <div className="flex items-center">
-            <span className="mr-4 w-8 text-right">#</span>
-            <span className="pr-10">Tiêu đề</span>
+            <span className="mr-6 w-8 text-right">#</span>
+            <span className="">Tiêu đề</span>
           </div>
           <img
-            className="my-auto ml-auto mr-16 w-4"
+            className="my-auto mx-auto w-4"
             src={assets.clock_icon}
             alt="Clock Icon"
           />
@@ -230,30 +417,61 @@ const AlbumPage = () => {
         <hr className="border-top-1 bg-[#30363b] opacity-15" />
         <br></br>
 
+        {/* Tracklist */}
+        <div className="grid grid-rows-[auto_auto_1fr_auto_auto] gap-4">
         {Array.isArray(albumTracks) &&
           albumTracks.map((track, index) => (
             <div
               onClick={() => handleTrackClick(track, index)}
               key={index}
-              className="grid cursor-pointer grid-cols-[auto_1fr_auto] items-center gap-2 rounded rounded-s p-2 text-[#a7a7a7] hover:bg-[#ffffff2b]"
+              className="group grid cursor-pointer grid-cols-[0.1fr_2fr_0.1fr_0.1fr_0.15fr] items-center gap-2 rounded rounded-s p-2 text-[#a7a7a7] hover:bg-[#ffffff2b]"
             >
-              <div className="flex items-center">
                 <p className="mr-4 w-8 text-right">{index + 1}</p>
+                {/* index */}
                 <div className="flex flex-col">
-                  <p className="truncate font-normal text-white">
+                  <p className="truncate max-w-[350px] font-normal text-white">
                     {track.name}
                   </p>
                   <p className="truncate text-[14px]">
                     {track.singers.join(", ")}
                   </p>
                 </div>
-              </div>
-              <p className="mr-10 text-right">
-                {formatDuration(track.duration)}
-              </p>
+                {/* track name */}
+
+                <div className="opacity-0 transition-all hover:scale-105 group-hover:opacity-100">
+                  <img
+                    className="h-4 w-4 cursor-pointer opacity-70 transition-colors duration-200 hover:opacity-100"
+                    src={likedTracks[track.id] ? assets.liked_icon : assets.like_icon}
+                    alt="Like"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleLikeClick(track.id);
+                    }}
+                  />
+                </div>
+                <p className="text-sm text-gray-400">
+                  {formatDuration(track.duration)}
+                </p>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedTrackId(track.id);
+                    setShowPlaylistPopup(true);
+                    fetchUserPlaylists();
+                  }}
+                  className="rounded-full bg-transparent py-1 pl-1 pr-4 text-sm text-white opacity-0 transition-all hover:scale-105 group-hover:opacity-100"
+                >
+                  <img
+                    className="h-4 w-4 cursor-pointer rounded-[30px] opacity-70 transition-all hover:opacity-100"
+                    src={assets.more_icon}
+                    alt=""
+                  />
+                </button>
+
             </div>
           ))}
       </div>
+      </section>
 
       {/* More from Artist Section */}
       {relatedAlbums.length > 0 && (
@@ -280,6 +498,14 @@ const AlbumPage = () => {
           <Notification message={notificationMessage} />
         </>
       )}
+      <PlaylistPopup
+        isOpen={showPlaylistPopup}
+        onClose={() => setShowPlaylistPopup(false)}
+        trackId={selectedTrackId}
+        playlists={userPlaylists}
+        setShowNotification={setShowNotification}
+        setNotificationMessage={setNotificationMessage}
+      />
     </>
   );
 };

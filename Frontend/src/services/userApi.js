@@ -402,22 +402,22 @@ const fetchPlaylistData = async (playlistId) => {
 
 export {
   createPlaylist,
-  deletePlaylist,
+  deletePlaylist,  // Make sure this is included
   addSongToPlaylist,
+  removeSongFromPlaylist,
   addLikedSong,
   addLikedAlbum,
-  getPlaylists,
+  removeLikedAlbum,
   removeLikedSong,
   followArtist,
   unfollowArtist,
-  removeLikedAlbum,
   getRecentTracks,
   getPlaylistById,
-  removeSongFromPlaylist,
   updatePlaylistThumbnail,
   updateProfile,
   updateAvatar,
   getProfile,
   fetchPlaylistData,
   updatePlaylist,
+  getPlaylists,
 };

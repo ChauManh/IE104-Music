@@ -3,7 +3,7 @@ import { assets } from '../assets/assets';
 import { PlayerContext } from '../context/PlayerContext';
 import { getTrack } from '../services/trackApi';
 
-const SongItem2 = ({ name, image, singer, id }) => {
+const SongItem2 = ({ name, image, singer, id, duration }) => {
   const { playWithUri, setTrack } = useContext(PlayerContext);
   const handleClick = async () => {
     try {
@@ -59,7 +59,7 @@ const SongItem2 = ({ name, image, singer, id }) => {
           {name}
         </p>
         <p className="truncate text-sm text-[#b3b3b3] sm:text-xs">
-            {singer}
+          {singer}
         </p>
       </div>
     </div>

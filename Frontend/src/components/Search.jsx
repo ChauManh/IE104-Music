@@ -130,7 +130,6 @@ const SongsSection = ({ tracks }) => {
         );
 
         if (likedPlaylist && likedPlaylist.songs) {
-          // Create a map of track IDs to their liked status
           const trackMap = {};
           for (const songId of likedPlaylist.songs) {
             const songDetails = await getDetailSong(songId);
@@ -145,6 +144,18 @@ const SongsSection = ({ tracks }) => {
 
     checkLikedTracks();
   }, []);
+
+  const fetchUserPlaylists = async () => {
+    try {
+      const response = await getPlaylists();
+      setUserPlaylists(response.data.playlists);
+    } catch (error) {
+      console.error("Error fetching playlists:", error);
+      setShowNotification(true);
+      setNotificationMessage("Không thể tải danh sách playlist");
+      setTimeout(() => setShowNotification(false), 2000);
+    }
+  };
 
   const handleTrackClick = (track) => {
     console.log(track);
@@ -253,7 +264,7 @@ const SongsSection = ({ tracks }) => {
                 <img
                   className="h-4 w-4 cursor-pointer rounded-[30px] opacity-70 transition-all hover:opacity-100"
                   src={assets.more_icon}
-                  alt="More options"
+                  alt="Các sự lựa chọn khác"
                 />
               </button>
             </div>

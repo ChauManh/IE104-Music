@@ -126,8 +126,8 @@ const Player = () => {
               repeatStatus === "track"
                 ? assets.repeated_icon
                 : repeatStatus === "context"
-                  ? assets.repeatall_icon
-                  : assets.repeat_icon
+                  ? assets.repeat_icon
+                  : assets.repeatall_icon
             }
             alt="Repeat"
             title={

@@ -37,6 +37,7 @@ const FeaturedCharts = () => {
               singer={item.singer} 
               id={item.id} 
               image={item.image}
+              time={item.time}
             />
           ))}
         </div>

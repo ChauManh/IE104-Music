@@ -22,7 +22,7 @@ const PlaylistPopup = ({ isOpen, onClose, trackId, playlists, setShowNotificatio
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
             <div className="max-h-[70vh] w-[400px] overflow-y-auto rounded-lg bg-[#282828] p-4">
                 <div className="mb-4 flex items-center justify-between">
-                    <h2 className="text-lg font-bold text-white">Add to Playlist</h2>
+                    <h2 className="text-lg font-bold text-white">Thêm vào danh sách phát</h2>
                     <button
                         onClick={onClose}
                         className="text-2xl text-white hover:text-gray-400"
