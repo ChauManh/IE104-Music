@@ -4,10 +4,10 @@ import { PlayerContext } from "../context/PlayerContext";
 import { getTrack } from "../services/trackApi";
 
 const SongItem2 = ({ name, image, singer, id, uri, duration }) => {
-  const { playWithUri, setTrack } = useContext(PlayerContext);
+  const { playWithUri, setTrack, setDuration } = useContext(PlayerContext);
   const handleClick = async () => {
     const data = await getTrack(id);
-    console.log(data);
+    setDuration(duration/1000);
     setTrack(data);
     playWithUri(data.uri);
   };

@@ -114,7 +114,7 @@ const PlayerContextProvider = ({ children }) => {
       });
     }, 500);
     return () => clearInterval(interval);
-  }, [queue]);
+  }, [queue, player]);
 
   const play = () => {
     player.resume().then(() => {});
@@ -252,6 +252,7 @@ const PlayerContextProvider = ({ children }) => {
     handleTimeClick,
     addTrackToQueue,
     handleNext,
+    setDuration,
     handlePrevious,
   };
 
