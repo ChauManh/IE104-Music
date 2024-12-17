@@ -20,6 +20,20 @@ const UserController = {
 
             const playlistCount = await Playlist.countDocuments({ userID });
 
+            if (type === "playlistLikeSongs") {
+            const existingPlaylist = await Playlist.findOne({ 
+                userID, 
+                name: "Bài hát đã thích", 
+                type: "playlistLikeSongs" 
+            });
+
+            if (existingPlaylist) {
+                return res.status(200).json({ 
+                    message: 'Playlist "Bài hát đã thích" already exists' 
+                });
+            }
+        }
+
             // Set default name if none provided
             if (!name) {
                 name = `Danh sách phát của tôi #${playlistCount + 1}`;

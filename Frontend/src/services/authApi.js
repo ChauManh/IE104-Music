@@ -23,7 +23,7 @@ const login = async (email, password) => {
       email,
       password,
     });
-    return response.data;
+    return response;
   } catch (error) {
     console.error("API login error:", error);
     throw error;

@@ -214,7 +214,7 @@ const AdminDashboard = () => {
           onClick={() => setShowDropdown(!showDropdown)}
         >
           <img
-            src={assets.avatar}
+            src={assets.image_icon}
             alt="Admin"
             className="h-8 w-8 rounded-full"
           />

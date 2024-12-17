@@ -64,11 +64,9 @@ const SignupForm = () => {
 
     try {
       const res = await createUser(form.username, form.email, form.password);
-
       if (res.data.EC === 0) {
         // Login immediately after signup to get access token
         const loginResponse = await login(form.email, form.password);
-
         if (loginResponse.data.EC === 0) {
           const token = loginResponse.data.access_token;
           localStorage.setItem("access_token", token);
@@ -80,7 +78,7 @@ const SignupForm = () => {
               "http://localhost:3000/user/create_playlist",
               {
                 name: "Bài hát đã thích",
-                type: "playlist",
+                type: "playlistLikeSongs",
                 description: "Những bài hát bạn yêu thích",
               },
               {
@@ -91,6 +89,7 @@ const SignupForm = () => {
             );
 
             // Show success notification
+
             setIsError(false);
             setNotificationMessage("Đăng ký thành công");
             setShowNotification(true);
@@ -155,7 +154,7 @@ const SignupForm = () => {
         setShowNotification(true);
         setTimeout(() => {
           setShowNotification(false);
-          navigate("/");
+          navigate("/signin");
         }, 2000);
       }
     } catch (error) {

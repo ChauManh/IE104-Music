@@ -6,6 +6,8 @@ import {
   getWebPlayBackSDKToken,
 } from "../services/authApi";
 import { assets } from "../assets/assets";
+import axios from "axios";
+
 const SignIn = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -25,15 +27,34 @@ const SignIn = () => {
     try {
       const result = await login(formData.email, formData.password);
 
-      if (result && result.EC === 0) {
-        localStorage.setItem("access_token", result.access_token);
-        localStorage.setItem("user", JSON.stringify(result.user));
+      if (result.data && result.data.EC === 0) {
+        localStorage.setItem("access_token", result.data.access_token);
+        localStorage.setItem("user", JSON.stringify(result.data.user));
 
         // Navigate based on role
-        if (result.user.role === "admin") {
+        if (result.data.user.role === "admin") {
           window.location.href = "/admin/dashboard";
         } else {
-          navigate("/");
+          localStorage.removeItem("web_playback_token");
+          try {
+            // Redirect to Spotify auth
+            window.location.href = "http://localhost:3000/spotify_auth/login";
+  
+            // Note: The code below won't execute immediately due to redirect
+            const spotifyToken = await getWebPlayBackSDKToken();
+            if (spotifyToken) {
+              localStorage.setItem(
+                "web_playback_token",
+                spotifyToken.access_token,
+              );
+              localStorage.setItem("refresh_token", spotifyToken.refresh_token);
+              localStorage.setItem("expires_in", spotifyToken.expires_in);
+              console.log("Web Playback SDK Token:", spotifyToken.access_token);
+            }
+          } catch (spotifyError) {
+            console.error("Spotify auth error:", spotifyError);
+            alert("Error getting Spotify access. Please try again.");
+          }
         }
       }
     } catch (error) {
@@ -51,6 +72,19 @@ const SignIn = () => {
         // Store authentication data
         localStorage.setItem("access_token", result.access_token);
         localStorage.setItem("user", JSON.stringify(result.user));
+        await axios.post(
+          "http://localhost:3000/user/create_playlist",
+          {
+            name: "Bài hát đã thích",
+            type: "playlistLikeSongs",
+            description: "Những bài hát bạn yêu thích",
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${result.access_token}`,
+            },
+          },
+        );
 
         // Clear any existing Spotify tokens
         localStorage.removeItem("web_playback_token");
