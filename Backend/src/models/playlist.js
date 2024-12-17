@@ -8,7 +8,7 @@ const playlistSchema = new mongoose.Schema({
     songs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Song' }],
     type: { 
         type: String, 
-        enum: ['playlist', 'artist', 'album'],
+        enum: ['playlist', 'artist', 'album', 'playlistLikeSongs'],
         default: 'playlist' 
     },
     artistId: String,

@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { assets } from "../../assets/assets";
 import { PlayerContext } from "../../context/PlayerContext";
 import { useQueue } from "../../context/QueueContext";
@@ -19,46 +19,9 @@ const Player = () => {
     currentTime,
     duration,
     handleTimeClick,
-    player,
-    setCurrentTime,
   } = useContext(PlayerContext);
 
-  const {
-    toggleQueue,
-  } = useQueue();
-  const [isDragging, setIsDragging] = useState(false);
-  const [localTime, setLocalTime] = useState(currentTime);
-
-  const handleMouseDown = () => {
-    setIsDragging(true);
-  };
-
-  const handleMouseUp = () => {
-    if (isDragging) {
-      setIsDragging(false);
-      // Seek to the new position when mouse is released
-      player.seek(localTime * 1000);
-      setCurrentTime(localTime);
-      // Resume playback if it was playing before
-      if (playStatus) {
-        player.resume();
-      }
-    }
-  };
-
-  const handleMouseMove = (e) => {
-    if (isDragging) {
-      const progressBar = e.currentTarget;
-      const rect = progressBar.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const percent = x / progressBar.offsetWidth;
-      const newTime = percent * duration;
-      setLocalTime(newTime);
-      // Update position in real-time while dragging
-      player.seek(newTime * 1000);
-      setCurrentTime(newTime);
-    }
-  };
+  const { toggleQueue } = useQueue();
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-10 flex min-h-[9%] items-center justify-between bg-zinc-900 px-[2vw] text-white">
@@ -144,27 +107,23 @@ const Player = () => {
         <div className="group mb-2 flex w-full items-center gap-2">
           <span className="w-10 text-right text-xs text-gray-400">
             {formatTime(
-              Math.floor(isDragging ? localTime / 60 : currentTime / 60),
-              Math.floor(isDragging ? localTime % 60 : currentTime % 60),
+              Math.floor(currentTime / 60),
+              Math.floor(currentTime % 60),
             )}
           </span>
           <div
             onClick={handleTimeClick}
-            onMouseDown={handleMouseDown}
-            onMouseUp={handleMouseUp}
-            onMouseMove={handleMouseMove}
-            onMouseLeave={() => setIsDragging(false)}
             className="relative h-1 flex-1 cursor-pointer rounded-full bg-[#4d4d4d] group-hover:h-1.5"
           >
             <div
               className="absolute h-full rounded-full bg-[#1db954] group-hover:bg-[#1ed760]"
               style={{
-                width: `${((isDragging ? localTime : currentTime) / duration) * 100}%`,
+                width: `${(currentTime / duration) * 100}%`,
               }}
             />
             <div
               style={{
-                left: `${((isDragging ? localTime : currentTime) / duration) * 100}%`,
+                left: `${(currentTime / duration) * 100}%`,
               }}
               className="absolute h-3 w-3 -translate-y-1/3 rounded-full bg-white opacity-0 group-hover:opacity-100"
             />

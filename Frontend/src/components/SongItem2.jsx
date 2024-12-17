@@ -1,40 +1,21 @@
-import React, { useContext } from 'react';
-import { assets } from '../assets/assets';
-import { PlayerContext } from '../context/PlayerContext';
-import { getTrack } from '../services/trackApi';
+import React, { useContext } from "react";
+import { assets } from "../assets/assets";
+import { PlayerContext } from "../context/PlayerContext";
+import { getTrack } from "../services/trackApi";
 
-const SongItem2 = ({ name, image, singer, id, duration }) => {
-  const { playWithUri, setTrack } = useContext(PlayerContext);
+const SongItem2 = ({ name, image, singer, id, uri, duration }) => {
+  const { playWithUri, setTrack, setDuration } = useContext(PlayerContext);
   const handleClick = async () => {
-    try {
-      const data = await getTrack(id);
-      const fetchTrackData = async () => {
-        try {
-          setTrack({
-            name: data.name,
-            image: data.image,
-            singer: data.singer,
-            id: data.id,
-            uri: data.uri,
-            duration: data.duration,
-          });
-          playWithUri(data.uri); 
-        } catch (error) {
-          console.error('Error fetching track:', error);
-          
-        }
-      };
-  
-      await fetchTrackData();
-    } catch (error) {
-      console.error('Error navigating to track:', error);
-    }
+    const data = await getTrack(id);
+    setDuration(duration/1000);
+    setTrack(data);
+    playWithUri(data.uri);
   };
 
   return (
     <div
       onClick={handleClick}
-      className="group relative flex cursor-pointer flex-col items-center rounded transition-colors  duration-200 hover:bg-[#1e1e1e] lg:p-2 xl:p-4"
+      className="group relative flex cursor-pointer flex-col items-center rounded transition-colors duration-200 hover:bg-[#1e1e1e] lg:p-2 xl:p-4"
     >
       <div className="relative mb-4 w-full sm:mb-3 md:mb-2">
         <div className="relative aspect-square w-full">
@@ -59,7 +40,7 @@ const SongItem2 = ({ name, image, singer, id, duration }) => {
           {name}
         </p>
         <p className="truncate text-sm text-[#b3b3b3] sm:text-xs">
-          {singer}
+            {singer}
         </p>
       </div>
     </div>

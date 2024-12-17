@@ -23,7 +23,7 @@ const login = async (email, password) => {
       email,
       password,
     });
-    return response.data;
+    return response;
   } catch (error) {
     console.error("API login error:", error);
     throw error;
@@ -109,7 +109,6 @@ const getRefreshToken = async (refreshToken) => {
         params: { refresh_token: refreshToken }, // Truyền refresh_token qua query
       },
     );
-    console.log("token", response.data);
     return response.data;
   } catch (error) {
     alert(error.message);

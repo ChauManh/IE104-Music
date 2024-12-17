@@ -158,7 +158,6 @@ const SongsSection = ({ tracks }) => {
   };
 
   const handleTrackClick = (track) => {
-    console.log(track);
     setTrack({
       id: track.id,
       name: track.name,
