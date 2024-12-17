@@ -29,6 +29,7 @@ const PlayerContextProvider = ({ children }) => {
     moveToNext,
     moveToPrevious,
     queue,
+    setQueue,
     previousTracks,
     setPreviousTracks,
   } = useQueue();
@@ -210,13 +211,16 @@ const PlayerContextProvider = ({ children }) => {
   };
 
   const handleNext = async () => {
-    if (queue.length === 0) return;
-    setPreviousTracks((prev) => [...prev, track]);
-    const trackData = queue[0];
-    await playWithUri(trackData.uri);
-    setTrack(trackData);
-    setPlayStatus(true);
-    moveToNext();
+    if (queue.length === 0 && repeatStatus === "off") {
+      setQueue([]);
+    } else {
+      setPreviousTracks((prev) => [...prev, track]);
+      const trackData = queue[0];
+      await playWithUri(trackData.uri);
+      setTrack(trackData);
+      setPlayStatus(true);
+      moveToNext();
+    }
   };
 
   const handlePrevious = async () => {
