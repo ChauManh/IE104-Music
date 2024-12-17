@@ -390,7 +390,7 @@ const EditProfileDialog = ({
               src={
                 editForm.avatar
                   ? URL.createObjectURL(editForm.avatar)
-                  : userData?.avatar || assets.avatar
+                  : userData?.avatar || assets.image_icon
               }
               alt="Profile"
               className="h-full w-full rounded-full object-cover"

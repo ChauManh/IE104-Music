@@ -8,7 +8,20 @@ import {
 import { assets } from "../assets/assets";
 import axios from "axios";
 
+const Notification = ({ message, isError }) => (
+  <div className="fixed bottom-24 left-1/2 z-50 -translate-x-1/2 transform">
+    <div
+      className={`rounded-full ${isError ? "bg-red-500" : "bg-[#1ed760]"} px-4 py-2 text-center text-sm font-medium text-white shadow-lg`}
+    >
+      <span>{message}</span>
+    </div>
+  </div>
+);
 const SignIn = () => {
+  const [showNotification, setShowNotification] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState("");
+  const [isError, setIsError] = useState(false);
+
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
@@ -39,7 +52,7 @@ const SignIn = () => {
           try {
             // Redirect to Spotify auth
             window.location.href = "http://localhost:3000/spotify_auth/login";
-  
+
             // Note: The code below won't execute immediately due to redirect
             const spotifyToken = await getWebPlayBackSDKToken();
             if (spotifyToken) {
@@ -52,14 +65,18 @@ const SignIn = () => {
               console.log("Web Playback SDK Token:", spotifyToken.access_token);
             }
           } catch (spotifyError) {
-            console.error("Spotify auth error:", spotifyError);
-            alert("Error getting Spotify access. Please try again.");
+            setIsError(true);
+            setNotificationMessage(spotifyError);
+            setShowNotification(true);
+            setTimeout(() => setShowNotification(false), 2000);
           }
         }
       }
     } catch (error) {
-      console.error("Login error:", error);
-      alert(error.response?.data?.EM || "Login failed");
+      setIsError(true);
+      setNotificationMessage(error.response?.data?.EM);
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 2000);
     }
   };
 
@@ -209,6 +226,9 @@ const SignIn = () => {
           </p>
         </div>
       </section>
+      {showNotification && (
+        <Notification message={notificationMessage} isError={isError} />
+      )}
     </div>
   );
 };

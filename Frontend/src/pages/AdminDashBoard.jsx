@@ -270,14 +270,14 @@ const AdminDashboard = () => {
       {/* Content */}
       {activeTab === "users" && (
         <>
-          <div className="mb-4 flex justify-end">
+          {/* <div className="mb-4 flex justify-end">
             <button
               onClick={() => setShowUserModal(true)}
               className="rounded-full bg-[#1ed760] px-4 py-2 font-semibold text-black hover:scale-105"
             >
               Thêm người dùng mới
             </button>
-          </div>
+          </div> */}
           <div className="rounded-lg bg-[#121212] p-4">
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
