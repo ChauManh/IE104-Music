@@ -173,7 +173,6 @@ const AdminDashboard = () => {
               className="w-full rounded bg-[#3e3e3e] p-2 text-white focus:outline-none"
             >
               <option value="user">User</option>
-              <option value="admin">Admin</option>
             </select>
           </div>
           <div className="flex justify-end gap-4">

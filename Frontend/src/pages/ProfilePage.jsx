@@ -165,7 +165,7 @@ const ProfilePage = () => {
           artistPlaylists.map(async (playlist) => {
             try {
               const response = await getArtist(playlist.artistId);
-              return response;
+              return response.data;
             } catch (error) {
               console.error(
                 `Error fetching artist ${playlist.artistId}:`,
