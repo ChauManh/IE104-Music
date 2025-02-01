@@ -88,6 +88,9 @@ Chạy ứng dụng:
 
 `npm run dev`
 
+Link demo ứng dụng:
+[Demo Link](https://www.youtube.com/watch?v=iQ83y5W5djk)
+
 Tận hưởng web Soundtify
 -
 Mọi thắc mắc liên hệ email: 22520846@gm.uit.edu.vn
