@@ -1,0 +1,53 @@
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependency directories
+node_modules/
+.pnp/
+.pnp.js
+
+# Build outputs
+dist/
+dist-ssr/
+build/
+.cache/
+out/
+
+# Temporary files and local environments
+*.local
+.env
+.env.*.local
+
+# Editor directories and files
+.vscode/
+!.vscode/extensions.json  # Giữ lại extensions cần thiết
+.idea/
+.DS_Store  # MacOS
+Thumbs.db  # Windows
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS-specific files
+__MACOSX/
+
+# Temporary files from tests or development
+coverage/
+.nyc_output/
+.tmp/
+
+# Lint and formatting
+.eslintcache
+.prettier-cache/
+
+# Git-related
+.git/
+.git-credentials
